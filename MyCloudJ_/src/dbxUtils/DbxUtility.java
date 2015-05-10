@@ -1,4 +1,4 @@
-package DbxUtils;
+package dbxUtils;
 
 /*
  * Description		:		Google Summer of Code 2014 Project
@@ -19,6 +19,10 @@ package DbxUtils;
 
 import com.dropbox.core.*;
 
+import generalUtils.CloudException;
+import generalUtils.CloudOperations;
+import generalUtils.GeneralUtility;
+
 import java.awt.Desktop;
 import java.io.*;
 import java.net.URI;
@@ -30,7 +34,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 // Dropbox APIs calls for the MyCloudJ_ plugin are made from this class
-public class DbxUtility {
+public class DbxUtility implements CloudOperations {
 		/*
 		 * Class variables
 		 */
@@ -81,49 +85,15 @@ public class DbxUtility {
 		 * userQuota					:	Total size(in GBs) of user's dropbox account 
 		 * 
 		 */
-		public String userName="", country="", userQuota="";
+		private String userName="", country="", userQuota="";
 		
 		// Stores the OS-type: Linux/Windows/Mac. It is used to solve the problem of path separator(/ or \\). It makes plugin platform independent.
 		public String OS = System.getProperty("os.name").toLowerCase();
 		
-		
-		/*
-		 * Function to open Dropbox App URL in the default browser for user authentication
-		 * 
-		 * Parameters:
-		 * 
-		 * String url	:	MyCloudJ App url to be opened in the default browser
-		 * 
-		 * This function is called from the MyCloudJ_ class
-		*/
-		public String openDefaultBrowser(String url) {
-			if(Desktop.isDesktopSupported()){
-	            Desktop desktop = Desktop.getDesktop();
-	            try {
-	            	// opens the url in the browser
-	                desktop.browse(new URI(url));
-	            } catch (IOException | URISyntaxException e) {
-	            	e.printStackTrace();
-	            	return e.getMessage();
-	            }
-	        }
-			else{
-	            Runtime runtime = Runtime.getRuntime();
-	            try {
-	                runtime.exec("xdg-open " + url);
-	            } catch (IOException e) {
-	            	e.printStackTrace();
-	            	return e.getMessage();
-	            }
-	        }
-			return "done";
-		}
-		
-		
 		/*
 		 * Function for User Sign-in and Allow the Dropbox App MyCloudJ 
 		 */
-		public String DbxLogin() throws IOException, DbxException {
+		public void login() throws CloudException {
 			// Identifying the information of MyCLoudJ App  	
 			appInfo = new DbxAppInfo(APP_KEY, APP_SECRET);
 			
@@ -136,21 +106,27 @@ public class DbxUtility {
 	        webAuth = new DbxWebAuthNoRedirect(config, appInfo);
 	        authorizeUrl = webAuth.start();
 	        
-	        // Return the App Url to the MyCloudJ plugin
-	        return authorizeUrl;
+	        GeneralUtility.openDefaultBrowser(authorizeUrl);
 		}
 		
 		
 		/*
 		 * Function to accept the Access code and link the account of the user concerned.
 		 */
-		public void DbxLinkUser(String code) throws IOException, DbxException {
+		public void DbxLinkUser(String code) throws CloudException {
+			String error;
+			
 			/*
 			 *  This will fail if the user enters an invalid authorization code.
 			 *  authFinish		:	When you successfully complete the authorization process, the Dropbox server returns this information to you.
 			 *  accessToken		:	An access token that can be used to make Dropbox API calls.
 			 */
-	        authFinish = webAuth.finish(code);
+	        try {
+				authFinish = webAuth.finish(code);
+			} catch (DbxException e) {
+				error = "Access code error - Re-enter the correct access code " + e.getMessage();
+				throw new CloudException(error);
+			}
 	        accessToken = authFinish.accessToken;
 	        
 	        // Passed accessToken in to the DbxClient constructor.
@@ -160,11 +136,34 @@ public class DbxUtility {
 			 * Retrieve username, country and quota from dropbox account info API and
 			 * print it in the text area for the user
 			 */
-	        userName = client.getAccountInfo().displayName;
-			country = client.getAccountInfo().country;
-			userQuota += (double)client.getAccountInfo().quota.total/(1024*1024*1024);
+	        try {
+				setUserName(client.getAccountInfo().displayName);
+				setCountry(client.getAccountInfo().country);
+				setUserQuota(getUserQuota() + (double)client.getAccountInfo().quota.total/(1024*1024*1024));
+			} catch (DbxException e) {
+				error = "Error getting user information " + e.getMessage();
+				throw new CloudException(error);
+			}
+			
 		}
 		
+		public boolean isFileDownload(String name) throws CloudException {
+			DbxEntry metaData = null;
+			String error;
+			
+			try {
+				metaData = client.getMetadata(name);
+			} catch (DbxException e) {
+				error = "Error getting metadata: " + e.getMessage();
+				throw (new CloudException(error));
+			}
+	
+			// If selected node of JTree is a File, then set File=1(used while calling download function for file)
+			if(metaData.isFile())
+				return true;
+	    
+			return false;	
+		}
 		
 		/* 
 		 * Function to upload a "File" to Dropbox given the complete path of the file in local machine and the Dropbox folder's path
@@ -176,20 +175,34 @@ public class DbxUtility {
 		 * TargetDbxPath		:		Absolute Dropox Path of the folder where the file is to be added
 		 *  
 		 */
-		public void DbxUploadFile(String FileLocalPath, String TargetDbxPath) throws IOException, DbxException {
+		public void uploadFile(String FileLocalPath, String TargetDbxPath) throws CloudException  {
 	        File inputFile = new File(FileLocalPath);
-	        InputStream inputStream = new FileInputStream(inputFile);
-	        try {
-		        if(!inputFile.isHidden()) {
-		        	@SuppressWarnings("unused")
-		        	// Upload the file to dropbox
-					DbxEntry.File uploadedFile = client.uploadFile(TargetDbxPath, DbxWriteMode.add(), inputFile.length(), inputStream);
-		        }
-		        } finally {
-		            inputStream.close();
-		        }
+	        InputStream inputStream = null;
+	        String error;
+	        
+			try {
+				inputStream = new FileInputStream(inputFile);
+				DbxEntry.File uploadedFile = client.uploadFile(TargetDbxPath, DbxWriteMode.add(), inputFile.length(), inputStream);
+			} catch (DbxException e) {
+				error = "Error uploading on Dropbox" + e.getMessage();
+				throw (new CloudException(error));
+			} catch (FileNotFoundException e) {
+				error = "File not found " + e.getMessage(); 
+				throw (new CloudException(error));
+			} catch (IOException e) {
+				error = "IOException" + e.getMessage();
+				throw (new CloudException(error));
+			} finally {
+				try {
+			        if( inputStream!=null ) {
+			            inputStream.close();
+			        }
+			    } catch(IOException e) {
+			    	error = "Error closing inputStream" + e.getMessage();
+					throw (new CloudException(error));
+			   }
+			}      
 		}
-		
 		
 		/* 
 		 * Function to upload a "Folder" to Dropbox given the complete path of the folder in local machine and the Dropbox folder's path
@@ -201,7 +214,9 @@ public class DbxUtility {
 		 * TargetDbxPath		:		Absolute Dropox Path of the folder where the Folder has to be uploaded
 		 * 
 		 */
-		public void DbxUploadFolder(String FolderLocalPath, String TargetDbxPath) throws IOException, DbxException {
+		public void uploadFolder(String FolderLocalPath, String TargetDbxPath) throws CloudException {
+			String error;
+			
 			// Replace Path separator '\\' (for windows) to  Dropbox Path Separator '/'
 			String newFolderLocalPath = FolderLocalPath.replace('\\', '/');
 			
@@ -217,9 +232,14 @@ public class DbxUtility {
 			 *  We iteratively call DbxUploadFile for each children (sub-folders and files) inside the folder.
 			 */
 			if(inputFolder.isDirectory()) {
-	        	@SuppressWarnings("unused")
-	        	// Create a new folder of name "string folderName" inside Dropbox folder TargetDbxPath
-				DbxEntry folder = client.createFolder(TargetDbxPath+folderName);
+	        	try {
+					@SuppressWarnings("unused")
+					// Create a new folder of name "string folderName" inside Dropbox folder TargetDbxPath
+					DbxEntry folder = client.createFolder(TargetDbxPath+folderName);
+				} catch (DbxException e) {
+					error = "Error creating remote Dropbox folder: " + e.getMessage();
+					throw (new CloudException(error));
+				}
 	        	
 	        	// List of files inside the folder 
 	        	String[] files = inputFolder.list();
@@ -234,14 +254,14 @@ public class DbxUtility {
 	        	 */
 	        	for(int i=0;i<files.length;i++) {
 	        		if(OS.contains("windows"))
-	        			DbxUploadFolder(FolderLocalPath+'\\'+files[i], TargetDbxPath+folderName);
+	        			uploadFolder(FolderLocalPath+'\\'+files[i], TargetDbxPath+folderName);
 	        		else
-	        			DbxUploadFolder(FolderLocalPath+'/'+files[i], TargetDbxPath+folderName);
+	        			uploadFolder(FolderLocalPath+'/'+files[i], TargetDbxPath+folderName);
 	        	}
 	        }
 			// If the folder is not a directory but a file. This will never execute if the we check the File Type before calling this method. 
 	        else if(inputFolder.isFile()) {
-	        	DbxUploadFile(FolderLocalPath, TargetDbxPath+folderName);
+	        	uploadFile(FolderLocalPath, TargetDbxPath+folderName);
 	        }
 		}
 		
@@ -256,23 +276,41 @@ public class DbxUtility {
 		 * TargetLocalPath		:		Absolute Local Path of the folder where the file has to be downloaded
 		 * 
 		 */
-		public void DbxDownloadFile(String FileDbxPath, String TargetLocalPath) throws IOException, DbxException {
+		public void downloadFile(String FileDbxPath, String TargetLocalPath) throws CloudException {
 			// Extract the filename from the absolute path i.e. the last part
 			String fileName = FileDbxPath.substring(FileDbxPath.lastIndexOf("/"));
+			OutputStream outputStream = null;
+			String error;
 			
 			// Add the filename to the end of the local machine path where the file has to be added
 			TargetLocalPath += fileName;
 			
 			// File Pointer to the file
 			File SaveAsFile = new File(TargetLocalPath);
-	        OutputStream outputStream = new FileOutputStream(SaveAsFile);
-	        try {
-	        @SuppressWarnings("unused")
-	        // download the file from Dropbox
-			DbxEntry.File downloadedFile = client.getFile(FileDbxPath, null, outputStream);
-	        } finally {
-	            outputStream.close();
-	        }
+			try {
+		        outputStream = new FileOutputStream(SaveAsFile);
+		        @SuppressWarnings("unused")
+		        // download the file from Dropbox
+		        DbxEntry.File downloadedFile = client.getFile(FileDbxPath, null, outputStream);
+			} catch (DbxException e) {
+				error = "Error uploading on Dropbox" + e.getMessage();
+				throw (new CloudException(error));
+			} catch (FileNotFoundException e) {
+				error = "File not found " + e.getMessage(); 
+				throw (new CloudException(error));
+			} catch (IOException e) {
+				error = "IOException" + e.getMessage();
+				throw (new CloudException(error));
+			} finally {
+				try {
+			        if( outputStream != null ) {
+			            outputStream.close();
+			        }
+			    } catch(IOException e) {
+			    	error = "Error closing inputStream" + e.getMessage();
+					throw (new CloudException(error));
+			   }
+			}      
 		}
 		
 		
@@ -286,7 +324,8 @@ public class DbxUtility {
 		 * TargetLocalPath			:		Absolute Local Path of the folder where the Folder has to be downloaded
 		 * 
 		 */
-		public void DbxDownloadFolder(String FolderDbxPath, String TargetLocalPath) throws IOException, DbxException {
+		public void downloadFolder(String FolderDbxPath, String TargetLocalPath) throws CloudException {
+			String error;
 			/*
 			 * Create the folder in the local machine with last part of the of the FolderDbxPath i.e Folder's name
 			 */
@@ -301,36 +340,39 @@ public class DbxUtility {
 			/*
 			 * Function to get the metadata of the folder you wish to download
 			 */
-			DbxEntry.WithChildren folderInfo = client.getMetadataWithChildren(FolderDbxPath);
-			Iterator<DbxEntry> iterChildren;
-			 if (folderInfo == null) {
-			    // IJ.error("No file or folder at that path.");
-			 } else {				 
-				 /*
-	        	 * Iterate for each child of the Folder and call,  
-	        	 * 
-	        	 * 1. DbxDownloadFile() function if the child is a file, otherwise
-	        	 * 
-	        	 * 2. DbxDownloadFolder() function if the child is a sub-folder.
-	        	 * 
-	        	 */
-				 iterChildren = folderInfo.children.iterator();
-				 @SuppressWarnings("unused")
-				 boolean tillEndOfDirectory = true;
-				 DbxEntry child;
-				 while(tillEndOfDirectory=iterChildren.hasNext()) {
-					child = iterChildren.next();
-					if(child.isFolder())
-						DbxDownloadFolder(child.path, TargetLocalPath);
-					else if(child.isFile()) {
-						try {
-							DbxDownloadFile(child.path, TargetLocalPath);
-						} catch (IOException e) {
-							e.printStackTrace();
+			DbxEntry.WithChildren folderInfo;
+			try {
+					folderInfo = client.getMetadataWithChildren(FolderDbxPath);
+				Iterator<DbxEntry> iterChildren;
+				 if (folderInfo == null) {
+				    // IJ.error("No file or folder at that path.");
+				 } else {				 
+					 /*
+		        	 * Iterate for each child of the Folder and call,  
+		        	 * 
+		        	 * 1. DbxDownloadFile() function if the child is a file, otherwise
+		        	 * 
+		        	 * 2. DbxDownloadFolder() function if the child is a sub-folder.
+		        	 * 
+		        	 */
+					 iterChildren = folderInfo.children.iterator();
+					 @SuppressWarnings("unused")
+					 boolean tillEndOfDirectory = true;
+					 DbxEntry child;
+					 while(tillEndOfDirectory=iterChildren.hasNext()) {
+						child = iterChildren.next();
+						if(child.isFolder())
+							downloadFolder(child.path, TargetLocalPath);
+						else if(child.isFile()) {
+							downloadFile(child.path, TargetLocalPath);
 						}
-					}
+					 }
 				 }
-			 }
+			} catch (DbxException e) {
+				// TODO Auto-generated catch block
+				error = "Error downloading folder from Dropbox" + e.getMessage();
+				throw (new CloudException(error));
+			}
 		}
 
 	    
@@ -346,15 +388,19 @@ public class DbxUtility {
 	     * name			:	name of the parent node 
 	     *
 	     */
-	    public void addChildren(DefaultMutableTreeNode node, DefaultTreeModel Treemodel, String name) {
+	    public void addChildren(DefaultMutableTreeNode node, DefaultTreeModel Treemodel, String name) throws CloudException {
+	    	String error;
+	    	
 	    	/*
 			 * Function to get the metadata of the folder you wish to download
 			 */
 			DbxEntry.WithChildren folderInfo=null;
+			
 			try {
 				folderInfo = client.getMetadataWithChildren(name);
 			} catch (DbxException e) {
-				e.printStackTrace();
+				error = "Error getting metadata for the folder " + e.getMessage();
+				throw (new CloudException(error));
 			}
 			
 			/*
@@ -375,12 +421,12 @@ public class DbxUtility {
 						String lastPart = DbxPath.getName(child.path);
 						DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(lastPart);
 						// Add only unique nodes. In case, this function is called for the same parent node more than once
-						addUniqueNode(node, nodeChild, Treemodel);
+						GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 					}
 					else if(child.isFolder()){
 						DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.path);
 						// Add only unique nodes. In case, this function is called for the same parent node more than once
-						addUniqueNode(node, nodeChild, Treemodel);
+						GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 					}
 				 }
 			 }
@@ -429,38 +475,49 @@ public class DbxUtility {
 						// New child node to be added to the parent node
 						DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.path);
 						// Add only unique nodes. In case, this function is called for the same parent node more than once
-						addUniqueNode(node, nodeChild, Treemodel);
+						GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 					}	
 				 }
 			 }
 	    }
-	    
-	    
-	    /*
-	     * This function only adds unique children nodes to the parent node.
-	     * 
-	     * Parameters:
-	     * 
-	     * parentNode		:		Node to which children has to be added
-	     * childNode		:		Node to be added to the parent Node
-	     * model			:		JTree model
-	     * 
-	     */
-	    private void addUniqueNode(DefaultMutableTreeNode parentNode, DefaultMutableTreeNode childNode, DefaultTreeModel model) {
-	        // Check each node
-	        boolean isUnique = true;
-	        for (int i = 0; i < model.getChildCount(parentNode); i++)
-	        {
-	            Object compUserObj = ((DefaultMutableTreeNode) model.getChild(parentNode, i)).getUserObject();
-	            if (compUserObj.equals(childNode.getUserObject()))
-	            {
-	                isUnique = false;
-	                break;
-	            }
-	        }
 
-	        // If Unique, insert
-	        if(isUnique)
-	            model.insertNodeInto(childNode, parentNode, parentNode.getChildCount());
-	    }
+
+		public String getAuthorizeUrl() {
+			return authorizeUrl;
+		}
+
+
+		public void setAuthorizeUrl(String authorizeUrl) {
+			this.authorizeUrl = authorizeUrl;
+		}
+
+
+		public String getUserName() {
+			return userName;
+		}
+
+
+		public void setUserName(String userName) {
+			this.userName = userName;
+		}
+
+
+		public String getCountry() {
+			return country;
+		}
+
+
+		public void setCountry(String country) {
+			this.country = country;
+		}
+
+
+		public String getUserQuota() {
+			return userQuota;
+		}
+
+
+		public void setUserQuota(String userQuota) {
+			this.userQuota = userQuota;
+		}
 }
