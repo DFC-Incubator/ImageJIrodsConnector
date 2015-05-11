@@ -15,7 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
-import javax.swing.BorderFactory;                                              
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -131,7 +131,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * @topPanel2: right side of the mainFrame, components used for
 	 *             downloading/uploading
 	 */
-	private JPanel topPanel1, topPanel2;
+	private JPanel mainLeftPanel, mainRightPanel;
 
 	/**
 	 * two radio buttons inside topPanel1:
@@ -140,12 +140,12 @@ public class MyCloudJ_ implements PlugIn {
 	 * @irodsLoginRadioButton: draw screen for RODS login
 	 */
 	private JRadioButton dbxLoginRadioButton, irodsLoginRadioButton;
-	
+
 	/**
 	 * text for dbxLoginRadioButton
 	 */
 	private String dbLoginS = "Connect to Dropbox";
-	
+
 	/**
 	 * text for irodsLoginRadioButton
 	 */
@@ -200,7 +200,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * upload/download
 	 */
 	public Object node, parentNode;
-	
+
 	/**
 	 * button to open file chooser for the source file
 	 */
@@ -208,15 +208,14 @@ public class MyCloudJ_ implements PlugIn {
 
 	/**
 	 * button to open the file chooser for the target file
-
 	 */
 	private JButton btnFileChooser2;
-	
+
 	/**
 	 * source address
 	 */
 	private JTextField srcTxt;
-	
+
 	/**
 	 * destination address
 	 */
@@ -226,7 +225,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * button to start download/upload
 	 */
 	private JButton btnStart;
-	
+
 	/**
 	 * msgs will be used for displaying task related information to user
 	 */
@@ -285,7 +284,7 @@ public class MyCloudJ_ implements PlugIn {
 	 */
 	private JTextArea userInfo;
 	private String userName = "", country = "", userQuota = "";
-	
+
 	/**
 	 * Dbx specific titles for topPanel1 and topPanel2
 	 */
@@ -298,23 +297,23 @@ public class MyCloudJ_ implements PlugIn {
 	 * entering Dbx credentials
 	 */
 	private JPanel lPanelRodsSpecific;
-	
+
 	/**
 	 * rods credentials
 	 */
-	private JTextField user, rodsPassword, rodsHost, rodsHostPort, rodsZone, rodsRes;
-	
+	private JTextField user, rodsPassword, rodsHost, rodsHostPort, rodsZone,
+			rodsRes;
+
 	/**
 	 * button to start the login process
 	 */
 	private JButton loginRodsButton;
-	
+
 	/**
 	 * RODS specific titles for topPanel1 and topPanel2
 	 */
 	private TitledBorder title2, title4;
-	
-	
+
 	public void run(String arg) {
 		drawGUI();
 		assignActionListeners();
@@ -354,14 +353,14 @@ public class MyCloudJ_ implements PlugIn {
 		title4 = BorderFactory.createTitledBorder(blackline, "iRODS Tasks");
 
 		// topPanel1
-		topPanel1 = new JPanel();
-		topPanel1.setLayout(new BoxLayout(topPanel1, BoxLayout.PAGE_AXIS));
-		topPanel1.setBorder(title1);
+		mainLeftPanel = new JPanel();
+		mainLeftPanel.setLayout(new BoxLayout(mainLeftPanel, BoxLayout.PAGE_AXIS));
+		mainLeftPanel.setBorder(title1);
 
 		// topPanel2
-		topPanel2 = new JPanel();
-		topPanel2.setLayout(new BoxLayout(topPanel2, BoxLayout.PAGE_AXIS));
-		topPanel2.setBorder(title3);
+		mainRightPanel = new JPanel();
+		mainRightPanel.setLayout(new BoxLayout(mainRightPanel, BoxLayout.PAGE_AXIS));
+		mainRightPanel.setBorder(title3);
 
 		msgs = new JTextArea();
 		msgs.setLineWrap(true);
@@ -469,8 +468,8 @@ public class MyCloudJ_ implements PlugIn {
 		 * Added all the components related to connection in the topPanel1(Left
 		 * side of the mainFrame).
 		 */
-		topPanel1.add(lPanel0);
-		topPanel1.add(lPanelAlign);
+		mainLeftPanel.add(lPanel0);
+		mainLeftPanel.add(lPanelAlign);
 		lPanelDbSpecific.add(lPanel1);
 		lPanelDbSpecific.add(lPanel2);
 		lPanelDbSpecific.add(lPanel3);
@@ -478,7 +477,7 @@ public class MyCloudJ_ implements PlugIn {
 		lPanelDbSpecific.add(lPanel5);
 		lPanelDbSpecific.setLayout(new BoxLayout(lPanelDbSpecific,
 				BoxLayout.Y_AXIS));
-		topPanel1.add(lPanelDbSpecific);
+		mainLeftPanel.add(lPanelDbSpecific);
 
 		/*
 		 * Let's start working on topPanel2(Right side of the mainFrame)
@@ -570,15 +569,15 @@ public class MyCloudJ_ implements PlugIn {
 		/*
 		 * Add rPanels to topPanel2(right side)
 		 */
-		topPanel2.add(rPanel1);
-		topPanel2.add(rPanel2);
-		topPanel2.add(rPanel3);
-		topPanel2.add(rPanel4);
-		topPanel2.add(rPanel5);
+		mainRightPanel.add(rPanel1);
+		mainRightPanel.add(rPanel2);
+		mainRightPanel.add(rPanel3);
+		mainRightPanel.add(rPanel4);
+		mainRightPanel.add(rPanel5);
 
 		// Initially all the components of topPanel2 are disabled. It is enabled
 		// after successful connection with user's dropbox account
-		setEnabledAll(topPanel2, false);
+		setEnabledAll(mainRightPanel, false);
 
 		/*
 		 * lPanelRodsSpecific : This panel contains Dropbox specific elements
@@ -662,7 +661,7 @@ public class MyCloudJ_ implements PlugIn {
 		lPanelRodsSpecific.add(lPanel11);
 		lPanelRodsSpecific.add(lPanel12);
 		lPanelRodsSpecific.add(lPanel13);
-		topPanel1.add(lPanelRodsSpecific);
+		mainLeftPanel.add(lPanelRodsSpecific);
 		lPanelRodsSpecific.setLayout(new BoxLayout(lPanelRodsSpecific,
 				BoxLayout.Y_AXIS));
 		lPanelRodsSpecific.setVisible(false);
@@ -671,10 +670,10 @@ public class MyCloudJ_ implements PlugIn {
 		 * Add the topPanel1(Left side) and topPanel2(Right side) to mainFrame.
 		 * Also set mainFrame visible
 		 */
-	    lPanelDbSpecific.setPreferredSize(new Dimension(700, 340));
+		lPanelDbSpecific.setPreferredSize(new Dimension(700, 340));
 		lPanelRodsSpecific.setPreferredSize(new Dimension(700, 320));
-		mainFrame.add(topPanel1);
-		mainFrame.add(topPanel2);
+		mainFrame.add(mainLeftPanel);
+		mainFrame.add(mainRightPanel);
 		mainFrame.setVisible(true);
 
 	}
@@ -718,7 +717,7 @@ public class MyCloudJ_ implements PlugIn {
 					dbxAccessCodeTextField.setEnabled(false);
 					// All the components of topPanel2 are enabled after
 					// successful connection with user's dropbox account
-					setEnabledAll(topPanel2, true);
+					setEnabledAll(mainRightPanel, true);
 				}
 				// If user is already connected userStatus=1, warning for user
 				else if (userIsConnected == 1)
@@ -785,13 +784,12 @@ public class MyCloudJ_ implements PlugIn {
 
 			// Add child nodes to this node(files and subfolders)
 			try {
+				System.out.println("ParentName: " + parentName);
 				cloudHandler.addChildren(parentNode, downloadTreeModel,
 						parentName);
 			} catch (CloudException e1) {
-				JOptionPane
-						.showMessageDialog(mainFrame, e1.getCloudError(),
-								"MyCLoudJ - Expanding Error",
-								JOptionPane.ERROR_MESSAGE);
+				// TODO: Display a error for the user inside the browse box
+				e1.printStackTrace();
 				return;
 			}
 
@@ -1392,13 +1390,26 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			RodsUtility rodsUtilsObj = (RodsUtility) cloudHandler;
-
+			
+			/*
 			rodsUtilsObj.setUsername(user.getText());
 			rodsUtilsObj.setIrodsPassword(rodsPassword.getText());
 			rodsUtilsObj.setHost(rodsHost.getText());
 			rodsUtilsObj.setPort(Integer.parseInt(rodsHostPort.getText()));
 			rodsUtilsObj.setZone(rodsZone.getText());
 			rodsUtilsObj.setRes(rodsRes.getText());
+			*/
+			
+			/*
+			 * TESTING -temporary solution for not entering the credentials for
+			 * every run
+			 */
+			rodsUtilsObj.setUsername("rods");
+			rodsUtilsObj.setIrodsPassword("rods");
+			rodsUtilsObj.setHost("192.168.0.102");
+			rodsUtilsObj.setPort(1247);
+			rodsUtilsObj.setZone("BragadiruZone");
+			rodsUtilsObj.setRes("test1-resc");
 
 			try {
 				rodsUtilsObj.initializeRods();
@@ -1411,7 +1422,7 @@ public class MyCloudJ_ implements PlugIn {
 				return;
 			}
 			lblConnectionStatus.setText("Connected to iRODS");
-			setEnabledAll(topPanel2, true);
+			setEnabledAll(mainRightPanel, true);
 		}
 	}
 
@@ -1440,20 +1451,27 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnDbxLoginRadioListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			topPanel1.setBorder(title1);
+			mainLeftPanel.setBorder(title1);
 			lPanelRodsSpecific.setVisible(false);
 			lPanelDbSpecific.setVisible(true);
-			topPanel2.setBorder(title3);
+			mainRightPanel.setBorder(title3);
 		}
 	}
 
 	class BtnRodsLoginRadioListener implements ActionListener {
+
+		/**
+		 * ActionListener for the "Connect to iRODS" button
+		 * - initialize the cloud handler with an iRODS object
+		 * - enable the screen for entering the credentials for the iRODS
+		 */
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			topPanel1.setBorder(title2);
+			cloudHandler = new RodsUtility();
+			mainLeftPanel.setBorder(title2);
 			lPanelRodsSpecific.setVisible(true);
 			lPanelDbSpecific.setVisible(false);
-			topPanel2.setBorder(title4);
+			mainRightPanel.setBorder(title4);
 		}
 	}
 
