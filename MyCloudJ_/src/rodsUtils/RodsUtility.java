@@ -35,7 +35,7 @@ public class RodsUtility implements CloudOperations {
 	private String res;
 	private int port;
 	private String homePath;
-	private String homeDirectory = "";
+	private String homeDirectoryPath = "";
 	private boolean userIsLogged;
 
 	public void initializeRods() throws CloudException {
@@ -77,7 +77,7 @@ public class RodsUtility implements CloudOperations {
 			throw (new CloudException(error));
 		}
 
-		homeDirectory = homeDirectory.concat("/").concat(zone).concat("/home/")
+		homeDirectoryPath = homeDirectoryPath.concat("/").concat(zone).concat("/home/")
 				.concat(user).concat("/");
 	}
 
@@ -207,6 +207,6 @@ public class RodsUtility implements CloudOperations {
 		if (userIsLogged == false)
 			throw (new CloudException(error));
 		
-		return homeDirectory;
+		return homeDirectoryPath;
 	}
 }

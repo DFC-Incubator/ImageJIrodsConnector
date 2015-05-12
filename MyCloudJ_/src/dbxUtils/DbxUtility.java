@@ -76,7 +76,7 @@ public class DbxUtility implements CloudOperations {
 		private DbxAuthFinish authFinish;
 		private String authorizeUrl;
 		private String accessToken;
-		private String homeDirectory = "/";
+		private String homeDirectoryPath = "/";
 		private boolean userIsLogged;
 		
 		/*
@@ -398,7 +398,8 @@ public class DbxUtility implements CloudOperations {
 			 * Function to get the metadata of the folder you wish to download
 			 */
 			DbxEntry.WithChildren folderInfo=null;
-			
+			if (name.equals(homeDirectoryPath) == false)
+				name = name.substring(0, name.length() - 1);
 			try {
 				folderInfo = client.getMetadataWithChildren(name);
 			} catch (DbxException e) {
@@ -427,7 +428,7 @@ public class DbxUtility implements CloudOperations {
 						GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 					}
 					else if(child.isFolder()){
-						DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.path);
+						DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.name);
 						// Add only unique nodes. In case, this function is called for the same parent node more than once
 						GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 					}
@@ -450,6 +451,9 @@ public class DbxUtility implements CloudOperations {
 	     * 
 	     */
 	    public void addChildrenFolder(DefaultMutableTreeNode node, DefaultTreeModel Treemodel, String name) {
+	    	if (name.equals(homeDirectoryPath) == false)
+				name = name.substring(0, name.length() - 1);
+	    	
 	    	/*
 			 * Function to get the metadata of the folder you wish to download
 			 */
@@ -476,7 +480,7 @@ public class DbxUtility implements CloudOperations {
 					// Only add child node if it is a folder
 					if(child.isFolder()) {
 						// New child node to be added to the parent node
-						DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.path);
+						DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.name);
 						// Add only unique nodes. In case, this function is called for the same parent node more than once
 						GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 					}	
@@ -531,6 +535,6 @@ public class DbxUtility implements CloudOperations {
 			if (userIsLogged == false)
 				throw (new CloudException(error));
 			
-			return homeDirectory;
+			return homeDirectoryPath;
 		}
 }

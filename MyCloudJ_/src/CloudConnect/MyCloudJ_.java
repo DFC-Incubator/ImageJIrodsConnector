@@ -80,6 +80,11 @@ public class MyCloudJ_ implements PlugIn {
 	 * userIsConnected: true if user connected to cloud, false otherwise
 	 */
 	private int userIsConnected;
+	
+	/**
+	 * after login, initialized to user home directory
+	 */
+	private String userHomeDirectoryPath;
 
 	/**
 	 * isFileDownload: true if it's a file download, false otherwise
@@ -708,8 +713,9 @@ public class MyCloudJ_ implements PlugIn {
 					lblConnectionStatus.setText("Connected as " + userName);
 					userInfo.setText("Username: " + userName + "\nCountry: "
 							+ country + "\nQuota: " + userQuota + " GB");
-
-					buildSelectionTrees("/");
+					
+					userHomeDirectoryPath = cloudHandler.getHomeDirectory();
+					buildSelectionTrees(userHomeDirectoryPath);
 
 					/*
 					 * Disable the access code textfield and enable the the
@@ -771,6 +777,9 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnExpandListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			String filePath = "";
+			String filePathComponent;
+
 			// Parent node is initially null
 			DefaultMutableTreeNode parentNode = null;
 
@@ -780,15 +789,27 @@ public class MyCloudJ_ implements PlugIn {
 			// get the parent node(one in which we have to add children)
 			parentNode = (DefaultMutableTreeNode) (parentPath
 					.getLastPathComponent());
-
-			// extract the name of the node
-			String parentName = parentNode.toString();
-
-			// Add child nodes to this node(files and subfolders)
+			
+			for (int i = 0; i < parentPath.getPathCount(); i++) {
+				filePathComponent = parentPath.getPathComponent(i).toString();
+				
+				if (filePathComponent.equals(userHomeDirectoryPath) == true
+						&& parentPath.getPathCount() == 1) {
+					filePath = userHomeDirectoryPath;
+					break;
+				}
+				
+				if (filePathComponent.endsWith("/") == false)
+					filePathComponent = filePathComponent.concat("/");
+				
+				filePath = filePath.concat(filePathComponent);
+			}
+			
+			// Add child nodes to this node(files and subfolders11)
 			try {
-				System.out.println("ParentName: " + parentName);
+				System.out.println(filePath);
 				cloudHandler.addChildren(parentNode, downloadTreeModel,
-						parentName);
+						filePath);
 			} catch (CloudException e1) {
 				// TODO: Display a error for the user inside the browse box
 				e1.printStackTrace();
@@ -804,6 +825,9 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnExpand2Listener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			String filePath = "";
+			String filePathComponent;
+			
 			// Parent node is initially null
 			DefaultMutableTreeNode parentNode = null;
 
@@ -814,13 +838,25 @@ public class MyCloudJ_ implements PlugIn {
 			parentNode = (DefaultMutableTreeNode) (parentPath
 					.getLastPathComponent());
 
-			// extract the name of the node
-			String parentName = parentNode.toString();
+			for (int i = 0; i < parentPath.getPathCount(); i++) {
+				filePathComponent = parentPath.getPathComponent(i).toString();
+				
+				if (filePathComponent.equals(userHomeDirectoryPath) == true
+						&& parentPath.getPathCount() == 1) {
+					filePath = userHomeDirectoryPath;
+					break;
+				}
+				
+				if (filePathComponent.endsWith("/") == false)
+					filePathComponent = filePathComponent.concat("/");
+				
+				filePath = filePath.concat(filePathComponent);
+			}
 
 			// Add child nodes to this node(files and subfolders)
 			try {
 				cloudHandler.addChildrenFolder(parentNode, downloadTreeModel,
-						parentName);
+						filePath);
 			} catch (CloudException e1) {
 				JOptionPane
 						.showMessageDialog(mainFrame, e1.getCloudError(),
@@ -1416,8 +1452,9 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				rodsUtilsObj.initializeRods();
 				rodsUtilsObj.login();
-			
-				buildSelectionTrees(cloudHandler.getHomeDirectory());
+				
+				userHomeDirectoryPath = cloudHandler.getHomeDirectory();
+				buildSelectionTrees(userHomeDirectoryPath);
 			} catch (CloudException e1) {
 				lblConnectionStatus.setText("Error connecting to iRODS!");
 				e1.printStackTrace();
