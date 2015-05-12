@@ -354,12 +354,14 @@ public class MyCloudJ_ implements PlugIn {
 
 		// topPanel1
 		mainLeftPanel = new JPanel();
-		mainLeftPanel.setLayout(new BoxLayout(mainLeftPanel, BoxLayout.PAGE_AXIS));
+		mainLeftPanel.setLayout(new BoxLayout(mainLeftPanel,
+				BoxLayout.PAGE_AXIS));
 		mainLeftPanel.setBorder(title1);
 
 		// topPanel2
 		mainRightPanel = new JPanel();
-		mainRightPanel.setLayout(new BoxLayout(mainRightPanel, BoxLayout.PAGE_AXIS));
+		mainRightPanel.setLayout(new BoxLayout(mainRightPanel,
+				BoxLayout.PAGE_AXIS));
 		mainRightPanel.setBorder(title3);
 
 		msgs = new JTextArea();
@@ -707,7 +709,7 @@ public class MyCloudJ_ implements PlugIn {
 					userInfo.setText("Username: " + userName + "\nCountry: "
 							+ country + "\nQuota: " + userQuota + " GB");
 
-					buildSelectionTrees();
+					buildSelectionTrees("/");
 
 					/*
 					 * Disable the access code textfield and enable the the
@@ -1390,16 +1392,16 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			RodsUtility rodsUtilsObj = (RodsUtility) cloudHandler;
-			
+
 			/*
-			rodsUtilsObj.setUsername(user.getText());
-			rodsUtilsObj.setIrodsPassword(rodsPassword.getText());
-			rodsUtilsObj.setHost(rodsHost.getText());
-			rodsUtilsObj.setPort(Integer.parseInt(rodsHostPort.getText()));
-			rodsUtilsObj.setZone(rodsZone.getText());
-			rodsUtilsObj.setRes(rodsRes.getText());
-			*/
-			
+			 * rodsUtilsObj.setUsername(user.getText());
+			 * rodsUtilsObj.setIrodsPassword(rodsPassword.getText());
+			 * rodsUtilsObj.setHost(rodsHost.getText());
+			 * rodsUtilsObj.setPort(Integer.parseInt(rodsHostPort.getText()));
+			 * rodsUtilsObj.setZone(rodsZone.getText());
+			 * rodsUtilsObj.setRes(rodsRes.getText());
+			 */
+
 			/*
 			 * TESTING -temporary solution for not entering the credentials for
 			 * every run
@@ -1414,8 +1416,8 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				rodsUtilsObj.initializeRods();
 				rodsUtilsObj.login();
-
-				buildSelectionTrees();
+			
+				buildSelectionTrees(cloudHandler.getHomeDirectory());
 			} catch (CloudException e1) {
 				lblConnectionStatus.setText("Error connecting to iRODS!");
 				e1.printStackTrace();
@@ -1461,9 +1463,9 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnRodsLoginRadioListener implements ActionListener {
 
 		/**
-		 * ActionListener for the "Connect to iRODS" button
-		 * - initialize the cloud handler with an iRODS object
-		 * - enable the screen for entering the credentials for the iRODS
+		 * ActionListener for the "Connect to iRODS" button - initialize the
+		 * cloud handler with an iRODS object - enable the screen for entering
+		 * the credentials for the iRODS
 		 */
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -1475,11 +1477,13 @@ public class MyCloudJ_ implements PlugIn {
 		}
 	}
 
-	private void buildSelectionTrees() throws CloudException {
-		downloadRoot = new DefaultMutableTreeNode("/");
+	private void buildSelectionTrees(String homeDirectory)
+			throws CloudException {
+		downloadRoot = new DefaultMutableTreeNode(homeDirectory);
 		downloadTree = new JTree(downloadRoot);
 		downloadTreeModel = new DefaultTreeModel(downloadRoot);
-		cloudHandler.addChildren(downloadRoot, downloadTreeModel, "/");
+		cloudHandler
+				.addChildren(downloadRoot, downloadTreeModel, homeDirectory);
 		downloadTree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		downloadTreeModel.reload(downloadRoot);
@@ -1490,10 +1494,11 @@ public class MyCloudJ_ implements PlugIn {
 		 * "/" Will add new nodes on demand of the user in form of "Expand"
 		 * clicks
 		 */
-		uploadRoot = new DefaultMutableTreeNode("/");
+		uploadRoot = new DefaultMutableTreeNode(homeDirectory);
 		uploadTree = new JTree(uploadRoot);
 		uploadTreeModel = new DefaultTreeModel(uploadRoot);
-		cloudHandler.addChildrenFolder(uploadRoot, uploadTreeModel, "/");
+		cloudHandler.addChildrenFolder(uploadRoot, uploadTreeModel,
+				homeDirectory);
 		uploadTree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		uploadTreeModel.reload(uploadRoot);

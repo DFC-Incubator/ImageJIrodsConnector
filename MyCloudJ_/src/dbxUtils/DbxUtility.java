@@ -76,6 +76,8 @@ public class DbxUtility implements CloudOperations {
 		private DbxAuthFinish authFinish;
 		private String authorizeUrl;
 		private String accessToken;
+		private String homeDirectory = "/";
+		private boolean userIsLogged;
 		
 		/*
 		 * User's Dropbox information	: 	Displayed in the text area after the plugin is connected to user's dropbox account.
@@ -123,6 +125,7 @@ public class DbxUtility implements CloudOperations {
 			 */
 	        try {
 				authFinish = webAuth.finish(code);
+				userIsLogged = true;
 			} catch (DbxException e) {
 				error = "Access code error - Re-enter the correct access code " + e.getMessage();
 				throw new CloudException(error);
@@ -519,5 +522,15 @@ public class DbxUtility implements CloudOperations {
 
 		public void setUserQuota(String userQuota) {
 			this.userQuota = userQuota;
+		}
+
+
+		public String getHomeDirectory() throws CloudException {
+			String error = "User is not logged!";
+			
+			if (userIsLogged == false)
+				throw (new CloudException(error));
+			
+			return homeDirectory;
 		}
 }
