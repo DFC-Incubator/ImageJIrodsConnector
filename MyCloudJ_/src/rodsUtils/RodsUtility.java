@@ -4,10 +4,9 @@ import generalUtils.CloudException;
 import generalUtils.CloudOperations;
 import generalUtils.GeneralUtility;
 
-import java.util.Iterator;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.irods.jargon.core.connection.IRODSAccount;
 import org.irods.jargon.core.connection.IRODSProtocolManager;
@@ -19,8 +18,7 @@ import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
 import org.irods.jargon.core.pub.io.IRODSFile;
 import org.irods.jargon.core.pub.io.IRODSFileFactory;
 
-import java.io.File;
-import java.io.IOException;
+import CloudConnect.CloudFile;
 
 public class RodsUtility implements CloudOperations {
 	private IRODSSession session;
@@ -77,8 +75,8 @@ public class RodsUtility implements CloudOperations {
 			throw (new CloudException(error));
 		}
 
-		homeDirectoryPath = homeDirectoryPath.concat("/").concat(zone).concat("/home/")
-				.concat(user).concat("/");
+		homeDirectoryPath = homeDirectoryPath.concat("/").concat(zone)
+				.concat("/home/").concat(user).concat("/");
 	}
 
 	@Override
@@ -109,31 +107,24 @@ public class RodsUtility implements CloudOperations {
 
 	}
 
-	public void addChildren(DefaultMutableTreeNode node,
-			DefaultTreeModel Treemodel, String name) throws CloudException {
+	@Override
+	public List<CloudFile> listFiles(String directoryPath)
+			throws CloudException {
+		List<CloudFile> fileList = new ArrayList<CloudFile>();
 		IRODSFile irodsFile;
-		irodsFile = accessFile(name);
+		int directoryPathLength = (directoryPath != null ? directoryPath
+				.length() : 0);
 
-		String[] children = irodsFile.list();
-		for (String child : children) {
-			DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child);
-			GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
-		}
-	}
+		// add "/" at the end of the path, otherwise Jargon API complains
+		if ((directoryPathLength > 0) && (!directoryPath.endsWith("/")))
+			directoryPath = directoryPath.concat("/");
 
-	public void addChildrenFolder(DefaultMutableTreeNode node,
-			DefaultTreeModel Treemodel, String name) throws CloudException {
-		IRODSFile irodsFile;
-		irodsFile = accessFile(name);
-
+		irodsFile = accessFile(directoryPath);
 		File[] children = irodsFile.listFiles();
-		for (File child : children) {
-			if (child.isDirectory()) {
-				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
-						child.getName());
-				GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
-			}
-		}
+		for (File child : children)
+			fileList.add(new CloudFile(child.getName(), child.isFile()));
+
+		return fileList;
 	}
 
 	private IRODSFile accessFile(String name) throws CloudException {
@@ -203,10 +194,10 @@ public class RodsUtility implements CloudOperations {
 
 	public String getHomeDirectory() throws CloudException {
 		String error = "User is not logged!";
-				
+
 		if (userIsLogged == false)
 			throw (new CloudException(error));
-		
+
 		return homeDirectoryPath;
 	}
 }

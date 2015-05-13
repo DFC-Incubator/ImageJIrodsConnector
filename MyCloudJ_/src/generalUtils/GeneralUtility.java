@@ -4,9 +4,12 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+
+import CloudConnect.CloudFile;
 
 public class GeneralUtility {
 	private static String OS;
@@ -73,6 +76,11 @@ public class GeneralUtility {
             	throw (new CloudException(error));
             }
         }
+	}
+	
+	public static void debugPrintFiles(List<CloudFile> cloudFilesList) {
+		for (int i = 0; i < cloudFilesList.size(); i++)
+			System.out.println("File: " + cloudFilesList.get(i).getPath() + ", isFile: " + cloudFilesList.get(i).isFile());
 	}
 
 	public static String getOS() {

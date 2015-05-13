@@ -14,6 +14,8 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -40,6 +42,8 @@ import javax.swing.tree.TreeSelectionModel;
 
 import rodsUtils.RodsUtility;
 
+import com.dropbox.core.DbxEntry;
+import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxPath;
 
 import dbxUtils.DbxUtility;
@@ -80,7 +84,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * userIsConnected: true if user connected to cloud, false otherwise
 	 */
 	private int userIsConnected;
-	
+
 	/**
 	 * after login, initialized to user home directory
 	 */
@@ -713,7 +717,7 @@ public class MyCloudJ_ implements PlugIn {
 					lblConnectionStatus.setText("Connected as " + userName);
 					userInfo.setText("Username: " + userName + "\nCountry: "
 							+ country + "\nQuota: " + userQuota + " GB");
-					
+
 					userHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildSelectionTrees(userHomeDirectoryPath);
 
@@ -789,27 +793,26 @@ public class MyCloudJ_ implements PlugIn {
 			// get the parent node(one in which we have to add children)
 			parentNode = (DefaultMutableTreeNode) (parentPath
 					.getLastPathComponent());
-			
+
 			for (int i = 0; i < parentPath.getPathCount(); i++) {
 				filePathComponent = parentPath.getPathComponent(i).toString();
-				
+
 				if (filePathComponent.equals(userHomeDirectoryPath) == true
 						&& parentPath.getPathCount() == 1) {
 					filePath = userHomeDirectoryPath;
 					break;
 				}
-				
+
 				if (filePathComponent.endsWith("/") == false)
 					filePathComponent = filePathComponent.concat("/");
-				
+
 				filePath = filePath.concat(filePathComponent);
 			}
-			
+
 			// Add child nodes to this node(files and subfolders11)
 			try {
-				System.out.println(filePath);
-				cloudHandler.addChildren(parentNode, downloadTreeModel,
-						filePath);
+				addChildren(parentNode, downloadTreeModel,
+						cloudHandler.listFiles(filePath));
 			} catch (CloudException e1) {
 				// TODO: Display a error for the user inside the browse box
 				e1.printStackTrace();
@@ -827,7 +830,7 @@ public class MyCloudJ_ implements PlugIn {
 		public void actionPerformed(ActionEvent e) {
 			String filePath = "";
 			String filePathComponent;
-			
+
 			// Parent node is initially null
 			DefaultMutableTreeNode parentNode = null;
 
@@ -840,23 +843,23 @@ public class MyCloudJ_ implements PlugIn {
 
 			for (int i = 0; i < parentPath.getPathCount(); i++) {
 				filePathComponent = parentPath.getPathComponent(i).toString();
-				
+
 				if (filePathComponent.equals(userHomeDirectoryPath) == true
 						&& parentPath.getPathCount() == 1) {
 					filePath = userHomeDirectoryPath;
 					break;
 				}
-				
+
 				if (filePathComponent.endsWith("/") == false)
 					filePathComponent = filePathComponent.concat("/");
-				
+
 				filePath = filePath.concat(filePathComponent);
 			}
 
 			// Add child nodes to this node(files and subfolders)
 			try {
-				cloudHandler.addChildrenFolder(parentNode, downloadTreeModel,
-						filePath);
+				addChildrenFolder(parentNode, downloadTreeModel,
+						cloudHandler.listFiles(filePath));
 			} catch (CloudException e1) {
 				JOptionPane
 						.showMessageDialog(mainFrame, e1.getCloudError(),
@@ -1256,9 +1259,10 @@ public class MyCloudJ_ implements PlugIn {
 							try {
 								cloudHandler.uploadFolder(folderLocalPath,
 										targetCloudPath);
-								cloudHandler.addChildrenFolder(
-										(DefaultMutableTreeNode) node,
-										uploadTreeModel, target);
+								addChildrenFolder(downloadRoot,
+										downloadTreeModel,
+										cloudHandler
+												.listFiles(cloudHandler.getHomeDirectory()));
 							} catch (CloudException e) {
 								msgs.append("Error uploading folder "
 										+ e.getCloudError() + "!\n\n"); // Message
@@ -1452,7 +1456,7 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				rodsUtilsObj.initializeRods();
 				rodsUtilsObj.login();
-				
+
 				userHomeDirectoryPath = cloudHandler.getHomeDirectory();
 				buildSelectionTrees(userHomeDirectoryPath);
 			} catch (CloudException e1) {
@@ -1514,13 +1518,13 @@ public class MyCloudJ_ implements PlugIn {
 		}
 	}
 
-	private void buildSelectionTrees(String homeDirectory)
+	private void buildSelectionTrees(String homeDirectoryPath)
 			throws CloudException {
-		downloadRoot = new DefaultMutableTreeNode(homeDirectory);
+		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
 		downloadTree = new JTree(downloadRoot);
 		downloadTreeModel = new DefaultTreeModel(downloadRoot);
-		cloudHandler
-				.addChildren(downloadRoot, downloadTreeModel, homeDirectory);
+		addChildren(downloadRoot, downloadTreeModel,
+				cloudHandler.listFiles(homeDirectoryPath));
 		downloadTree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		downloadTreeModel.reload(downloadRoot);
@@ -1531,15 +1535,56 @@ public class MyCloudJ_ implements PlugIn {
 		 * "/" Will add new nodes on demand of the user in form of "Expand"
 		 * clicks
 		 */
-		uploadRoot = new DefaultMutableTreeNode(homeDirectory);
+		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
 		uploadTree = new JTree(uploadRoot);
 		uploadTreeModel = new DefaultTreeModel(uploadRoot);
-		cloudHandler.addChildrenFolder(uploadRoot, uploadTreeModel,
-				homeDirectory);
+		addChildrenFolder(downloadRoot, downloadTreeModel,
+				cloudHandler.listFiles(homeDirectoryPath));
 		uploadTree.getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		uploadTreeModel.reload(uploadRoot);
 
+	}
+
+	/*
+	 * Function to add nodes to the JTree
+	 * 
+	 * This function is called when user selects a parent node and clicks Expand
+	 * button
+	 * 
+	 * Parameters: TODO
+	 * Javadoc: TODO
+	 */
+	public void addChildren(DefaultMutableTreeNode node,
+			DefaultTreeModel Treemodel, List<CloudFile> cloudFiles) {
+
+		for (int i = 0; i < cloudFiles.size(); i++) {
+			CloudFile child = cloudFiles.get(i);
+			DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
+					child.getPath());
+			GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
+		}
+	}
+
+	/*
+	 * Function to add nodes to the JTree
+	 * 
+	 * This function is called when user selects a parent node and clicks Expand
+	 * button
+	 * 
+	 * Parameters: TODO
+	 * Javadoc: TODO
+	 */
+	public void addChildrenFolder(DefaultMutableTreeNode node,
+			DefaultTreeModel Treemodel, List<CloudFile> cloudFiles) {
+
+		for (int i = 0; i < cloudFiles.size(); i++) {
+			CloudFile child = cloudFiles.get(i);
+			if (!child.isFile()) {
+				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.getPath());
+				GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
+			}
+		}
 	}
 
 	/*

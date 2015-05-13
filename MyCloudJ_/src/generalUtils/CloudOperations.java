@@ -1,9 +1,12 @@
 package generalUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+
+import CloudConnect.CloudFile;
 
 import com.dropbox.core.DbxException;
 
@@ -23,12 +26,9 @@ public interface CloudOperations {
 			throws CloudException;
 
 	public boolean isFileDownload(String name) throws CloudException;
-
-	public void addChildrenFolder(DefaultMutableTreeNode node,
-			DefaultTreeModel Treemodel, String name) throws CloudException;
-
-	public void addChildren(DefaultMutableTreeNode node,
-			DefaultTreeModel Treemodel, String name) throws CloudException;
+	
+	public List<CloudFile> listFiles(String directoryPath)
+			throws CloudException;
 	
 	public String getHomeDirectory() throws CloudException;
 }
