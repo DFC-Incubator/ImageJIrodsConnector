@@ -1,28 +1,22 @@
 package generalUtils;
 
-import java.io.IOException;
 import java.util.List;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-
 import CloudConnect.CloudFile;
-
-import com.dropbox.core.DbxException;
 
 public interface CloudOperations {
 	public void login() throws CloudException;
 
-	public void downloadFile(String FileDbxPath, String TargetLocalPath)
+	public void downloadFile(String cloudPath, String localPath)
 			throws CloudException;
 
-	public void downloadFolder(String FolderDbxPath, String TargetLocalPath)
+	public void downloadFolder(String cloudPath, String localPath)
 			throws CloudException;
 
-	public void uploadFile(String FileLocalPath, String TargetDbxPath)
+	public void uploadFile(String localPath, String cloudPath)
 			throws CloudException;
 
-	public void uploadFolder(String FolderLocalPath, String TargetDbxPath)
+	public void uploadFolder(String localPath, String cloudPath)
 			throws CloudException;
 
 	public boolean isFileDownload(String name) throws CloudException;
