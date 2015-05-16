@@ -14,7 +14,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -41,10 +40,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import rodsUtils.RodsUtility;
-
-import com.dropbox.core.DbxEntry;
-import com.dropbox.core.DbxException;
-import com.dropbox.core.DbxPath;
 
 import dbxUtils.DbxUtility;
 
@@ -1261,8 +1256,8 @@ public class MyCloudJ_ implements PlugIn {
 										targetCloudPath);
 								addChildrenFolder(downloadRoot,
 										downloadTreeModel,
-										cloudHandler
-												.listFiles(cloudHandler.getHomeDirectory()));
+										cloudHandler.listFiles(cloudHandler
+												.getHomeDirectory()));
 							} catch (CloudException e) {
 								msgs.append("Error uploading folder "
 										+ e.getCloudError() + "!\n\n"); // Message
@@ -1335,12 +1330,13 @@ public class MyCloudJ_ implements PlugIn {
 							 * To open the file/folder which is downloaded from
 							 * Dropbox
 							 * 
-							 * DbxPath.getName(path) : Returns just the last
-							 * component of the path. For Ex: getName("/")
-							 * returns "/" getName("/Photos") returns "Photos"
-							 * getName("/Photos/Home.jpeg") returns "Home.jpeg"
+							 * get only the last component of the path. For Ex:
+							 * getName("/") returns "/" getName("/Photos")
+							 * returns "Photos" getName("/Photos/Home.jpeg")
+							 * returns "Home.jpeg"
 							 */
-							String lastPart = DbxPath.getName(localSource);
+							String lastPart = localSource.substring(localSource
+									.lastIndexOf("/"));
 
 							// If OS is windows, the path separator is '\' else
 							// '/'
@@ -1398,12 +1394,12 @@ public class MyCloudJ_ implements PlugIn {
 							 * To open the file/folder which is downloaded from
 							 * Dropbox
 							 * 
-							 * DbxPath.getName(path) : Returns just the last
-							 * component of the path. For Ex: getName("/")
-							 * returns "/" getName("/Photos") returns "Photos"
-							 * getName("/Photos/Home.jpeg") returns "Home.jpeg"
+							 * get only the last component of the path. For Ex:
+							 * getName("/") returns "/" getName("/Photos")
+							 * returns "Photos" getName("/Photos/Home.jpeg")
+							 * returns "Home.jpeg"
 							 */
-							String lastPart = DbxPath.getName(localSource);
+							String lastPart = localSource.substring(localSource.lastIndexOf("/"));
 
 							// If OS is windows, the path separator is '\' else
 							// '/'
@@ -1552,8 +1548,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * This function is called when user selects a parent node and clicks Expand
 	 * button
 	 * 
-	 * Parameters: TODO
-	 * Javadoc: TODO
+	 * Parameters: TODO Javadoc: TODO
 	 */
 	public void addChildren(DefaultMutableTreeNode node,
 			DefaultTreeModel Treemodel, List<CloudFile> cloudFiles) {
@@ -1572,8 +1567,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * This function is called when user selects a parent node and clicks Expand
 	 * button
 	 * 
-	 * Parameters: TODO
-	 * Javadoc: TODO
+	 * Parameters: TODO Javadoc: TODO
 	 */
 	public void addChildrenFolder(DefaultMutableTreeNode node,
 			DefaultTreeModel Treemodel, List<CloudFile> cloudFiles) {
@@ -1581,7 +1575,8 @@ public class MyCloudJ_ implements PlugIn {
 		for (int i = 0; i < cloudFiles.size(); i++) {
 			CloudFile child = cloudFiles.get(i);
 			if (!child.isFile()) {
-				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(child.getPath());
+				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
+						child.getPath());
 				GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 			}
 		}
