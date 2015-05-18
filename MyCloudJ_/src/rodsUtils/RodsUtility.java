@@ -5,6 +5,9 @@ import generalUtils.CloudOperations;
 import generalUtils.GeneralUtility;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +20,7 @@ import org.irods.jargon.core.pub.IRODSAccessObjectFactory;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
 import org.irods.jargon.core.pub.io.IRODSFile;
 import org.irods.jargon.core.pub.io.IRODSFileFactory;
+import org.irods.jargon.core.pub.io.IRODSFileInputStream;
 
 import CloudConnect.CloudFile;
 
@@ -80,10 +84,53 @@ public class RodsUtility implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFile(String FileDbxPath, String TargetLocalPath)
+	public void downloadFile(String cloudPath, String localPath)
 			throws CloudException {
-		// TODO Auto-generated method stub
 
+		FileOutputStream fos = null;
+		String error = "";
+		String fileName;
+
+		// extract the name of the file from full path
+		fileName = cloudPath.substring(cloudPath.lastIndexOf("/"));
+		localPath += fileName;
+
+		try {
+			// access the file on cloud
+			IRODSFile irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
+			IRODSFileInputStream irodsFileInputStream = irodsFileFactory
+					.instanceIRODSFileInputStream(irodsFile);
+
+			// save the file as a byte stream
+			byte[] saveAsFileByteStream = new byte[(int) irodsFile.length()];
+			irodsFileInputStream.read(saveAsFileByteStream, 0,
+					(int) irodsFile.length());
+
+			// write the byte stream to disk
+			fos = new FileOutputStream(localPath);
+			fos.write(saveAsFileByteStream);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			error = "File System Error";
+			throw (new CloudException(error));
+		} catch (IOException e) {
+			e.printStackTrace();
+			error = "File System Error.";
+			throw (new CloudException(error));
+		} catch (JargonException e) {
+			e.printStackTrace();
+			error = "File was not found on iRODS server";
+			throw (new CloudException(error));
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				error = "File System Error";
+				throw (new CloudException(error));
+			}
+		}
 	}
 
 	@Override
@@ -129,7 +176,7 @@ public class RodsUtility implements CloudOperations {
 
 	private IRODSFile accessFile(String name) throws CloudException {
 		IRODSFile irodsFile;
-		
+
 		try {
 			irodsFile = irodsFileFactory.instanceIRODSFile(name);
 		} catch (JargonException e) {
@@ -189,7 +236,10 @@ public class RodsUtility implements CloudOperations {
 
 	@Override
 	public boolean isFileDownload(String name) throws CloudException {
-		// TODO Auto-generated method stub
+		IRODSFile irodsFile = accessFile(name);
+		if (irodsFile.isFile())
+			return true;
+
 		return false;
 	}
 
