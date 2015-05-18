@@ -134,10 +134,41 @@ public class RodsUtility implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFolder(String FolderDbxPath, String TargetLocalPath)
+	public void downloadFolder(String cloudPath, String localPath)
 			throws CloudException {
-		// TODO Auto-generated method stub
+		String error;
+		IRODSFile irodsFile = null;
 
+		/*
+		 * Create a folder on the local machine with last part of the of the
+		 * cloudPath
+		 */
+		// TODO: fix this method of extracting the last path from path
+		// TODO: maybe use a method from GeneralUtility
+		String folderName = cloudPath.substring(cloudPath.lastIndexOf("/"));
+		localPath += folderName;
+
+		// creates the directory on disk
+		boolean newFolder = new File(localPath).mkdirs();
+		if (!newFolder) {
+			error = "Local File System error.";
+			throw (new CloudException(error));
+		}
+
+		try {
+			irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
+			File[] files = irodsFile.listFiles();
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].isDirectory())
+					downloadFolder(files[i].getPath(), localPath);
+				else if (files[i].isFile())
+					downloadFile(files[i].getPath(), localPath);
+			}
+		} catch (JargonException e) {
+			e.printStackTrace();
+			error = "Error accesing the file on cloud.";
+			throw (new CloudException(error));
+		}
 	}
 
 	@Override
