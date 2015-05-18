@@ -40,7 +40,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import rodsUtils.RodsUtility;
-
 import dbxUtils.DbxUtility;
 
 /**
@@ -789,21 +788,8 @@ public class MyCloudJ_ implements PlugIn {
 			parentNode = (DefaultMutableTreeNode) (parentPath
 					.getLastPathComponent());
 
-			for (int i = 0; i < parentPath.getPathCount(); i++) {
-				filePathComponent = parentPath.getPathComponent(i).toString();
-
-				if (filePathComponent.equals(userHomeDirectoryPath) == true
-						&& parentPath.getPathCount() == 1) {
-					filePath = userHomeDirectoryPath;
-					break;
-				}
-
-				if (filePathComponent.endsWith("/") == false)
-					filePathComponent = filePathComponent.concat("/");
-
-				filePath = filePath.concat(filePathComponent);
-			}
-
+			filePath = GeneralUtility.getSelectedNodePath(downloadTree);
+			
 			// Add child nodes to this node(files and subfolders11)
 			try {
 				addChildren(parentNode, downloadTreeModel,
@@ -824,7 +810,6 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String filePath = "";
-			String filePathComponent;
 
 			// Parent node is initially null
 			DefaultMutableTreeNode parentNode = null;
@@ -836,20 +821,7 @@ public class MyCloudJ_ implements PlugIn {
 			parentNode = (DefaultMutableTreeNode) (parentPath
 					.getLastPathComponent());
 
-			for (int i = 0; i < parentPath.getPathCount(); i++) {
-				filePathComponent = parentPath.getPathComponent(i).toString();
-
-				if (filePathComponent.equals(userHomeDirectoryPath) == true
-						&& parentPath.getPathCount() == 1) {
-					filePath = userHomeDirectoryPath;
-					break;
-				}
-
-				if (filePathComponent.endsWith("/") == false)
-					filePathComponent = filePathComponent.concat("/");
-
-				filePath = filePath.concat(filePathComponent);
-			}
+			filePath = GeneralUtility.getSelectedNodePath(uploadTree);
 
 			// Add child nodes to this node(files and subfolders)
 			try {
@@ -872,30 +844,17 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnSelectListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			String selectedNodePath = "";
 			// Get the latest node selected
 			node = downloadTree.getLastSelectedPathComponent();
 			parentNode = ((DefaultMutableTreeNode) node).getParent();
 
-			// Extract the name from the node and set the source address with
-			// its path
-			String name;
-			name = (node == null) ? "NONE" : node.toString();
-
-			String suffix;
-			suffix = (parentNode == null) ? "NONE" : parentNode.toString();
-
-			if (name.startsWith("/")) {
-				srcTxt.setText(name);
-			} else {
-				if (suffix.endsWith("/"))
-					name = suffix + name;
-				else
-					name = suffix + "/" + name;
-				srcTxt.setText(name);
-			}
+			selectedNodePath = GeneralUtility.getSelectedNodePath(downloadTree);
+			srcTxt.setText(selectedNodePath);
+			System.out.println(selectedNodePath);
 
 			try {
-				isFileDownload = cloudHandler.isFileDownload(name);
+				isFileDownload = cloudHandler.isFileDownload(selectedNodePath);
 			} catch (CloudException e1) {
 				msgs.append(e1.getCloudError() + "\n\n");
 				e1.printStackTrace();
@@ -1146,12 +1105,19 @@ public class MyCloudJ_ implements PlugIn {
 				// Get the latest node selected
 				node = uploadTree.getLastSelectedPathComponent();
 
-				// Extract the name from the node and set the source address
-				// with its path
-				String name;
-				name = (node == null) ? "NONE" : node.toString();
-				targetTxt.setText(name);
-				System.out.println("close");
+				parentNode = ((DefaultMutableTreeNode) node).getParent();
+
+				String selectedNodePath = GeneralUtility.getSelectedNodePath(uploadTree);
+				targetTxt.setText(selectedNodePath);
+				System.out.println(selectedNodePath);
+
+				try {
+					isFileDownload = cloudHandler.isFileDownload(selectedNodePath);
+				} catch (CloudException e1) {
+					msgs.append(e1.getCloudError() + "\n\n");
+					e1.printStackTrace();
+				}
+				
 				this.treeFrame.dispose();
 			}
 		}
@@ -1335,8 +1301,8 @@ public class MyCloudJ_ implements PlugIn {
 							 * returns "Photos" getName("/Photos/Home.jpeg")
 							 * returns "Home.jpeg"
 							 */
-							String lastPart = localSource.substring(localSource
-									.lastIndexOf("/"));
+							String lastPart = GeneralUtility.getLastComponentFromPath(localSource, "/");
+							// TODO: check for null return values
 
 							// If OS is windows, the path separator is '\' else
 							// '/'
@@ -1399,7 +1365,10 @@ public class MyCloudJ_ implements PlugIn {
 							 * returns "Photos" getName("/Photos/Home.jpeg")
 							 * returns "Home.jpeg"
 							 */
-							String lastPart = localSource.substring(localSource.lastIndexOf("/"));
+							
+							//TODO: check for null return values
+							String lastPart = GeneralUtility.getLastComponentFromPath(localSource, "/");
+							
 
 							// If OS is windows, the path separator is '\' else
 							// '/'
@@ -1415,6 +1384,7 @@ public class MyCloudJ_ implements PlugIn {
 							// Code for Opening the file/folder after upload in
 							// default application
 							Opener openfile = new Opener();
+							System.out.println("Open path: " + finalSource + " " + localTarget + " " + lastPart);
 							openfile.open(finalSource);
 						}
 					};

@@ -129,6 +129,7 @@ public class RodsUtility implements CloudOperations {
 
 	private IRODSFile accessFile(String name) throws CloudException {
 		IRODSFile irodsFile;
+		
 		try {
 			irodsFile = irodsFileFactory.instanceIRODSFile(name);
 		} catch (JargonException e) {

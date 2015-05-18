@@ -167,12 +167,12 @@ public class DbxUtility implements CloudOperations {
 
 	}
 
-	public boolean isFileDownload(String name) throws CloudException {
+	public boolean isFileDownload(String filePath) throws CloudException {
 		DbxEntry metaData = null;
 		String error;
 
 		try {
-			metaData = client.getMetadata(name);
+			metaData = client.getMetadata(formatPathForDbx(filePath));
 		} catch (DbxException e) {
 			error = "Error getting metadata: " + e.getMessage();
 			throw (new CloudException(error));
@@ -202,6 +202,7 @@ public class DbxUtility implements CloudOperations {
 		File inputFile = new File(FileLocalPath);
 		InputStream inputStream = null;
 		String error;
+		TargetDbxPath = formatPathForDbx(TargetDbxPath);
 
 		try {
 			inputStream = new FileInputStream(inputFile);
@@ -242,7 +243,8 @@ public class DbxUtility implements CloudOperations {
 	public void uploadFolder(String FolderLocalPath, String TargetDbxPath)
 			throws CloudException {
 		String error;
-
+		TargetDbxPath = formatPathForDbx(TargetDbxPath);
+		
 		// Replace Path separator '\\' (for windows) to Dropbox Path Separator
 		// '/'
 		String newFolderLocalPath = FolderLocalPath.replace('\\', '/');
@@ -312,6 +314,8 @@ public class DbxUtility implements CloudOperations {
 	 */
 	public void downloadFile(String FileDbxPath, String TargetLocalPath)
 			throws CloudException {
+		FileDbxPath = formatPathForDbx(FileDbxPath);
+		
 		// Extract the filename from the absolute path i.e. the last part
 		String fileName = FileDbxPath.substring(FileDbxPath.lastIndexOf("/"));
 		OutputStream outputStream = null;
@@ -330,7 +334,7 @@ public class DbxUtility implements CloudOperations {
 			DbxEntry.File downloadedFile = client.getFile(FileDbxPath, null,
 					outputStream);
 		} catch (DbxException e) {
-			error = "Error uploading on Dropbox" + e.getMessage();
+			error = "Error downloading on Dropbox" + e.getMessage();
 			throw (new CloudException(error));
 		} catch (FileNotFoundException e) {
 			error = "File not found " + e.getMessage();
@@ -364,6 +368,7 @@ public class DbxUtility implements CloudOperations {
 	public void downloadFolder(String FolderDbxPath, String TargetLocalPath)
 			throws CloudException {
 		String error;
+		FolderDbxPath = formatPathForDbx(FolderDbxPath);
 		/*
 		 * Create the folder in the local machine with last part of the of the
 		 * FolderDbxPath i.e Folder's name
@@ -420,17 +425,10 @@ public class DbxUtility implements CloudOperations {
 		String error;
 		DbxEntry.WithChildren folderInfo;
 		List<CloudFile> fileList = new ArrayList<CloudFile>();
-		int directoryPathLength = (directoryPath != null ? directoryPath
-				.length() : 0);
-
-		// remove the "/" from the end of the path, otherwise Dbx API complains
-		if ((directoryPathLength > 0)
-				&& (!directoryPath.equals(homeDirectoryPath))
-				&& (directoryPath.endsWith("/")))
-			directoryPath = directoryPath.substring(0, directoryPathLength - 1);
 
 		try {
-			folderInfo = client.getMetadataWithChildren(directoryPath);
+			folderInfo = client
+					.getMetadataWithChildren(formatPathForDbx(directoryPath));
 		} catch (DbxException e) {
 			error = "Error getting metadata for the folder " + e.getMessage();
 			throw (new CloudException(error));
@@ -447,6 +445,17 @@ public class DbxUtility implements CloudOperations {
 		}
 
 		return fileList;
+	}
+
+	private String formatPathForDbx(String path) {
+		int pathLength = (path != null ? path.length() : 0);
+
+		// remove the "/" from the end of the path, otherwise Dbx API complains
+		if ((pathLength > 0) && (!path.equals(homeDirectoryPath))
+				&& (path.endsWith("/")))
+			path = path.substring(0, pathLength - 1);
+
+		return path;
 	}
 
 	public String getAuthorizeUrl() {
