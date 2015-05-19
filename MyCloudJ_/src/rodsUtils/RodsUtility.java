@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +17,13 @@ import org.irods.jargon.core.connection.IRODSProtocolManager;
 import org.irods.jargon.core.connection.IRODSSession;
 import org.irods.jargon.core.connection.IRODSSimpleProtocolManager;
 import org.irods.jargon.core.exception.JargonException;
+import org.irods.jargon.core.exception.NoResourceDefinedException;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactory;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
 import org.irods.jargon.core.pub.io.IRODSFile;
 import org.irods.jargon.core.pub.io.IRODSFileFactory;
 import org.irods.jargon.core.pub.io.IRODSFileInputStream;
+import org.irods.jargon.core.pub.io.IRODSFileOutputStream;
 
 import CloudConnect.CloudFile;
 
@@ -172,10 +175,38 @@ public class RodsUtility implements CloudOperations {
 	}
 
 	@Override
-	public void uploadFile(String FileLocalPath, String TargetDbxPath)
+	public void uploadFile(String localPath, String cloudPath)
 			throws CloudException {
-		// TODO Auto-generated method stub
-
+		String error;
+		IRODSFile irodsFile;
+		IRODSFileOutputStream irodsFileOutputStream = null;
+		
+		try {
+			irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
+			irodsFileOutputStream = irodsFileFactory
+					.instanceIRODSFileOutputStream(irodsFile);
+			File localFile = new File(localPath);
+			byte[] fileContent = Files.readAllBytes(localFile.toPath());
+			fileContent = Files.readAllBytes(localFile.toPath());
+			irodsFileOutputStream.write(fileContent, 0, fileContent.length);
+		} catch (JargonException e) {
+			e.printStackTrace();
+			error = "iRODS internal error";
+			throw (new CloudException(error));
+		} catch (IOException e) {
+			e.printStackTrace();
+			error = "Local file system error";
+			throw (new CloudException(error));
+		} finally {
+			try {
+				if (irodsFileOutputStream != null)
+					irodsFileOutputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				error = "Error closing iRODS file";
+				throw (new CloudException(error));
+			}
+		}
 	}
 
 	@Override
