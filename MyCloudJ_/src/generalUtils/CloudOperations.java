@@ -19,7 +19,7 @@ public interface CloudOperations {
 	public void uploadFolder(String localPath, String cloudPath)
 			throws CloudException;
 
-	public boolean isFileDownload(String name) throws CloudException;
+	public boolean isFile(String name) throws CloudException;
 	
 	public List<CloudFile> listFiles(String directoryPath)
 			throws CloudException;

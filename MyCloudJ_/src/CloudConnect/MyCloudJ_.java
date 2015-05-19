@@ -789,7 +789,7 @@ public class MyCloudJ_ implements PlugIn {
 					.getLastPathComponent());
 
 			filePath = GeneralUtility.getSelectedNodePath(downloadTree);
-			
+
 			// Add child nodes to this node(files and subfolders11)
 			try {
 				addChildren(parentNode, downloadTreeModel,
@@ -854,7 +854,7 @@ public class MyCloudJ_ implements PlugIn {
 			System.out.println(selectedNodePath);
 
 			try {
-				isFileDownload = cloudHandler.isFileDownload(selectedNodePath);
+				isFileDownload = cloudHandler.isFile(selectedNodePath);
 			} catch (CloudException e1) {
 				msgs.append(e1.getCloudError() + "\n\n");
 				e1.printStackTrace();
@@ -1107,17 +1107,19 @@ public class MyCloudJ_ implements PlugIn {
 
 				parentNode = ((DefaultMutableTreeNode) node).getParent();
 
-				String selectedNodePath = GeneralUtility.getSelectedNodePath(uploadTree);
+				String selectedNodePath = GeneralUtility
+						.getSelectedNodePath(uploadTree);
 				targetTxt.setText(selectedNodePath);
 				System.out.println(selectedNodePath);
 
 				try {
-					isFileDownload = cloudHandler.isFileDownload(selectedNodePath);
+					isFileDownload = cloudHandler
+							.isFile(selectedNodePath);
 				} catch (CloudException e1) {
 					msgs.append(e1.getCloudError() + "\n\n");
 					e1.printStackTrace();
 				}
-				
+
 				this.treeFrame.dispose();
 			}
 		}
@@ -1301,16 +1303,12 @@ public class MyCloudJ_ implements PlugIn {
 							 * returns "Photos" getName("/Photos/Home.jpeg")
 							 * returns "Home.jpeg"
 							 */
-							String lastPart = GeneralUtility.getLastComponentFromPath(localSource, "/");
+							String lastPart = GeneralUtility
+									.getLastComponentFromPath(localSource, "/");
 							// TODO: check for null return values
 
-							// If OS is windows, the path separator is '\' else
-							// '/'
-							if (osType.contains("windows")) {
-								lastPart = "\\" + lastPart;
-							} else {
-								lastPart = "/" + lastPart;
-							}
+							lastPart = GeneralUtility.getSystemSeparator()
+									+ lastPart;
 
 							// Append the filename to Target local path
 							String finalSource = localTarget + lastPart;
@@ -1365,18 +1363,16 @@ public class MyCloudJ_ implements PlugIn {
 							 * returns "Photos" getName("/Photos/Home.jpeg")
 							 * returns "Home.jpeg"
 							 */
-							
-							//TODO: check for null return values
-							String lastPart = GeneralUtility.getLastComponentFromPath(localSource, "/");
-							
+
+							// TODO: check for null return values
+							String lastPart = GeneralUtility
+									.getLastComponentFromPath(localSource, "/");
 
 							// If OS is windows, the path separator is '\' else
 							// '/'
-							if (osType.contains("windows")) {
-								lastPart = "\\" + lastPart;
-							} else {
-								lastPart = "/" + lastPart;
-							}
+							
+							lastPart = GeneralUtility.getSystemSeparator() + lastPart;
+							
 
 							// Append the filename to Target local path
 							String finalSource = localTarget + lastPart;
@@ -1384,7 +1380,8 @@ public class MyCloudJ_ implements PlugIn {
 							// Code for Opening the file/folder after upload in
 							// default application
 							Opener openfile = new Opener();
-							System.out.println("Open path: " + finalSource + " " + localTarget + " " + lastPart);
+							System.out.println("Open path: " + finalSource
+									+ " " + localTarget + " " + lastPart);
 							openfile.open(finalSource);
 						}
 					};
@@ -1414,7 +1411,7 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			rodsUtilsObj.setUsername("rods");
 			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.0.102");
+			rodsUtilsObj.setHost("192.168.0.104");
 			rodsUtilsObj.setPort(1247);
 			rodsUtilsObj.setZone("BragadiruZone");
 			rodsUtilsObj.setRes("test1-resc");

@@ -15,7 +15,9 @@ import CloudConnect.CloudFile;
 
 public class GeneralUtility {
 	private static String OS;
-
+	private static final String WindowsDelimiter= "\\";
+	private static final String LinuxDelimiter= "/";
+	
 	/*
 	 * This function only adds unique children nodes to the parent node.
 	 * 
@@ -108,7 +110,7 @@ public class GeneralUtility {
 	public static String getLastComponentFromPath(String path, String delimiter) {
 		int lastOccurence; 
 		
-		if (path == null || path.equals("/") == true)
+		if (path == null || path.equals(delimiter) == true)
 			return path;
 		
 		lastOccurence = path.lastIndexOf(delimiter);
@@ -123,6 +125,19 @@ public class GeneralUtility {
 			return OS;
 
 		return System.getProperty("os.name").toLowerCase();
+	}
+	
+	public static String getSystemSeparator() {
+		if (getOS().contains("windows") == true)
+			return WindowsDelimiter;
+		
+		return LinuxDelimiter;
+		
+	}
+	
+	public static void checkLocalPath(String localPath) throws Exception {
+		if (localPath == null || localPath.contains(getSystemSeparator()) == false)
+			throw new Exception();
 	}
 
 	public void setOS(String oS) {

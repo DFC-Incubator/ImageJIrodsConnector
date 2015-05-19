@@ -167,7 +167,7 @@ public class DbxUtility implements CloudOperations {
 
 	}
 
-	public boolean isFileDownload(String filePath) throws CloudException {
+	public boolean isFile(String filePath) throws CloudException {
 		DbxEntry metaData = null;
 		String error;
 

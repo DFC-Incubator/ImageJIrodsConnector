@@ -17,7 +17,6 @@ import org.irods.jargon.core.connection.IRODSProtocolManager;
 import org.irods.jargon.core.connection.IRODSSession;
 import org.irods.jargon.core.connection.IRODSSimpleProtocolManager;
 import org.irods.jargon.core.exception.JargonException;
-import org.irods.jargon.core.exception.NoResourceDefinedException;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactory;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
 import org.irods.jargon.core.pub.io.IRODSFile;
@@ -39,9 +38,9 @@ public class RodsUtility implements CloudOperations {
 	private String zone;
 	private String res;
 	private int port;
-	private String homePath;
-	private String homeDirectoryPath = "";
+	private String homeDirectoryPath;
 	private boolean userIsLogged;
+	private static final String RodsDelimiter = "/";
 
 	public void initializeRods() throws CloudException {
 		String error;
@@ -57,20 +56,20 @@ public class RodsUtility implements CloudOperations {
 
 	private void buildHomePath() {
 		StringBuilder homeBuilder = new StringBuilder();
-		homeBuilder.append('/');
+		homeBuilder.append(RodsDelimiter);
 		homeBuilder.append(zone);
-		homeBuilder.append('/');
+		homeBuilder.append(RodsDelimiter);
 		homeBuilder.append("home");
-		homeBuilder.append('/');
+		homeBuilder.append(RodsDelimiter);
 		homeBuilder.append(user);
-		homePath = homeBuilder.toString();
+		homeDirectoryPath = homeBuilder.toString();
 	}
 
 	public void login() throws CloudException {
 		String error;
 
 		buildHomePath();
-		account = new IRODSAccount(host, port, user, password, homePath, zone,
+		account = new IRODSAccount(host, port, user, password, homeDirectoryPath, zone,
 				res);
 		try {
 			accessObjectFactory = IRODSAccessObjectFactoryImpl
@@ -81,9 +80,15 @@ public class RodsUtility implements CloudOperations {
 			error = "Jargon Exception " + e.getMessage();
 			throw (new CloudException(error));
 		}
+	}
+	
+	public String getHomeDirectory() throws CloudException {
+		String error = "User is not logged!";
 
-		homeDirectoryPath = homeDirectoryPath.concat("/").concat(zone)
-				.concat("/home/").concat(user).concat("/");
+		if (userIsLogged == false)
+			throw (new CloudException(error));
+
+		return homeDirectoryPath;
 	}
 
 	@Override
@@ -93,10 +98,12 @@ public class RodsUtility implements CloudOperations {
 		FileOutputStream fos = null;
 		String error = "";
 		String fileName;
+		
+		checkPaths(localPath, cloudPath);
 
 		// extract the name of the file from full path
-		fileName = cloudPath.substring(cloudPath.lastIndexOf("/"));
-		localPath += fileName;
+		fileName = GeneralUtility.getLastComponentFromPath(cloudPath, RodsDelimiter);
+		localPath += (GeneralUtility.getSystemSeparator() + fileName);
 
 		try {
 			// access the file on cloud
@@ -140,16 +147,20 @@ public class RodsUtility implements CloudOperations {
 	public void downloadFolder(String cloudPath, String localPath)
 			throws CloudException {
 		String error;
-		IRODSFile irodsFile = null;
-
+		IRODSFile irodsFile;
+		
+		checkPaths(localPath, cloudPath);
+		irodsFile = null;
+		
 		/*
 		 * Create a folder on the local machine with last part of the of the
 		 * cloudPath
 		 */
 		// TODO: fix this method of extracting the last path from path
 		// TODO: maybe use a method from GeneralUtility
-		String folderName = cloudPath.substring(cloudPath.lastIndexOf("/"));
-		localPath += folderName;
+		String folderName = GeneralUtility.getLastComponentFromPath(cloudPath,
+				"/");
+		localPath += (GeneralUtility.getSystemSeparator() + folderName);
 
 		// creates the directory on disk
 		boolean newFolder = new File(localPath).mkdirs();
@@ -179,7 +190,10 @@ public class RodsUtility implements CloudOperations {
 			throws CloudException {
 		String error;
 		IRODSFile irodsFile;
-		IRODSFileOutputStream irodsFileOutputStream = null;
+		IRODSFileOutputStream irodsFileOutputStream;
+		
+		checkPaths(localPath, cloudPath);
+		irodsFileOutputStream = null;
 		
 		try {
 			irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
@@ -210,25 +224,53 @@ public class RodsUtility implements CloudOperations {
 	}
 
 	@Override
-	public void uploadFolder(String FolderLocalPath, String TargetDbxPath)
+	public void uploadFolder(String localPath, String cloudPath)
 			throws CloudException {
-		// TODO Auto-generated method stub
+		String error;
+		String folderName;
+		File inputFolder;
+		
+		checkPaths(localPath, cloudPath);
 
+		folderName = GeneralUtility.getLastComponentFromPath(localPath,
+				GeneralUtility.getSystemSeparator());
+		inputFolder = new File(localPath);
+
+		if (inputFolder.isDirectory()) {
+			try {
+				IRODSFile irodsFile = irodsFileFactory
+						.instanceIRODSFile(cloudPath + RodsDelimiter
+								+ folderName);
+				irodsFile.mkdir();
+			} catch (JargonException e) {
+				e.printStackTrace();
+				error = "iRODS: error creating folder";
+				throw (new CloudException(error));
+			}
+
+			String[] files = inputFolder.list();
+			for (int i = 0; i < files.length; i++)
+				uploadFolder(localPath + GeneralUtility.getSystemSeparator()
+						+ files[i], cloudPath + folderName);
+		} else if (inputFolder.isFile()) {
+			uploadFile(localPath, cloudPath + folderName);
+		}
 	}
 
 	@Override
-	public List<CloudFile> listFiles(String directoryPath)
+	public List<CloudFile> listFiles(String cloudDirectoryPath)
 			throws CloudException {
-		List<CloudFile> fileList = new ArrayList<CloudFile>();
+		List<CloudFile> fileList;
 		IRODSFile irodsFile;
-		int directoryPathLength = (directoryPath != null ? directoryPath
-				.length() : 0);
-
+		
+		checkCloudPath(cloudDirectoryPath);
+		fileList = new ArrayList<CloudFile>();
+		
 		// add "/" at the end of the path, otherwise Jargon API complains
-		if ((directoryPathLength > 0) && (!directoryPath.endsWith("/")))
-			directoryPath = directoryPath.concat("/");
+		if (!cloudDirectoryPath.endsWith(RodsDelimiter))
+			cloudDirectoryPath = cloudDirectoryPath.concat(RodsDelimiter);
 
-		irodsFile = accessFile(directoryPath);
+		irodsFile = accessFile(cloudDirectoryPath);
 		File[] children = irodsFile.listFiles();
 		for (File child : children)
 			fileList.add(new CloudFile(child.getName(), child.isFile()));
@@ -236,20 +278,53 @@ public class RodsUtility implements CloudOperations {
 		return fileList;
 	}
 
-	private IRODSFile accessFile(String name) throws CloudException {
+	private IRODSFile accessFile(String filePath) throws CloudException {
 		IRODSFile irodsFile;
-
+		
 		try {
-			irodsFile = irodsFileFactory.instanceIRODSFile(name);
+			irodsFile = irodsFileFactory.instanceIRODSFile(filePath);
 		} catch (JargonException e) {
-			String error = "iRODS: Could not acces " + name;
+			String error = "iRODS: Could not acces " + filePath;
 			throw (new CloudException(error));
 		}
 		return irodsFile;
 	}
+	
+	private void checkPaths(String localPath, String cloudPath) throws CloudException {
+		String error;
+		
+		checkCloudPath(cloudPath);
+		try {
+			GeneralUtility.checkLocalPath(localPath);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			error = "Invalid local Path";
+			throw (new CloudException(error));
+		}
+	}
 
 	public String getUsername() {
 		return user;
+	}
+
+	private void checkCloudPath(String path) throws CloudException {
+		String error;
+
+		if (path == null || path.contains(RodsDelimiter) == false) {
+			error = "Invalid Cloud Path";
+			throw (new CloudException(error));
+		}
+	}
+	
+	@Override
+	public boolean isFile(String filePath) throws CloudException {
+		checkCloudPath(filePath);
+		
+		IRODSFile irodsFile = accessFile(filePath);
+		if (irodsFile.isFile())
+			return true;
+
+		return false;
 	}
 
 	public void setUsername(String username) {
@@ -294,23 +369,5 @@ public class RodsUtility implements CloudOperations {
 
 	public void setPort(int port) {
 		this.port = port;
-	}
-
-	@Override
-	public boolean isFileDownload(String name) throws CloudException {
-		IRODSFile irodsFile = accessFile(name);
-		if (irodsFile.isFile())
-			return true;
-
-		return false;
-	}
-
-	public String getHomeDirectory() throws CloudException {
-		String error = "User is not logged!";
-
-		if (userIsLogged == false)
-			throw (new CloudException(error));
-
-		return homeDirectoryPath;
 	}
 }
