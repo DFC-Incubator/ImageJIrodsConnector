@@ -1417,7 +1417,6 @@ public class MyCloudJ_ implements PlugIn {
 			rodsUtilsObj.setRes("test1-resc");
 
 			try {
-				rodsUtilsObj.initializeRods();
 				rodsUtilsObj.login();
 
 				userHomeDirectoryPath = cloudHandler.getHomeDirectory();

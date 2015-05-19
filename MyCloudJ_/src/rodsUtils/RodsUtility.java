@@ -27,10 +27,6 @@ import org.irods.jargon.core.pub.io.IRODSFileOutputStream;
 import CloudConnect.CloudFile;
 
 public class RodsUtility implements CloudOperations {
-	private IRODSSession session;
-	private IRODSAccount account;
-	private IRODSProtocolManager connectionManager;
-	IRODSAccessObjectFactory accessObjectFactory;
 	IRODSFileFactory irodsFileFactory;
 	private String user;
 	private String password;
@@ -41,18 +37,6 @@ public class RodsUtility implements CloudOperations {
 	private String homeDirectoryPath;
 	private boolean userIsLogged;
 	private static final String RodsDelimiter = "/";
-
-	public void initializeRods() throws CloudException {
-		String error;
-
-		connectionManager = IRODSSimpleProtocolManager.instance();
-		try {
-			session = IRODSSession.instance(connectionManager);
-		} catch (JargonException e) {
-			error = "Error initializing iRODS";
-			throw (new CloudException(error));
-		}
-	}
 
 	private void buildHomePath() {
 		StringBuilder homeBuilder = new StringBuilder();
@@ -67,21 +51,28 @@ public class RodsUtility implements CloudOperations {
 
 	public void login() throws CloudException {
 		String error;
+		IRODSProtocolManager connectionManager;
+		IRODSSession session;
+		IRODSAccount account;
+		IRODSAccessObjectFactory accessObjectFactory;
 
-		buildHomePath();
-		account = new IRODSAccount(host, port, user, password, homeDirectoryPath, zone,
-				res);
 		try {
+			connectionManager = IRODSSimpleProtocolManager.instance();
+			session = IRODSSession.instance(connectionManager);
+			account = new IRODSAccount(host, port, user, password,
+					homeDirectoryPath, zone, res);
 			accessObjectFactory = IRODSAccessObjectFactoryImpl
 					.instance(session);
 			irodsFileFactory = accessObjectFactory.getIRODSFileFactory(account);
+			
+			buildHomePath();
 			userIsLogged = true;
 		} catch (JargonException e) {
-			error = "Jargon Exception " + e.getMessage();
+			error = "Error login to iRODS";
 			throw (new CloudException(error));
 		}
 	}
-	
+
 	public String getHomeDirectory() throws CloudException {
 		String error = "User is not logged!";
 
@@ -98,11 +89,12 @@ public class RodsUtility implements CloudOperations {
 		FileOutputStream fos = null;
 		String error = "";
 		String fileName;
-		
+
 		checkPaths(localPath, cloudPath);
 
 		// extract the name of the file from full path
-		fileName = GeneralUtility.getLastComponentFromPath(cloudPath, RodsDelimiter);
+		fileName = GeneralUtility.getLastComponentFromPath(cloudPath,
+				RodsDelimiter);
 		localPath += (GeneralUtility.getSystemSeparator() + fileName);
 
 		try {
@@ -148,10 +140,10 @@ public class RodsUtility implements CloudOperations {
 			throws CloudException {
 		String error;
 		IRODSFile irodsFile;
-		
+
 		checkPaths(localPath, cloudPath);
 		irodsFile = null;
-		
+
 		/*
 		 * Create a folder on the local machine with last part of the of the
 		 * cloudPath
@@ -191,10 +183,10 @@ public class RodsUtility implements CloudOperations {
 		String error;
 		IRODSFile irodsFile;
 		IRODSFileOutputStream irodsFileOutputStream;
-		
+
 		checkPaths(localPath, cloudPath);
 		irodsFileOutputStream = null;
-		
+
 		try {
 			irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
 			irodsFileOutputStream = irodsFileFactory
@@ -229,7 +221,7 @@ public class RodsUtility implements CloudOperations {
 		String error;
 		String folderName;
 		File inputFolder;
-		
+
 		checkPaths(localPath, cloudPath);
 
 		folderName = GeneralUtility.getLastComponentFromPath(localPath,
@@ -262,10 +254,10 @@ public class RodsUtility implements CloudOperations {
 			throws CloudException {
 		List<CloudFile> fileList;
 		IRODSFile irodsFile;
-		
+
 		checkCloudPath(cloudDirectoryPath);
 		fileList = new ArrayList<CloudFile>();
-		
+
 		// add "/" at the end of the path, otherwise Jargon API complains
 		if (!cloudDirectoryPath.endsWith(RodsDelimiter))
 			cloudDirectoryPath = cloudDirectoryPath.concat(RodsDelimiter);
@@ -280,7 +272,7 @@ public class RodsUtility implements CloudOperations {
 
 	private IRODSFile accessFile(String filePath) throws CloudException {
 		IRODSFile irodsFile;
-		
+
 		try {
 			irodsFile = irodsFileFactory.instanceIRODSFile(filePath);
 		} catch (JargonException e) {
@@ -290,9 +282,30 @@ public class RodsUtility implements CloudOperations {
 		return irodsFile;
 	}
 	
-	private void checkPaths(String localPath, String cloudPath) throws CloudException {
+	@Override
+	public boolean isFile(String filePath) throws CloudException {
+		checkCloudPath(filePath);
+
+		IRODSFile irodsFile = accessFile(filePath);
+		if (irodsFile.isFile())
+			return true;
+
+		return false;
+	}
+	
+	private void checkCloudPath(String path) throws CloudException {
 		String error;
-		
+
+		if (path == null || path.contains(RodsDelimiter) == false) {
+			error = "Invalid Cloud Path";
+			throw (new CloudException(error));
+		}
+	}
+
+	private void checkPaths(String localPath, String cloudPath)
+			throws CloudException {
+		String error;
+
 		checkCloudPath(cloudPath);
 		try {
 			GeneralUtility.checkLocalPath(localPath);
@@ -305,26 +318,6 @@ public class RodsUtility implements CloudOperations {
 
 	public String getUsername() {
 		return user;
-	}
-
-	private void checkCloudPath(String path) throws CloudException {
-		String error;
-
-		if (path == null || path.contains(RodsDelimiter) == false) {
-			error = "Invalid Cloud Path";
-			throw (new CloudException(error));
-		}
-	}
-	
-	@Override
-	public boolean isFile(String filePath) throws CloudException {
-		checkCloudPath(filePath);
-		
-		IRODSFile irodsFile = accessFile(filePath);
-		if (irodsFile.isFile())
-			return true;
-
-		return false;
 	}
 
 	public void setUsername(String username) {
