@@ -64,7 +64,7 @@ public class RodsUtility implements CloudOperations {
 			accessObjectFactory = IRODSAccessObjectFactoryImpl
 					.instance(session);
 			irodsFileFactory = accessObjectFactory.getIRODSFileFactory(account);
-			
+
 			buildHomePath();
 			userIsLogged = true;
 		} catch (JargonException e) {
@@ -243,9 +243,9 @@ public class RodsUtility implements CloudOperations {
 			String[] files = inputFolder.list();
 			for (int i = 0; i < files.length; i++)
 				uploadFolder(localPath + GeneralUtility.getSystemSeparator()
-						+ files[i], cloudPath + folderName);
+						+ files[i], cloudPath + RodsDelimiter + folderName);
 		} else if (inputFolder.isFile()) {
-			uploadFile(localPath, cloudPath + folderName);
+			uploadFile(localPath, cloudPath + RodsDelimiter + folderName);
 		}
 	}
 
@@ -281,7 +281,7 @@ public class RodsUtility implements CloudOperations {
 		}
 		return irodsFile;
 	}
-	
+
 	@Override
 	public boolean isFile(String filePath) throws CloudException {
 		checkCloudPath(filePath);
@@ -292,7 +292,7 @@ public class RodsUtility implements CloudOperations {
 
 		return false;
 	}
-	
+
 	private void checkCloudPath(String path) throws CloudException {
 		String error;
 
