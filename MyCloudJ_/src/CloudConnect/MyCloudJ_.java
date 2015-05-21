@@ -44,7 +44,7 @@ import dbxUtils.DbxUtility;
 
 /**
  * @author Atin Mathur (mathuratin007@gmail.com) - Dropbox functionality
- * @author Doru-Cristian Gucea (gucea.doru@gmail.com) - iRODS functionality
+ * @author Doru-Cristian Gucea (gucea.doru@gmail.com) - iRODS functionality + Refactoring
  * @Mentor : Dimiter Prodanov (dimiterpp@gmail.com)
  * 
  * @description : Dropbox functionality: Google Summer of Code 2014
@@ -64,11 +64,9 @@ public class MyCloudJ_ implements PlugIn {
 	// ------------------------------------------------------------------------
 	// commun functionality fields, specific both to Dbx and iRODS
 	// ------------------------------------------------------------------------
-	/**
-	 * osType: windows or linux
-	 */
-	private String osType = GeneralUtility.getOS();
 
+	FileTree fileTree;
+	
 	/**
 	 * cloudHandler : generic interface for cloud operations
 	 */
@@ -170,28 +168,6 @@ public class MyCloudJ_ implements PlugIn {
 	 * @downloadRadioButton: user will download a file/folder from cloud
 	 */
 	private JRadioButton uploadRadioButton, downloadRadioButton;
-
-	/**
-	 * @downloadTree: stores the complete metadata(path of folders) of cloud
-	 *                account. Used to display when user browses to select the
-	 *                files/folders to Download from.
-	 * 
-	 *                Note : Each node in downloadTree represents a file/folder
-	 */
-	private JTree downloadTree;
-	private DefaultTreeModel downloadTreeModel;
-	private DefaultMutableTreeNode downloadRoot;
-
-	/**
-	 * @uploadTree: Stores the complete metadata(path of folders) of cloud
-	 *              account. Used to display when user browses to select the
-	 *              folders to Upload into.
-	 * 
-	 *              Note : Each node in uploadTree represents a folder
-	 */
-	private JTree uploadTree;
-	private DefaultTreeModel uploadTreeModel;
-	private DefaultMutableTreeNode uploadRoot;
 
 	/**
 	 * this JFrame contains the tree for selecting the files/folder
@@ -713,7 +689,7 @@ public class MyCloudJ_ implements PlugIn {
 							+ country + "\nQuota: " + userQuota + " GB");
 
 					userHomeDirectoryPath = cloudHandler.getHomeDirectory();
-					buildSelectionTrees(userHomeDirectoryPath);
+					buildFileSelectionTrees(userHomeDirectoryPath);
 
 					/*
 					 * Disable the access code textfield and enable the the
@@ -772,95 +748,46 @@ public class MyCloudJ_ implements PlugIn {
 		}
 	}
 
-	class BtnExpandListener implements ActionListener {
+	class BtnExpandDownloadTreeListener implements ActionListener {
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			String filePath = "";
-			String filePathComponent;
-
-			// Parent node is initially null
-			DefaultMutableTreeNode parentNode = null;
-
-			// Parent path of the currently selected node
-			TreePath parentPath = downloadTree.getSelectionPath();
-
-			// get the parent node(one in which we have to add children)
-			parentNode = (DefaultMutableTreeNode) (parentPath
-					.getLastPathComponent());
-
-			filePath = GeneralUtility.getSelectedNodePath(downloadTree);
-
-			// Add child nodes to this node(files and subfolders11)
+		public void actionPerformed(ActionEvent aE) {
 			try {
-				addChildren(parentNode, downloadTreeModel,
-						cloudHandler.listFiles(filePath));
-			} catch (CloudException e1) {
+				fileTree.expandDownloadTree(cloudHandler);
+			} catch (CloudException e) {
 				// TODO: Display a error for the user inside the browse box
-				e1.printStackTrace();
+				e.printStackTrace();
 				return;
 			}
-
-			downloadTree.expandPath(new TreePath(parentNode.getPath()));
-
 			treeFrame.pack();
 		}
 	}
 
-	class BtnExpand2Listener implements ActionListener {
+	class BtnExpandUploadTreeListener implements ActionListener {
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			String filePath = "";
-
-			// Parent node is initially null
-			DefaultMutableTreeNode parentNode = null;
-
-			// Parent path of the currently selected node
-			TreePath parentPath = uploadTree.getSelectionPath();
-
-			// get the parent node(one in which we have to add children)
-			parentNode = (DefaultMutableTreeNode) (parentPath
-					.getLastPathComponent());
-
-			filePath = GeneralUtility.getSelectedNodePath(uploadTree);
-
-			// Add child nodes to this node(files and subfolders)
+		public void actionPerformed(ActionEvent ae) {
 			try {
-				addChildrenFolder(parentNode, downloadTreeModel,
-						cloudHandler.listFiles(filePath));
-			} catch (CloudException e1) {
-				JOptionPane
-						.showMessageDialog(mainFrame, e1.getCloudError(),
-								"MyCLoudJ - Expanding Error",
-								JOptionPane.ERROR_MESSAGE);
+				fileTree.expandUploadTree(cloudHandler);
+			} catch (CloudException e) {
+				// TODO: Display a error for the user inside the browse box
+				e.printStackTrace();
 				return;
 			}
-
-			uploadTree.expandPath(new TreePath(parentNode.getPath()));
-
 			treeFrame.pack();
 		}
 	}
 
 	class BtnSelectListener implements ActionListener {
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			String selectedNodePath = "";
-			// Get the latest node selected
-			node = downloadTree.getLastSelectedPathComponent();
-			parentNode = ((DefaultMutableTreeNode) node).getParent();
-
-			selectedNodePath = GeneralUtility.getSelectedNodePath(downloadTree);
+		public void actionPerformed(ActionEvent ae) {
+			String selectedNodePath = fileTree.getSelectedNodePathDownloadTree();
+			
 			srcTxt.setText(selectedNodePath);
-			System.out.println(selectedNodePath);
-
 			try {
 				isFileDownload = cloudHandler.isFile(selectedNodePath);
-			} catch (CloudException e1) {
-				msgs.append(e1.getCloudError() + "\n\n");
-				e1.printStackTrace();
+			} catch (CloudException e) {
+				msgs.append(e.getCloudError() + "\n\n");
+				e.printStackTrace();
 			}
-
-			// close the treeFrame
 			treeFrame.dispose();
 		}
 	}
@@ -916,7 +843,7 @@ public class MyCloudJ_ implements PlugIn {
 				JPanel panel2 = new JPanel(new FlowLayout());
 				JButton Expand = new JButton("Expand");
 				panel2.add(Expand);
-				Expand.addActionListener(new BtnExpandListener());
+				Expand.addActionListener(new BtnExpandDownloadTreeListener());
 
 				/*
 				 * JButton
@@ -947,19 +874,6 @@ public class MyCloudJ_ implements PlugIn {
 					}
 				});
 
-				downloadTree
-						.addTreeExpansionListener(new TreeExpansionListener() {
-							@Override
-							public void treeExpanded(TreeExpansionEvent event) {
-								treeFrame.pack();
-							}
-
-							@Override
-							public void treeCollapsed(TreeExpansionEvent event) {
-								treeFrame.pack();
-							}
-						});
-
 				// This will position the JFrame in the center of the screen
 				treeFrame.setLocationRelativeTo(null);
 				treeFrame.setTitle("Dropbox - Browse!");
@@ -968,7 +882,7 @@ public class MyCloudJ_ implements PlugIn {
 				// treeFrame.setMaximumSize(new Dimension(500,350));
 
 				// Add DbxTree1(JTree) to this panel and in turn in treeFrame
-				treePanel.add(downloadTree);
+				treePanel.add(fileTree.getDownloadTree());
 				treeFrame.add(scroll);
 				treeFrame.add(panel2);
 				treeFrame.setVisible(true);
@@ -993,11 +907,6 @@ public class MyCloudJ_ implements PlugIn {
 				treeFrame.setLayout(boxLayout);
 
 				/*
-				 * // Expand the JTree for (int i = 0; i <
-				 * DbxTree2.getRowCount(); i++) { DbxTree2.expandRow(i); }
-				 */
-
-				/*
 				 * JPanel for browsing frame
 				 * 
 				 * Scroll bar added
@@ -1015,7 +924,7 @@ public class MyCloudJ_ implements PlugIn {
 				JPanel panel2 = new JPanel(new FlowLayout());
 				JButton Expand = new JButton("Expand");
 				panel2.add(Expand);
-				Expand.addActionListener(new BtnExpand2Listener());
+				Expand.addActionListener(new BtnExpandUploadTreeListener());
 
 				/*
 				 * JButton
@@ -1045,19 +954,6 @@ public class MyCloudJ_ implements PlugIn {
 					}
 				});
 
-				uploadTree
-						.addTreeExpansionListener(new TreeExpansionListener() {
-							@Override
-							public void treeExpanded(TreeExpansionEvent event) {
-								treeFrame.pack();
-							}
-
-							@Override
-							public void treeCollapsed(TreeExpansionEvent event) {
-								treeFrame.pack();
-							}
-						});
-
 				// This will position the JFrame in the center of the screen
 				treeFrame.setLocationRelativeTo(null);
 				treeFrame.setTitle("Dropbox - Browse!");
@@ -1066,7 +962,7 @@ public class MyCloudJ_ implements PlugIn {
 				// treeFrame.setMaximumSize(new Dimension(500,350));
 
 				// Add DbxTree2(JTree) to this panel and in turn in treeFrame
-				treePanel.add(uploadTree);
+				treePanel.add(fileTree.getUploadTree());
 				treeFrame.add(scroll);
 				treeFrame.add(panel2);
 				treeFrame.setVisible(true);
@@ -1096,21 +992,16 @@ public class MyCloudJ_ implements PlugIn {
 
 		class BtnSelect2Listener implements ActionListener {
 			private JFrame treeFrame;
-
+			
+			// TODO: do we need this initialization
 			public BtnSelect2Listener(JFrame treeFrame) {
 				this.treeFrame = treeFrame;
 			}
 
 			public void actionPerformed(ActionEvent e) {
 				// Get the latest node selected
-				node = uploadTree.getLastSelectedPathComponent();
-
-				parentNode = ((DefaultMutableTreeNode) node).getParent();
-
-				String selectedNodePath = GeneralUtility
-						.getSelectedNodePath(uploadTree);
+				String selectedNodePath = fileTree.getSelectedNodePathUploadTree();
 				targetTxt.setText(selectedNodePath);
-				System.out.println(selectedNodePath);
 
 				try {
 					isFileDownload = cloudHandler
@@ -1119,7 +1010,6 @@ public class MyCloudJ_ implements PlugIn {
 					msgs.append(e1.getCloudError() + "\n\n");
 					e1.printStackTrace();
 				}
-
 				this.treeFrame.dispose();
 			}
 		}
@@ -1222,10 +1112,11 @@ public class MyCloudJ_ implements PlugIn {
 							try {
 								cloudHandler.uploadFolder(folderLocalPath,
 										targetCloudPath);
-								addChildrenFolder(downloadRoot,
-										downloadTreeModel,
-										cloudHandler.listFiles(cloudHandler
-												.getHomeDirectory()));
+								// TODO
+								//addChildrenFolder(downloadRoot,
+									//	downloadTreeModel,
+										//cloudHandler.listFiles(cloudHandler
+											//	.getHomeDirectory()));
 							} catch (CloudException e) {
 								msgs.append("Error uploading folder "
 										+ e.getCloudError() + "!\n\n"); // Message
@@ -1420,7 +1311,7 @@ public class MyCloudJ_ implements PlugIn {
 				rodsUtilsObj.login();
 
 				userHomeDirectoryPath = cloudHandler.getHomeDirectory();
-				buildSelectionTrees(userHomeDirectoryPath);
+				buildFileSelectionTrees(userHomeDirectoryPath);
 			} catch (CloudException e1) {
 				lblConnectionStatus.setText("Error connecting to iRODS!");
 				e1.printStackTrace();
@@ -1480,72 +1371,11 @@ public class MyCloudJ_ implements PlugIn {
 		}
 	}
 
-	private void buildSelectionTrees(String homeDirectoryPath)
+	private void buildFileSelectionTrees(String homeDirectoryPath)
 			throws CloudException {
-		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
-		downloadTree = new JTree(downloadRoot);
-		downloadTreeModel = new DefaultTreeModel(downloadRoot);
-		addChildren(downloadRoot, downloadTreeModel,
-				cloudHandler.listFiles(homeDirectoryPath));
-		downloadTree.getSelectionModel().setSelectionMode(
-				TreeSelectionModel.SINGLE_TREE_SELECTION);
-		downloadTreeModel.reload(downloadRoot);
-
-		/*
-		 * Create the JTree for browsing(to select path for uploading the
-		 * file/folder) Only added subfolders of the Dropbox root folder i.e.
-		 * "/" Will add new nodes on demand of the user in form of "Expand"
-		 * clicks
-		 */
-		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
-		uploadTree = new JTree(uploadRoot);
-		uploadTreeModel = new DefaultTreeModel(uploadRoot);
-		addChildrenFolder(downloadRoot, downloadTreeModel,
-				cloudHandler.listFiles(homeDirectoryPath));
-		uploadTree.getSelectionModel().setSelectionMode(
-				TreeSelectionModel.SINGLE_TREE_SELECTION);
-		uploadTreeModel.reload(uploadRoot);
-
-	}
-
-	/*
-	 * Function to add nodes to the JTree
-	 * 
-	 * This function is called when user selects a parent node and clicks Expand
-	 * button
-	 * 
-	 * Parameters: TODO Javadoc: TODO
-	 */
-	public void addChildren(DefaultMutableTreeNode node,
-			DefaultTreeModel Treemodel, List<CloudFile> cloudFiles) {
-
-		for (int i = 0; i < cloudFiles.size(); i++) {
-			CloudFile child = cloudFiles.get(i);
-			DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
-					child.getPath());
-			GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
-		}
-	}
-
-	/*
-	 * Function to add nodes to the JTree
-	 * 
-	 * This function is called when user selects a parent node and clicks Expand
-	 * button
-	 * 
-	 * Parameters: TODO Javadoc: TODO
-	 */
-	public void addChildrenFolder(DefaultMutableTreeNode node,
-			DefaultTreeModel Treemodel, List<CloudFile> cloudFiles) {
-
-		for (int i = 0; i < cloudFiles.size(); i++) {
-			CloudFile child = cloudFiles.get(i);
-			if (!child.isFile()) {
-				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
-						child.getPath());
-				GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
-			}
-		}
+		List<CloudFile> rootFiles = cloudHandler.listFiles(homeDirectoryPath);
+		fileTree = new FileTree(homeDirectoryPath, rootFiles);
+		fileTree.setTreeFrame(treeFrame);
 	}
 
 	/*
@@ -1568,8 +1398,5 @@ public class MyCloudJ_ implements PlugIn {
 				}
 			}
 		}
-		// End of setEnabledAll() method
 	}
-
-	// End of the MyCloudJ_ class
 }

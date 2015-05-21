@@ -86,26 +86,6 @@ public class GeneralUtility {
 			System.out.println("File: " + cloudFilesList.get(i).getPath()
 					+ ", isFile: " + cloudFilesList.get(i).isFile());
 	}
-
-	public static String getSelectedNodePath (JTree tree) {
-		String componentPath, selectedNodePath = "";
-		int componentNo;
-
-		TreePath parentPath = tree.getSelectionPath();
-		componentNo = parentPath.getPathCount();
-
-		for (int i = 0; i < componentNo; i++) {
-			componentPath = parentPath.getPathComponent(i).toString();
-
-			// do not add "/" to the last component of the path
-			if ((componentPath.endsWith("/") == false) && (i < (componentNo - 1)))
-				componentPath = componentPath.concat("/");
-
-			selectedNodePath = selectedNodePath.concat(componentPath);
-		}
-
-		return selectedNodePath;
-	}
 	
 	public static String getLastComponentFromPath(String path, String delimiter) {
 		int lastOccurence; 
