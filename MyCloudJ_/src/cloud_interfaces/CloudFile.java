@@ -1,4 +1,4 @@
-package CloudConnect;
+package cloud_interfaces;
 
 public class CloudFile {
 

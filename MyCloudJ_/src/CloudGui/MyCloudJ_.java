@@ -1,8 +1,6 @@
-package CloudConnect;
+package CloudGui;
 
-import generalUtils.CloudException;
-import generalUtils.CloudOperations;
-import generalUtils.GeneralUtility;
+import general.GeneralUtility;
 import ij.io.Opener;
 import ij.plugin.PlugIn;
 
@@ -39,8 +37,11 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import rodsUtils.RodsUtility;
-import dbxUtils.DbxUtility;
+import cloud_interfaces.CloudException;
+import cloud_interfaces.CloudFile;
+import cloud_interfaces.CloudOperations;
+import rods_backend.RodsOperations;
+import dropbox_backend.DropboxOperations;
 
 /**
  * @author Atin Mathur (mathuratin007@gmail.com) - Dropbox functionality
@@ -70,7 +71,7 @@ public class MyCloudJ_ implements PlugIn {
 	/**
 	 * cloudHandler : generic interface for cloud operations
 	 */
-	private CloudOperations cloudHandler = new DbxUtility();
+	private CloudOperations cloudHandler = new DropboxOperations();
 
 	/**
 	 * userIsConnected: true if user connected to cloud, false otherwise
@@ -662,7 +663,7 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnDbxConnectListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			DbxUtility dbxUtility = (DbxUtility) cloudHandler;
+			DropboxOperations dbxUtility = (DropboxOperations) cloudHandler;
 
 			try {
 				// retrieve the access code from textfield
@@ -1285,7 +1286,7 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnConnectRodsListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			RodsUtility rodsUtilsObj = (RodsUtility) cloudHandler;
+			RodsOperations rodsUtilsObj = (RodsOperations) cloudHandler;
 
 			/*
 			 * rodsUtilsObj.setUsername(user.getText());
@@ -1363,7 +1364,7 @@ public class MyCloudJ_ implements PlugIn {
 		 */
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			cloudHandler = new RodsUtility();
+			cloudHandler = new RodsOperations();
 			mainLeftPanel.setBorder(title2);
 			lPanelRodsSpecific.setVisible(true);
 			lPanelDbSpecific.setVisible(false);

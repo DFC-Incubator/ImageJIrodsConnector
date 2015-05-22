@@ -1,8 +1,6 @@
-package CloudConnect;
+package CloudGui;
 
-import generalUtils.CloudException;
-import generalUtils.CloudOperations;
-import generalUtils.GeneralUtility;
+import general.GeneralUtility;
 
 import java.util.List;
 
@@ -14,6 +12,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+
+import cloud_interfaces.CloudException;
+import cloud_interfaces.CloudFile;
+import cloud_interfaces.CloudOperations;
 
 public class FileTree {
 	/**

@@ -1,8 +1,6 @@
-package rodsUtils;
+package rods_backend;
 
-import generalUtils.CloudException;
-import generalUtils.CloudOperations;
-import generalUtils.GeneralUtility;
+import general.GeneralUtility;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,9 +22,11 @@ import org.irods.jargon.core.pub.io.IRODSFileFactory;
 import org.irods.jargon.core.pub.io.IRODSFileInputStream;
 import org.irods.jargon.core.pub.io.IRODSFileOutputStream;
 
-import CloudConnect.CloudFile;
+import cloud_interfaces.CloudException;
+import cloud_interfaces.CloudFile;
+import cloud_interfaces.CloudOperations;
 
-public class RodsUtility implements CloudOperations {
+public class RodsOperations implements CloudOperations {
 	IRODSFileFactory irodsFileFactory;
 	private String user;
 	private String password;

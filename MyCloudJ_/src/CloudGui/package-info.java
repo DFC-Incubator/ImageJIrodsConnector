@@ -5,4 +5,4 @@
  * @author mathuratin
  *
  */
-package CloudConnect;
+package CloudGui;

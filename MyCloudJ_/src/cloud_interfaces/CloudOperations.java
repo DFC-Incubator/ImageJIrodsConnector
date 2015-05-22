@@ -1,8 +1,6 @@
-package generalUtils;
+package cloud_interfaces;
 
 import java.util.List;
-
-import CloudConnect.CloudFile;
 
 public interface CloudOperations {
 	public void login() throws CloudException;

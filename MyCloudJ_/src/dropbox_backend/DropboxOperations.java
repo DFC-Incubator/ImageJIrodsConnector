@@ -1,4 +1,4 @@
-package dbxUtils;
+package dropbox_backend;
 
 /*
  * Description		:		Google Summer of Code 2014 Project
@@ -17,13 +17,13 @@ package dbxUtils;
  * Date				:		19-May-2014
  */
 
-import CloudConnect.CloudFile;
+import cloud_interfaces.CloudException;
+import cloud_interfaces.CloudFile;
+import cloud_interfaces.CloudOperations;
 
 import com.dropbox.core.*;
 
-import generalUtils.CloudException;
-import generalUtils.CloudOperations;
-import generalUtils.GeneralUtility;
+import general.GeneralUtility;
 
 import java.awt.Desktop;
 import java.io.*;
@@ -38,7 +38,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 // Dropbox APIs calls for the MyCloudJ_ plugin are made from this class
-public class DbxUtility implements CloudOperations {
+public class DropboxOperations implements CloudOperations {
 	/*
 	 * Class variables
 	 */

@@ -1,7 +1,4 @@
-package DbxUtils;
-
-import generalUtils.CloudException;
-import generalUtils.CloudOperations;
+package dropbox;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,16 +8,19 @@ import javax.swing.JOptionPane;
 
 import org.junit.Test;
 
+import cloud_interfaces.CloudException;
+import cloud_interfaces.CloudOperations;
+
 import com.dropbox.core.DbxException;
 
-import dbxUtils.DbxUtility;
+import dropbox_backend.DropboxOperations;
 
 public class MyDbxUtilityTest {
 	
 	@Test
 	public void testDbxUploadFile() {
 		// Object of class DbxUtility
-		CloudOperations cloudHandler = new DbxUtility();
+		CloudOperations cloudHandler = new DropboxOperations();
 		String authorizeUrl="", code="";
 		
 		// Generate dropbox app url
@@ -36,7 +36,7 @@ public class MyDbxUtilityTest {
 			code = new BufferedReader(new InputStreamReader(System.in)).readLine().trim();
 			
 			// connect user to dropbox	
-			((DbxUtility)cloudHandler).DbxLinkUser(code);
+			((DropboxOperations)cloudHandler).DbxLinkUser(code);
 
 			// Upload a file
 			// obj.DbxUploadFile("/Users/mathuratin/Desktop/travel_0013.jpg", "/");
@@ -51,7 +51,7 @@ public class MyDbxUtilityTest {
 	@Test
 	public void testDbxUploadFolder() {
 		// Object of class DbxUtility
-		CloudOperations cloudHandler = new DbxUtility();
+		CloudOperations cloudHandler = new DropboxOperations();
 		String authorizeUrl="", code="";
 		
 		// Generate dropbox app url
@@ -67,7 +67,7 @@ public class MyDbxUtilityTest {
 			code = new BufferedReader(new InputStreamReader(System.in)).readLine().trim();
 			
 			// connect user to dropbox	
-			((DbxUtility)cloudHandler).DbxLinkUser(code);
+			((DropboxOperations)cloudHandler).DbxLinkUser(code);
 
 			// Upload a file
 			// obj.DbxUploadFile("/Users/mathuratin/Desktop/travel_0013.jpg", "/");
@@ -82,7 +82,7 @@ public class MyDbxUtilityTest {
 	@Test
 	public void testDbxDownloadFile() {
 		// Object of class DbxUtility
-		CloudOperations cloudHandler = new DbxUtility();
+		CloudOperations cloudHandler = new DropboxOperations();
 		String authorizeUrl="", code="";
 		
 		// Generate dropbox app url
@@ -98,7 +98,7 @@ public class MyDbxUtilityTest {
 			code = new BufferedReader(new InputStreamReader(System.in)).readLine().trim();
 			
 			// connect user to dropbox	
-			((DbxUtility)cloudHandler).DbxLinkUser(code);
+			((DropboxOperations)cloudHandler).DbxLinkUser(code);
 
 			// Upload a file
 			// obj.DbxUploadFile("/Users/mathuratin/Desktop/travel_0013.jpg", "/");
@@ -113,7 +113,7 @@ public class MyDbxUtilityTest {
 	@Test
 	public void testDbxDownloadFolder() {
 		// Object of class DbxUtility
-		CloudOperations cloudHandler = new DbxUtility();
+		CloudOperations cloudHandler = new DropboxOperations();
 		String authorizeUrl="", code="";
 		
 		// Generate dropbox app url
@@ -129,7 +129,7 @@ public class MyDbxUtilityTest {
 			code = new BufferedReader(new InputStreamReader(System.in)).readLine().trim();
 			
 			// connect user to dropbox	
-			((DbxUtility)cloudHandler).DbxLinkUser(code);
+			((DropboxOperations)cloudHandler).DbxLinkUser(code);
 	
 			// Upload a file
 			// obj.DbxUploadFile("/Users/mathuratin/Desktop/travel_0013.jpg", "/");

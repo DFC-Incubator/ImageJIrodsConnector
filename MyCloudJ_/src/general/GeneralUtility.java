@@ -1,4 +1,4 @@
-package generalUtils;
+package general;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -11,7 +11,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import CloudConnect.CloudFile;
+import cloud_interfaces.CloudException;
+import cloud_interfaces.CloudFile;
 
 public class GeneralUtility {
 	private static String OS;

@@ -1,4 +1,4 @@
-package generalUtils;
+package cloud_interfaces;
 
 public class CloudException extends Exception {
 	private String cloudError;
