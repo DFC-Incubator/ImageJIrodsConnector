@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * @author mathuratin
- *
- */
-package CloudGui;
