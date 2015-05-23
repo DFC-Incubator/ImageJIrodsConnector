@@ -2,9 +2,14 @@ package CloudGui;
 
 import general.GeneralUtility;
 
+import java.awt.FlowLayout;
 import java.util.List;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
@@ -28,7 +33,6 @@ public class CloudFileTree {
 	private JTree downloadTree;
 	private DefaultTreeModel downloadTreeModel;
 	private DefaultMutableTreeNode downloadRoot;
-	private JFrame treeFrame;
 
 	/**
 	 * @uploadTree: Stores the complete metadata(path of folders) of cloud
@@ -40,8 +44,61 @@ public class CloudFileTree {
 	private JTree uploadTree;
 	private DefaultTreeModel uploadTreeModel;
 	private DefaultMutableTreeNode uploadRoot;
-	
+
+	/*
+	 * enclosing frame of browsing trees
+	 */
+	private JFrame enclosingFrame;
+	private JButton expandButton;
+	private JButton selectButton;
+	private JButton cancelButton;
+
 	private CloudOperations cloudHandler;
+
+	public void createEnclosingFrameDownload() {
+		createEnclosingFrame(downloadTree);
+	}
+
+	public void createEnclosingFrameUpload() {
+		createEnclosingFrame(uploadTree);
+	}
+
+	private void createEnclosingFrame(JTree fileTree) {
+		JPanel fileTreePanel = new JPanel();
+		JPanel buttonsPanel = new JPanel(new FlowLayout());
+		enclosingFrame = new JFrame();
+		BoxLayout boxLayout = new BoxLayout(enclosingFrame.getContentPane(),
+				BoxLayout.Y_AXIS);
+
+		// create a panel with 3 buttons
+		expandButton = new JButton("Expand");
+		selectButton = new JButton("Select");
+		cancelButton = new JButton("Cancel");
+		buttonsPanel.add(selectButton);
+		buttonsPanel.add(expandButton);
+		buttonsPanel.add(cancelButton);
+
+		// add the file tree in the enclosing frame
+		fileTreePanel.add(fileTree);
+		enclosingFrame.add(new JScrollPane(fileTreePanel));
+
+		// add the buttons in the enclosing Frame
+		enclosingFrame.add(buttonsPanel);
+
+		// set the properties for the enclosing frame
+		enclosingFrame.setVisible(true);
+		enclosingFrame.setLayout(boxLayout);
+
+		// set expansion listeners for the file trees
+		setExpansionListeners();
+
+		// This will position the JFrame in the center of the screen
+		enclosingFrame.setLocationRelativeTo(null);
+		enclosingFrame.setTitle("Dropbox - Browse!");
+		enclosingFrame.setSize(350, 200);
+		enclosingFrame.setResizable(true);
+		enclosingFrame.pack();
+	}
 
 	public CloudFileTree(String homeDirectoryPath, CloudOperations cloudHandler)
 			throws CloudException {
@@ -164,29 +221,28 @@ public class CloudFileTree {
 		return selectedNodePath;
 	}
 
-	public void setTreeFrame(final JFrame treeFrame) {
-		this.treeFrame = treeFrame;
+	private void setExpansionListeners() {
 		uploadTree.addTreeExpansionListener(new TreeExpansionListener() {
 			@Override
 			public void treeExpanded(TreeExpansionEvent event) {
-				treeFrame.pack();
+				getEnclosingFrame().pack();
 			}
 
 			@Override
 			public void treeCollapsed(TreeExpansionEvent event) {
-				treeFrame.pack();
+				getEnclosingFrame().pack();
 			}
 		});
 
 		downloadTree.addTreeExpansionListener(new TreeExpansionListener() {
 			@Override
 			public void treeExpanded(TreeExpansionEvent event) {
-				treeFrame.pack();
+				getEnclosingFrame().pack();
 			}
 
 			@Override
 			public void treeCollapsed(TreeExpansionEvent event) {
-				treeFrame.pack();
+				getEnclosingFrame().pack();
 			}
 		});
 	}
@@ -208,6 +264,22 @@ public class CloudFileTree {
 	}
 
 	public JFrame getTreeFrame() {
-		return treeFrame;
+		return getEnclosingFrame();
+	}
+
+	public JButton getExpandButton() {
+		return expandButton;
+	}
+
+	public JButton getSelectButton() {
+		return selectButton;
+	}
+
+	public JFrame getEnclosingFrame() {
+		return enclosingFrame;
+	}
+
+	public JButton getCancelButton() {
+		return cancelButton;
 	}
 }

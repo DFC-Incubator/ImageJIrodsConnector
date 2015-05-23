@@ -45,7 +45,8 @@ import dropbox_backend.DropboxOperations;
 
 /**
  * @author Atin Mathur (mathuratin007@gmail.com) - Dropbox functionality
- * @author Doru-Cristian Gucea (gucea.doru@gmail.com) - iRODS functionality + Refactoring
+ * @author Doru-Cristian Gucea (gucea.doru@gmail.com) - iRODS functionality +
+ *         Refactoring
  * @Mentor : Dimiter Prodanov (dimiterpp@gmail.com)
  * 
  * @description : Dropbox functionality: Google Summer of Code 2014
@@ -68,7 +69,7 @@ public class MyCloudJ_ implements PlugIn {
 
 	CloudFileTree cloudFileTree;
 	LocalFileTree localFileTree;
-	
+
 	/**
 	 * cloudHandler : generic interface for cloud operations
 	 */
@@ -83,7 +84,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * after login, initialized to user home directory
 	 */
 	private String cloudHomeDirectoryPath;
-	
+
 	private final String LOCAL_HOME_DIRECTORY_PATH = ".";
 
 	/**
@@ -172,11 +173,6 @@ public class MyCloudJ_ implements PlugIn {
 	 * @downloadRadioButton: user will download a file/folder from cloud
 	 */
 	private JRadioButton uploadRadioButton, downloadRadioButton;
-
-	/**
-	 * this JFrame contains the tree for selecting the files/folder
-	 */
-	private JFrame treeFrame = new JFrame();
 
 	/**
 	 * this holds the JTree node that is selected by the user for
@@ -693,7 +689,8 @@ public class MyCloudJ_ implements PlugIn {
 							+ country + "\nQuota: " + userQuota + " GB");
 
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
-					buildFileSelectionTrees(cloudHomeDirectoryPath, LOCAL_HOME_DIRECTORY_PATH);
+					buildFileSelectionTrees(cloudHomeDirectoryPath,
+							LOCAL_HOME_DIRECTORY_PATH);
 
 					/*
 					 * Disable the access code textfield and enable the the
@@ -762,7 +759,7 @@ public class MyCloudJ_ implements PlugIn {
 				e.printStackTrace();
 				return;
 			}
-			treeFrame.pack();
+			cloudFileTree.getEnclosingFrame().pack();
 		}
 	}
 
@@ -776,15 +773,16 @@ public class MyCloudJ_ implements PlugIn {
 				e.printStackTrace();
 				return;
 			}
-			treeFrame.pack();
+			cloudFileTree.getEnclosingFrame().pack();
 		}
 	}
 
 	class BtnSelectListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			String selectedNodePath = cloudFileTree.getSelectedNodePathDownloadTree();
-			
+			String selectedNodePath = cloudFileTree
+					.getSelectedNodePathDownloadTree();
+
 			srcTxt.setText(selectedNodePath);
 			try {
 				isFileDownload = cloudHandler.isFile(selectedNodePath);
@@ -792,7 +790,7 @@ public class MyCloudJ_ implements PlugIn {
 				msgs.append(e.getCloudError() + "\n\n");
 				e.printStackTrace();
 			}
-			treeFrame.dispose();
+			cloudFileTree.getEnclosingFrame().dispose();
 		}
 	}
 
@@ -804,81 +802,15 @@ public class MyCloudJ_ implements PlugIn {
 				localFileTree.openSelectionGUI(false);
 				srcTxt.setText(localFileTree.getSelectedFilePath());
 			}
-			
 			// download file from cloud
 			else if (downloadRadioButton.isSelected()) {
-				treeFrame = new JFrame();
-				BoxLayout boxLayout = new BoxLayout(treeFrame.getContentPane(),
-						BoxLayout.Y_AXIS);
-				treeFrame.setLayout(boxLayout);
-
-				/*
-				 * // Expand the JTree for (int i = 0; i <
-				 * DbxTree1.getRowCount(); i++) { DbxTree1.expandRow(i); }
-				 */
-
-				/*
-				 * JPanel for browsing frame
-				 * 
-				 * Scroll bar added
-				 */
-				JPanel treePanel = new JPanel();
-				JScrollPane scroll = new JScrollPane(treePanel);
-
-				/*
-				 * JButton
-				 * 
-				 * Expand : expand the folders into subfolders and files.
-				 * 
-				 * Added onto panel2
-				 */
-				JPanel panel2 = new JPanel(new FlowLayout());
-				JButton Expand = new JButton("Expand");
-				panel2.add(Expand);
-				Expand.addActionListener(new BtnExpandDownloadTreeListener());
-
-				/*
-				 * JButton
-				 * 
-				 * Select : Select the folder/file and set the source textfield
-				 * with the dropbox path of selected file/folder
-				 * 
-				 * Added onto panel2
-				 */
-				JButton Select = new JButton("Select");
-				panel2.add(Select);
-				Select.addActionListener(new BtnSelectListener());
-
-				/*
-				 * JButton
-				 * 
-				 * Cancel : No action, just close the treeFrame
-				 * 
-				 * Added onto panel2
-				 */
-				JButton Cancel = new JButton("Cancel");
-				panel2.add(Cancel);
-				Cancel.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// Close the treeFrame
-						treeFrame.dispose();
-					}
-				});
-
-				// This will position the JFrame in the center of the screen
-				treeFrame.setLocationRelativeTo(null);
-				treeFrame.setTitle("Dropbox - Browse!");
-				treeFrame.setSize(350, 200);
-				treeFrame.setResizable(true);
-				// treeFrame.setMaximumSize(new Dimension(500,350));
-
-				// Add DbxTree1(JTree) to this panel and in turn in treeFrame
-				treePanel.add(cloudFileTree.getDownloadTree());
-				treeFrame.add(scroll);
-				treeFrame.add(panel2);
-				treeFrame.setVisible(true);
-				treeFrame.pack();
+				cloudFileTree.createEnclosingFrameDownload();
+				cloudFileTree.getExpandButton().addActionListener(
+						new BtnExpandDownloadTreeListener());
+				cloudFileTree.getSelectButton().addActionListener(
+						new BtnSelectListener());
+				cloudFileTree.getCancelButton().addActionListener(
+						new BtnCancelListener());
 			}
 		}
 	}
@@ -886,82 +818,17 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnFileChooser2Listener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// If user wants to Upload(Upload Radio button is selected), then
-			// target is the Dropbox, browse the Dropbox
+			// upload file to cloud
 			if (uploadRadioButton.isSelected()) {
-				/*
-				 * This JFrame contains Dropbox Jtree for selecting the folder
-				 * for upload
-				 */
-				treeFrame = new JFrame();
-				BoxLayout boxLayout = new BoxLayout(treeFrame.getContentPane(),
-						BoxLayout.Y_AXIS);
-				treeFrame.setLayout(boxLayout);
-
-				/*
-				 * JPanel for browsing frame
-				 * 
-				 * Scroll bar added
-				 */
-				JPanel treePanel = new JPanel();
-				JScrollPane scroll = new JScrollPane(treePanel);
-
-				/*
-				 * JButton
-				 * 
-				 * Expand : expand the folders into subfolders and files.
-				 * 
-				 * Added onto panel2
-				 */
-				JPanel panel2 = new JPanel(new FlowLayout());
-				JButton Expand = new JButton("Expand");
-				panel2.add(Expand);
-				Expand.addActionListener(new BtnExpandUploadTreeListener());
-
-				/*
-				 * JButton
-				 * 
-				 * Select : Select the folder and set the source textfield with
-				 * its dropbox path
-				 * 
-				 * Added onto panel2
-				 */
-				JButton Select = new JButton("Select");
-				panel2.add(Select);
-				Select.addActionListener(new BtnSelect2Listener());
-
-				/*
-				 * JButton
-				 * 
-				 * Cancel : No action, just close the treeFrame
-				 * 
-				 * Added onto panel2
-				 */
-				JButton Cancel = new JButton("Cancel");
-				panel2.add(Cancel);
-				Cancel.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						// Close the treeFrame
-						treeFrame.dispose();
-					}
-				});
-
-				// This will position the JFrame in the center of the screen
-				treeFrame.setLocationRelativeTo(null);
-				treeFrame.setTitle("Dropbox - Browse!");
-				treeFrame.setSize(350, 200);
-				treeFrame.setResizable(true);
-				// treeFrame.setMaximumSize(new Dimension(500,350));
-
-				// Add DbxTree2(JTree) to this panel and in turn in treeFrame
-				treePanel.add(cloudFileTree.getUploadTree());
-				treeFrame.add(scroll);
-				treeFrame.add(panel2);
-				treeFrame.setVisible(true);
-				treeFrame.pack();
-			}
-			// download from cloud
-			else if (downloadRadioButton.isSelected()) {
+				cloudFileTree.createEnclosingFrameUpload();
+				cloudFileTree.getExpandButton().addActionListener(
+						new BtnExpandUploadTreeListener());
+				cloudFileTree.getSelectButton().addActionListener(
+						new BtnSelect2Listener());
+				cloudFileTree.getCancelButton().addActionListener(
+						new BtnCancelListener());
+			//download file from cloud
+			} else if (downloadRadioButton.isSelected()) {
 				localFileTree.openSelectionGUI(true);
 				targetTxt.setText(localFileTree.getSelectedFilePath());
 				targetTxt.setEditable(false);
@@ -971,18 +838,24 @@ public class MyCloudJ_ implements PlugIn {
 		class BtnSelect2Listener implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				// Get the latest node selected
-				String selectedNodePath = cloudFileTree.getSelectedNodePathUploadTree();
+				String selectedNodePath = cloudFileTree
+						.getSelectedNodePathUploadTree();
 				targetTxt.setText(selectedNodePath);
 
 				try {
-					isFileDownload = cloudHandler
-							.isFile(selectedNodePath);
+					isFileDownload = cloudHandler.isFile(selectedNodePath);
 				} catch (CloudException e1) {
 					msgs.append(e1.getCloudError() + "\n\n");
 					e1.printStackTrace();
 				}
-				treeFrame.dispose();
+				cloudFileTree.getEnclosingFrame().dispose();
 			}
+		}
+	}
+
+	class BtnCancelListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			cloudFileTree.getEnclosingFrame().dispose();
 		}
 	}
 
@@ -1084,10 +957,10 @@ public class MyCloudJ_ implements PlugIn {
 								cloudHandler.uploadFolder(folderLocalPath,
 										targetCloudPath);
 								// TODO
-								//addChildrenFolder(downloadRoot,
-									//	downloadTreeModel,
-										//cloudHandler.listFiles(cloudHandler
-											//	.getHomeDirectory()));
+								// addChildrenFolder(downloadRoot,
+								// downloadTreeModel,
+								// cloudHandler.listFiles(cloudHandler
+								// .getHomeDirectory()));
 							} catch (CloudException e) {
 								msgs.append("Error uploading folder "
 										+ e.getCloudError() + "!\n\n"); // Message
@@ -1232,9 +1105,9 @@ public class MyCloudJ_ implements PlugIn {
 
 							// If OS is windows, the path separator is '\' else
 							// '/'
-							
-							lastPart = GeneralUtility.getSystemSeparator() + lastPart;
-							
+
+							lastPart = GeneralUtility.getSystemSeparator()
+									+ lastPart;
 
 							// Append the filename to Target local path
 							String finalSource = localTarget + lastPart;
@@ -1273,7 +1146,7 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			rodsUtilsObj.setUsername("rods");
 			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.0.102");
+			rodsUtilsObj.setHost("192.168.0.103");
 			rodsUtilsObj.setPort(1247);
 			rodsUtilsObj.setZone("BragadiruZone");
 			rodsUtilsObj.setRes("test1-resc");
@@ -1282,7 +1155,8 @@ public class MyCloudJ_ implements PlugIn {
 				rodsUtilsObj.login();
 
 				cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
-				buildFileSelectionTrees(cloudHomeDirectoryPath, LOCAL_HOME_DIRECTORY_PATH);
+				buildFileSelectionTrees(cloudHomeDirectoryPath,
+						LOCAL_HOME_DIRECTORY_PATH);
 			} catch (CloudException e1) {
 				lblConnectionStatus.setText("Error connecting to iRODS!");
 				e1.printStackTrace();
@@ -1342,13 +1216,11 @@ public class MyCloudJ_ implements PlugIn {
 		}
 	}
 
-	private void buildFileSelectionTrees(String cloudHomeDirectoryPath, String localHomeDirectoryPath)
-			throws CloudException {
-		
+	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
+			String localHomeDirectoryPath) throws CloudException {
+
 		// build file browsing trees for cloud
 		cloudFileTree = new CloudFileTree(cloudHomeDirectoryPath, cloudHandler);
-		cloudFileTree.setTreeFrame(treeFrame);
-		
 		// build file browsing trees for local files
 		localFileTree = new LocalFileTree(localHomeDirectoryPath);
 	}
