@@ -66,7 +66,8 @@ public class MyCloudJ_ implements PlugIn {
 	// commun functionality fields, specific both to Dbx and iRODS
 	// ------------------------------------------------------------------------
 
-	FileTree fileTree;
+	CloudFileTree cloudFileTree;
+	LocalFileTree localFileTree;
 	
 	/**
 	 * cloudHandler : generic interface for cloud operations
@@ -81,7 +82,9 @@ public class MyCloudJ_ implements PlugIn {
 	/**
 	 * after login, initialized to user home directory
 	 */
-	private String userHomeDirectoryPath;
+	private String cloudHomeDirectoryPath;
+	
+	private final String LOCAL_HOME_DIRECTORY_PATH = ".";
 
 	/**
 	 * isFileDownload: true if it's a file download, false otherwise
@@ -689,8 +692,8 @@ public class MyCloudJ_ implements PlugIn {
 					userInfo.setText("Username: " + userName + "\nCountry: "
 							+ country + "\nQuota: " + userQuota + " GB");
 
-					userHomeDirectoryPath = cloudHandler.getHomeDirectory();
-					buildFileSelectionTrees(userHomeDirectoryPath);
+					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
+					buildFileSelectionTrees(cloudHomeDirectoryPath, LOCAL_HOME_DIRECTORY_PATH);
 
 					/*
 					 * Disable the access code textfield and enable the the
@@ -753,7 +756,7 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent aE) {
 			try {
-				fileTree.expandDownloadTree(cloudHandler);
+				cloudFileTree.expandDownloadTree();
 			} catch (CloudException e) {
 				// TODO: Display a error for the user inside the browse box
 				e.printStackTrace();
@@ -767,7 +770,7 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent ae) {
 			try {
-				fileTree.expandUploadTree(cloudHandler);
+				cloudFileTree.expandUploadTree();
 			} catch (CloudException e) {
 				// TODO: Display a error for the user inside the browse box
 				e.printStackTrace();
@@ -780,7 +783,7 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnSelectListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			String selectedNodePath = fileTree.getSelectedNodePathDownloadTree();
+			String selectedNodePath = cloudFileTree.getSelectedNodePathDownloadTree();
 			
 			srcTxt.setText(selectedNodePath);
 			try {
@@ -796,25 +799,13 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnFileChooser1Listener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			// If user wants to Upload(Upload Radio button is selected), then
-			// source is the local machine, browse from Local Machine
+			// upload file to cloud
 			if (uploadRadioButton.isSelected()) {
-				// JFileChooser opens in current directory(imagej plugins/)
-				JFileChooser chooser = new JFileChooser(new File("."));
-
-				// Both Files and Directories are allowed
-				chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-				int choice = chooser.showOpenDialog(chooser);
-				if (choice != JFileChooser.APPROVE_OPTION)
-					return;
-				// File selected
-				File chosenFile = chooser.getSelectedFile();
-
-				// The path of the selected file is set in the source textfield
-				srcTxt.setText(chosenFile.getAbsolutePath());
+				localFileTree.openSelectionGUI(false);
+				srcTxt.setText(localFileTree.getSelectedFilePath());
 			}
-			// If user wants to Download(Download Radio button is selected),
-			// then source is the Dropbox, browse from Dropbox
+			
+			// download file from cloud
 			else if (downloadRadioButton.isSelected()) {
 				treeFrame = new JFrame();
 				BoxLayout boxLayout = new BoxLayout(treeFrame.getContentPane(),
@@ -883,7 +874,7 @@ public class MyCloudJ_ implements PlugIn {
 				// treeFrame.setMaximumSize(new Dimension(500,350));
 
 				// Add DbxTree1(JTree) to this panel and in turn in treeFrame
-				treePanel.add(fileTree.getDownloadTree());
+				treePanel.add(cloudFileTree.getDownloadTree());
 				treeFrame.add(scroll);
 				treeFrame.add(panel2);
 				treeFrame.setVisible(true);
@@ -963,39 +954,24 @@ public class MyCloudJ_ implements PlugIn {
 				// treeFrame.setMaximumSize(new Dimension(500,350));
 
 				// Add DbxTree2(JTree) to this panel and in turn in treeFrame
-				treePanel.add(fileTree.getUploadTree());
+				treePanel.add(cloudFileTree.getUploadTree());
 				treeFrame.add(scroll);
 				treeFrame.add(panel2);
 				treeFrame.setVisible(true);
 				treeFrame.pack();
 			}
-			// If user wants to Download(Download Radio button is selected),
-			// then target is the local machine, browse from local machine
+			// download from cloud
 			else if (downloadRadioButton.isSelected()) {
-				// JFileChooser opens in current directory(imagej plugins/)
-				JFileChooser chooser = new JFileChooser(new File("."));
-
-				// Only Directories are allowed, files can only be downloaded
-				// into Directories
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int choice = chooser.showOpenDialog(chooser);
-				if (choice != JFileChooser.APPROVE_OPTION)
-					return;
-				// File selected
-				File chosenFile = chooser.getSelectedFile();
-
-				// The path of the selected file is set in the target textfield
-				// and set to non-editable
-				targetTxt.setText(chosenFile.getAbsolutePath());
+				localFileTree.openSelectionGUI(true);
+				targetTxt.setText(localFileTree.getSelectedFilePath());
 				targetTxt.setEditable(false);
 			}
 		}
 
 		class BtnSelect2Listener implements ActionListener {
-
 			public void actionPerformed(ActionEvent e) {
 				// Get the latest node selected
-				String selectedNodePath = fileTree.getSelectedNodePathUploadTree();
+				String selectedNodePath = cloudFileTree.getSelectedNodePathUploadTree();
 				targetTxt.setText(selectedNodePath);
 
 				try {
@@ -1305,8 +1281,8 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				rodsUtilsObj.login();
 
-				userHomeDirectoryPath = cloudHandler.getHomeDirectory();
-				buildFileSelectionTrees(userHomeDirectoryPath);
+				cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
+				buildFileSelectionTrees(cloudHomeDirectoryPath, LOCAL_HOME_DIRECTORY_PATH);
 			} catch (CloudException e1) {
 				lblConnectionStatus.setText("Error connecting to iRODS!");
 				e1.printStackTrace();
@@ -1366,11 +1342,15 @@ public class MyCloudJ_ implements PlugIn {
 		}
 	}
 
-	private void buildFileSelectionTrees(String homeDirectoryPath)
+	private void buildFileSelectionTrees(String cloudHomeDirectoryPath, String localHomeDirectoryPath)
 			throws CloudException {
-		List<CloudFile> rootFiles = cloudHandler.listFiles(homeDirectoryPath);
-		fileTree = new FileTree(homeDirectoryPath, rootFiles);
-		fileTree.setTreeFrame(treeFrame);
+		
+		// build file browsing trees for cloud
+		cloudFileTree = new CloudFileTree(cloudHomeDirectoryPath, cloudHandler);
+		cloudFileTree.setTreeFrame(treeFrame);
+		
+		// build file browsing trees for local files
+		localFileTree = new LocalFileTree(localHomeDirectoryPath);
 	}
 
 	/*

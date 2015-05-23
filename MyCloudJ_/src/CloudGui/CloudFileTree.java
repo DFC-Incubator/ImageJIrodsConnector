@@ -17,7 +17,7 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
 
-public class FileTree {
+public class CloudFileTree {
 	/**
 	 * @downloadTree: stores the complete metadata(path of folders) of cloud
 	 *                account. Used to display when user browses to select the
@@ -40,12 +40,20 @@ public class FileTree {
 	private JTree uploadTree;
 	private DefaultTreeModel uploadTreeModel;
 	private DefaultMutableTreeNode uploadRoot;
+	
+	private CloudOperations cloudHandler;
 
-	public FileTree(String homeDirectoryPath, List<CloudFile> files) {
+	public CloudFileTree(String homeDirectoryPath, CloudOperations cloudHandler)
+			throws CloudException {
+		List<CloudFile> rootFiles;
+		this.cloudHandler = cloudHandler;
+
 		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
 		downloadTree = new JTree(downloadRoot);
 		downloadTreeModel = new DefaultTreeModel(downloadRoot);
-		addChildren(downloadRoot, downloadTreeModel, files);
+
+		rootFiles = cloudHandler.listFiles(homeDirectoryPath);
+		addChildren(downloadRoot, downloadTreeModel, rootFiles);
 		getDownloadTree().getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		downloadTreeModel.reload(downloadRoot);
@@ -59,7 +67,7 @@ public class FileTree {
 		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
 		uploadTree = new JTree(uploadRoot);
 		uploadTreeModel = new DefaultTreeModel(uploadRoot);
-		addChildrenFolder(downloadRoot, downloadTreeModel, files);
+		addChildrenFolder(downloadRoot, downloadTreeModel, rootFiles);
 		getUploadTree().getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		uploadTreeModel.reload(uploadRoot);
@@ -105,19 +113,16 @@ public class FileTree {
 		}
 	}
 
-	public void expandUploadTree(CloudOperations cloudHandler)
-			throws CloudException {
-		expandTree(getUploadTree(), uploadTreeModel, cloudHandler, true);
+	public void expandUploadTree() throws CloudException {
+		expandTree(getUploadTree(), uploadTreeModel, true);
 	}
 
-	public void expandDownloadTree(CloudOperations cloudHandler)
-			throws CloudException {
-		expandTree(getDownloadTree(), downloadTreeModel, cloudHandler, false);
+	public void expandDownloadTree() throws CloudException {
+		expandTree(getDownloadTree(), downloadTreeModel, false);
 	}
 
 	private void expandTree(JTree tree, DefaultTreeModel treeModel,
-			CloudOperations cloudHandler, boolean onlyFolders)
-			throws CloudException {
+			boolean onlyFolders) throws CloudException {
 		String selectedFilePath = "";
 		// parent node of the currently selected node
 		DefaultMutableTreeNode parentNode = null;
@@ -158,7 +163,7 @@ public class FileTree {
 
 		return selectedNodePath;
 	}
-	
+
 	public void setTreeFrame(final JFrame treeFrame) {
 		this.treeFrame = treeFrame;
 		uploadTree.addTreeExpansionListener(new TreeExpansionListener() {
@@ -172,7 +177,7 @@ public class FileTree {
 				treeFrame.pack();
 			}
 		});
-		
+
 		downloadTree.addTreeExpansionListener(new TreeExpansionListener() {
 			@Override
 			public void treeExpanded(TreeExpansionEvent event) {
