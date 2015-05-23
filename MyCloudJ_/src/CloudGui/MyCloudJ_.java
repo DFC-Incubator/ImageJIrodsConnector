@@ -902,7 +902,7 @@ public class MyCloudJ_ implements PlugIn {
 				 * This JFrame contains Dropbox Jtree for selecting the folder
 				 * for upload
 				 */
-				final JFrame treeFrame = new JFrame();
+				treeFrame = new JFrame();
 				BoxLayout boxLayout = new BoxLayout(treeFrame.getContentPane(),
 						BoxLayout.Y_AXIS);
 				treeFrame.setLayout(boxLayout);
@@ -937,7 +937,7 @@ public class MyCloudJ_ implements PlugIn {
 				 */
 				JButton Select = new JButton("Select");
 				panel2.add(Select);
-				Select.addActionListener(new BtnSelect2Listener(treeFrame));
+				Select.addActionListener(new BtnSelect2Listener());
 
 				/*
 				 * JButton
@@ -992,12 +992,6 @@ public class MyCloudJ_ implements PlugIn {
 		}
 
 		class BtnSelect2Listener implements ActionListener {
-			private JFrame treeFrame;
-			
-			// TODO: do we need this initialization
-			public BtnSelect2Listener(JFrame treeFrame) {
-				this.treeFrame = treeFrame;
-			}
 
 			public void actionPerformed(ActionEvent e) {
 				// Get the latest node selected
@@ -1011,7 +1005,7 @@ public class MyCloudJ_ implements PlugIn {
 					msgs.append(e1.getCloudError() + "\n\n");
 					e1.printStackTrace();
 				}
-				this.treeFrame.dispose();
+				treeFrame.dispose();
 			}
 		}
 	}
