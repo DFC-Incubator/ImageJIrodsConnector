@@ -74,11 +74,6 @@ public class MyCloudJ_ implements PlugIn {
 	private String cloudHomeDirectoryPath;
 
 	private final String LOCAL_HOME_DIRECTORY_PATH = ".";
-
-	/**
-	 * isFileDownload: true if it's a file download, false otherwise
-	 */
-	private boolean isFileDownload = false;
 	
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
@@ -741,12 +736,6 @@ public class MyCloudJ_ implements PlugIn {
 					.getSelectedNodePathDownloadTree();
 
 			srcTxt.setText(selectedNodePath);
-			try {
-				isFileDownload = cloudHandler.isFile(selectedNodePath);
-			} catch (CloudException e) {
-				logMessages.append(e.getCloudError() + "\n\n");
-				e.printStackTrace();
-			}
 			cloudFileTree.getEnclosingFrame().dispose();
 		}
 	}
@@ -798,13 +787,6 @@ public class MyCloudJ_ implements PlugIn {
 				String selectedNodePath = cloudFileTree
 						.getSelectedNodePathUploadTree();
 				targetTxt.setText(selectedNodePath);
-
-				try {
-					isFileDownload = cloudHandler.isFile(selectedNodePath);
-				} catch (CloudException e1) {
-					logMessages.append(e1.getCloudError() + "\n\n");
-					e1.printStackTrace();
-				}
 				cloudFileTree.getEnclosingFrame().dispose();
 			}
 		}
@@ -834,7 +816,6 @@ public class MyCloudJ_ implements PlugIn {
 			}
 			else if (downloadRadioButton.isSelected()) {
 				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);
-				downloadThread.setFileDownload(isFileDownload);
 				downloadThread.prepareForDownload(sourcePath, destinationPath);
 				downloadThread.start();
 			}

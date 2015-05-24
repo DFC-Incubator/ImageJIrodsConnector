@@ -12,7 +12,6 @@ public class DownloadThread extends Thread {
 	private CloudOperations cloudHandler;
 	private String sourcePath;
 	private String destinationPath;
-	private boolean isFileDownload;
 	// TODO: check parallel access to logMessages
 	private JTextArea logMessages;
 
@@ -31,6 +30,14 @@ public class DownloadThread extends Thread {
 
 	public void run() {
 		String fileName;
+		boolean isFileDownload = false;
+		
+		try {
+			isFileDownload = cloudHandler.isFile(sourcePath);
+		} catch (CloudException e1) {
+			logMessages.append(e1.getCloudError() + "\n\n");
+			e1.printStackTrace();
+		}
 
 		if (isFileDownload) {
 			try {
@@ -62,9 +69,5 @@ public class DownloadThread extends Thread {
 		fileName = GeneralUtility.getSystemSeparator() + fileName;
 		Opener openfile = new Opener();
 		openfile.open(destinationPath + fileName);
-	}
-
-	public void setFileDownload(boolean isFileDownload) {
-		this.isFileDownload = isFileDownload;
 	}
 }
