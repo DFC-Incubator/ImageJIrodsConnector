@@ -95,24 +95,6 @@ public class MyCloudJ_ implements PlugIn {
 	/**
 	 * Variables used during Download process:
 	 * 
-	 * @targetLocalPath : stores the "Target Local Machine Path" where users
-	 *                  wants to download data from Dropbox
-	 * @fileCloudPath : stores the "Source Dropbox File Path" which has to be
-	 *                downloaded
-	 * @folderCloudPath : stores the "Source Dropbox Folder Path" which has to
-	 *                  be downloaded. Initialized to "/"
-	 * 
-	 *                  Note: During a download process, either FileDbxPath or
-	 *                  FolderDbxPath is used (Depending on what has to be
-	 *                  downloaded). This is just for easy understanding
-	 * 
-	 */
-	private String targetLocalPath = ".", fileCloudPath = "",
-			folderCloudPath = "/";
-
-	/**
-	 * Variables used during Download process:
-	 * 
 	 * @targetCloudPath : stores the "Target Dropbox Path" where users wants to
 	 *                  upload data from local machine
 	 * @fileLocalPath : stores the "Source Local Machine File Path" which has to
@@ -208,7 +190,7 @@ public class MyCloudJ_ implements PlugIn {
 	/**
 	 * msgs will be used for displaying task related information to user
 	 */
-	private JTextArea msgs;
+	private JTextArea logMessages;
 
 	// ------------------------------------------------------------------------
 	// fields specific to Dbx functionality and GUI
@@ -343,9 +325,9 @@ public class MyCloudJ_ implements PlugIn {
 				BoxLayout.PAGE_AXIS));
 		mainRightPanel.setBorder(title3);
 
-		msgs = new JTextArea();
-		msgs.setLineWrap(true);
-		msgs.setWrapStyleWord(true);
+		logMessages = new JTextArea();
+		logMessages.setLineWrap(true);
+		logMessages.setWrapStyleWord(true);
 
 		// First we'll add components to topPanel1. Then, we'll start with
 		// topPanel2
@@ -541,7 +523,7 @@ public class MyCloudJ_ implements PlugIn {
 		 * JTextArea : For user's information (task related) Added onto rPanel5
 		 * Added the scrollpane to text area
 		 */
-		JScrollPane msgsScrollPane = new JScrollPane(msgs);
+		JScrollPane msgsScrollPane = new JScrollPane(logMessages);
 		msgsScrollPane
 				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		msgsScrollPane.setPreferredSize(new Dimension(340, 220));
@@ -787,7 +769,7 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				isFileDownload = cloudHandler.isFile(selectedNodePath);
 			} catch (CloudException e) {
-				msgs.append(e.getCloudError() + "\n\n");
+				logMessages.append(e.getCloudError() + "\n\n");
 				e.printStackTrace();
 			}
 			cloudFileTree.getEnclosingFrame().dispose();
@@ -845,7 +827,7 @@ public class MyCloudJ_ implements PlugIn {
 				try {
 					isFileDownload = cloudHandler.isFile(selectedNodePath);
 				} catch (CloudException e1) {
-					msgs.append(e1.getCloudError() + "\n\n");
+					logMessages.append(e1.getCloudError() + "\n\n");
 					e1.printStackTrace();
 				}
 				cloudFileTree.getEnclosingFrame().dispose();
@@ -862,266 +844,24 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnStartListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			/* Extract the source address and target address beforehand */
-			final String source = srcTxt.getText();
-			final String target = targetTxt.getText();
+			final String sourcePath = srcTxt.getText();
+			final String destinationPath = targetTxt.getText();
 
-			// If source or target is empty, take no action and inform the user
-			// about the same
-			if (source.equals("") || target.equals("")) {
-				msgs.append("Error: Select the files/folder to upload/download\n\n");
+			if (sourcePath.equals("") || destinationPath.equals("")) {
+				logMessages.append("Error: Select the files/folder to upload/download\n\n");
 				return;
 			}
-
-			// If user wants to upload, this will be executed othewise else
-			// block will execute
+			
 			if (uploadRadioButton.isSelected()) {
-				// open the file selected by the user
-				File file = new File(source);
-
-				// Print the uploading information for the user in the text area
-				msgs.append("Message: Uploading " + source
-						+ " to Dropbox path: " + target + "\n\n");
-
-				// Checks if selected path is of a file or a folder, if file,
-				// then execute IF block
-				if (file.isFile()) {
-					// Store the file path
-					fileLocalPath = source;
-
-					// if windows OS, then change the separator from \\ to /
-					String newFileLocalPath = fileLocalPath.replace('\\', '/');
-
-					// Retrieve the filename from the path
-					String fileName = newFileLocalPath
-							.substring(newFileLocalPath.lastIndexOf("/"));
-
-					// Target path in Dropbox folder
-					targetCloudPath = target;
-
-					// Append the filename at the end of the target path
-					targetCloudPath += fileName;
-
-					/*
-					 * Call the upload function of DbxUtility class which in
-					 * turn calls Dropbox API for upload function New thread is
-					 * spawn as this may take a long time and GUI becomes
-					 * unresponsive if there is a single thread
-					 */
-					Thread thread = new Thread("New Upload Thread") {
-						public void run() {
-							String localSource = source;
-							try {
-								cloudHandler.uploadFile(fileLocalPath,
-										targetCloudPath);
-							} catch (CloudException e) {
-								msgs.append("Error uploading file "
-										+ e.getCloudError() + "!\n\n"); // Message
-																		// once
-																		// the
-																		// upload
-																		// is
-																		// complete
-								e.printStackTrace();
-							}
-							msgs.append("Uploading of " + localSource
-									+ " Complete !\n\n"); // Message once the
-															// upload is
-															// complete
-
-							// Code for Opening the file/folder after upload in
-							// default application
-							Opener openfile = new Opener();
-							openfile.open(localSource);
-						}
-					};
-					thread.start();
-				}
-				// If selected path is a directory, execute ELSE-IF block
-				else if (file.isDirectory()) {
-					// Store the Local folder's path
-					folderLocalPath = source;
-
-					// Store the Target Dropbox's path
-					targetCloudPath = target;
-
-					/*
-					 * Call the upload function New thread is spawn as this may
-					 * take a long time and GUI becomes unresponsive if there is
-					 * a single thread
-					 */
-					Thread thread = new Thread("New Upload Thread") {
-						public void run() {
-							String localSource = source;
-							try {
-								cloudHandler.uploadFolder(folderLocalPath,
-										targetCloudPath);
-								// TODO
-								// addChildrenFolder(downloadRoot,
-								// downloadTreeModel,
-								// cloudHandler.listFiles(cloudHandler
-								// .getHomeDirectory()));
-							} catch (CloudException e) {
-								msgs.append("Error uploading folder "
-										+ e.getCloudError() + "!\n\n"); // Message
-																		// once
-																		// the
-																		// upload
-																		// is
-																		// complete
-								e.printStackTrace();
-								return;
-							}
-							msgs.append("Uploading of " + localSource
-									+ " Complete !\n\n"); // Message once the
-															// upload is
-															// complete
-
-							// Code for Opening the file/folder after upload in
-							// default application
-							Opener openfile = new Opener();
-							openfile.open(localSource);
-						}
-					};
-					thread.start();
-				}
+				UploadThread uploadThread = new UploadThread(cloudHandler, logMessages);
+				uploadThread.prepareForUpload(sourcePath, destinationPath);
+				uploadThread.start();
 			}
-			// If user wants to download, ELSE block will be executed
 			else if (downloadRadioButton.isSelected()) {
-				// Stores the target path on Local machine
-				targetLocalPath = target;
-
-				// Print the downloading information for the user in the text
-				// area
-				msgs.append("Message: Downloading " + source
-						+ " from Dropbox to Local Path: " + target + "\n\n");
-
-				// If the path is file, then execute this
-				if (isFileDownload) {
-					// Store the Dropbox file path
-					fileCloudPath = source;
-
-					/*
-					 * Call the download function of the DbxUtility class New
-					 * thread is spawn as this may take a long time and GUI
-					 * becomes unresponsive if there is a single thread
-					 */
-					Thread thread = new Thread("New Download Thread") {
-						public void run() {
-							String localSource = source;
-							String localTarget = target;
-							try {
-								cloudHandler.downloadFile(fileCloudPath,
-										targetLocalPath);
-							} catch (CloudException e) {
-								msgs.append("Error uploading folder "
-										+ e.getCloudError() + "!\n\n"); // Message
-																		// once
-																		// the
-																		// upload
-																		// is
-																		// complete
-								e.printStackTrace();
-								return;
-							}
-							msgs.append("Downloading of " + localSource
-									+ " Complete !\n\n"); // Message once the
-															// upload is
-															// complete
-
-							/*
-							 * To open the file/folder which is downloaded from
-							 * Dropbox
-							 * 
-							 * get only the last component of the path. For Ex:
-							 * getName("/") returns "/" getName("/Photos")
-							 * returns "Photos" getName("/Photos/Home.jpeg")
-							 * returns "Home.jpeg"
-							 */
-							String lastPart = GeneralUtility
-									.getLastComponentFromPath(localSource, "/");
-							// TODO: check for null return values
-
-							lastPart = GeneralUtility.getSystemSeparator()
-									+ lastPart;
-
-							// Append the filename to Target local path
-							String finalSource = localTarget + lastPart;
-
-							// Code for Opening the file/folder after upload in
-							// default application
-							Opener openfile = new Opener();
-							openfile.open(finalSource);
-						}
-					};
-					thread.start();
-				}
-				// If the path is a directory. execute this
-				else if (isFileDownload == false) {
-					// Store the Dropbox folder path
-					folderCloudPath = source;
-
-					/*
-					 * Call the download folder function of the DbXUtility class
-					 * New thread is spawn as this may take a long time and GUI
-					 * becomes unresponsive if there is a single thread
-					 */
-					Thread thread = new Thread("New Download Thread") {
-						public void run() {
-							String localSource = source;
-							String localTarget = target;
-							try {
-								cloudHandler.downloadFolder(folderCloudPath,
-										targetLocalPath);
-							} catch (CloudException e) {
-								msgs.append("Error downloading folder "
-										+ e.getMessage() + "!\n\n"); // Message
-																		// once
-																		// the
-																		// upload
-																		// is
-																		// complete
-								e.printStackTrace();
-								return;
-							}
-							msgs.append("Downloading of " + localSource
-									+ " Complete !\n\n"); // Message once the
-															// upload is
-															// complete
-
-							/*
-							 * To open the file/folder which is downloaded from
-							 * Dropbox
-							 * 
-							 * get only the last component of the path. For Ex:
-							 * getName("/") returns "/" getName("/Photos")
-							 * returns "Photos" getName("/Photos/Home.jpeg")
-							 * returns "Home.jpeg"
-							 */
-
-							// TODO: check for null return values
-							String lastPart = GeneralUtility
-									.getLastComponentFromPath(localSource, "/");
-
-							// If OS is windows, the path separator is '\' else
-							// '/'
-
-							lastPart = GeneralUtility.getSystemSeparator()
-									+ lastPart;
-
-							// Append the filename to Target local path
-							String finalSource = localTarget + lastPart;
-
-							// Code for Opening the file/folder after upload in
-							// default application
-							Opener openfile = new Opener();
-							System.out.println("Open path: " + finalSource
-									+ " " + localTarget + " " + lastPart);
-							openfile.open(finalSource);
-						}
-					};
-					thread.start();
-				}
+				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);
+				downloadThread.setFileDownload(isFileDownload);
+				downloadThread.prepareForDownload(sourcePath, destinationPath);
+				downloadThread.start();
 			}
 		}
 	}
@@ -1146,7 +886,7 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			rodsUtilsObj.setUsername("rods");
 			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.0.103");
+			rodsUtilsObj.setHost("192.168.0.100");
 			rodsUtilsObj.setPort(1247);
 			rodsUtilsObj.setZone("BragadiruZone");
 			rodsUtilsObj.setRes("test1-resc");
