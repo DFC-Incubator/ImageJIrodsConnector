@@ -110,15 +110,6 @@ public class MyCloudJ_ implements PlugIn {
 	private String irodsLoginS = "Connect to iRODS";
 
 	/**
-	 * This label will display the connection status of the plugin along with
-	 * username (if connected) Status Format : Connected as <username> or Not
-	 * Connected!
-	 * 
-	 * Note : Initial status "Not Connected!"
-	 */
-	private JLabel lblConnectionStatus;
-
-	/**
 	 * two radio buttons inside topPanel2
 	 * 
 	 * @uploadRadioButton: user will upload a file/folder to cloud
@@ -209,6 +200,15 @@ public class MyCloudJ_ implements PlugIn {
 	 * Note : Intially disabled.
 	 */
 	private JButton btnConnect;
+	
+	/**
+	 * This label will display the connection status of the plugin along with
+	 * username (if connected) Status Format : Connected as <username> or Not
+	 * Connected!
+	 * 
+	 * Note : Initial status "Not Connected!"
+	 */
+	private JLabel dbxLblConnectionStatus;
 
 	/**
 	 * User's Dropbox information: user name + user country + user quota (GB)
@@ -234,6 +234,15 @@ public class MyCloudJ_ implements PlugIn {
 	 */
 	private JTextField user, rodsPassword, rodsHost, rodsHostPort, rodsZone,
 			rodsRes;
+	
+	/**
+	 * This label will display the connection status of the plugin along with
+	 * username (if connected) Status Format : Connected as <username> or Not
+	 * Connected!
+	 * 
+	 * Note : Initial status "Not Connected!"
+	 */
+	private JLabel rodsLblConnectionStatus;
 
 	/**
 	 * button to start the login process
@@ -384,8 +393,8 @@ public class MyCloudJ_ implements PlugIn {
 		 * 
 		 * Note : Intial status "Not Connected !"
 		 */
-		lblConnectionStatus = new JLabel("Not Connected !");
-		lPanel4.add(lblConnectionStatus);
+		dbxLblConnectionStatus = new JLabel("Not Connected!");
+		lPanel4.add(dbxLblConnectionStatus);
 
 		userInfo = new JTextArea("\n\n");
 		userInfo.setEditable(false);
@@ -570,8 +579,9 @@ public class MyCloudJ_ implements PlugIn {
 
 		loginRodsButton = new JButton("Access iRODS!");
 		lPanel12.add(loginRodsButton);
-
-		lPanel13.add(lblConnectionStatus);
+		
+		rodsLblConnectionStatus = new JLabel("Not Connected!");
+		lPanel13.add(rodsLblConnectionStatus);
 
 		lPanel6.setLayout(new FlowLayout(FlowLayout.LEFT));
 		lPanel7.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -598,7 +608,7 @@ public class MyCloudJ_ implements PlugIn {
 		 * Add the topPanel1(Left side) and topPanel2(Right side) to mainFrame.
 		 * Also set mainFrame visible
 		 */
-		lPanelDbSpecific.setPreferredSize(new Dimension(700, 340));
+		lPanelDbSpecific.setPreferredSize(new Dimension(700, 360));
 		lPanelRodsSpecific.setPreferredSize(new Dimension(700, 320));
 		mainFrame.add(mainLeftPanel);
 		mainFrame.add(mainRightPanel);
@@ -622,17 +632,36 @@ public class MyCloudJ_ implements PlugIn {
 	 */
 	
 	class BtnDbxLoginRadioListener implements ActionListener {
-		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (userIsConnected) {
+				Object[] message = { "Are you sure you want to connect to Dropbox? \nYou will be disconnected from iRODS" };
+
+				int option = JOptionPane.showConfirmDialog(null, message,
+						"Confirm", JOptionPane.OK_CANCEL_OPTION);
+				
+				// switch to Dropbox
+				if (option == JOptionPane.OK_OPTION) {
+					userIsConnected = false;
+					
+					disableRodsGUI();
+					disableJTreeGUI();
+					freeCloudResources();
+				// cancel the switch to Dropboxs
+				} else {
+					irodsLoginRadioButton.setSelected(true);
+					return;
+				}
+			}
+
+			cloudHandler = new DropboxOperations();
 			mainLeftPanel.setBorder(title1);
 			lPanelRodsSpecific.setVisible(false);
 			lPanelDbSpecific.setVisible(true);
 			mainRightPanel.setBorder(title3);
 		}
 	}
-
+	
 	class BtnRodsLoginRadioListener implements ActionListener {
-
 		/**
 		 * ActionListener for the "Connect to iRODS" button - initialize the
 		 * cloud handler with an iRODS object - enable the screen for entering
@@ -640,6 +669,25 @@ public class MyCloudJ_ implements PlugIn {
 		 */
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (userIsConnected) {
+				Object[] message = { "Are you sure you want to connect to iRODS? \nYou will be disconnected from Dropbox" };
+				int option = JOptionPane.showConfirmDialog(null, message,
+						"Confirm", JOptionPane.OK_CANCEL_OPTION);
+				
+				// switch to iRODS
+				if (option == JOptionPane.OK_OPTION) {
+					userIsConnected = false;
+					
+					disableDbxGUI();
+					disableJTreeGUI();
+					freeCloudResources();
+				// cancel the switch to iRODS
+				} else {
+					dbxLoginRadioButton.setSelected(true);
+					return;
+				}
+			}
+			
 			cloudHandler = new RodsOperations();
 			mainLeftPanel.setBorder(title2);
 			lPanelRodsSpecific.setVisible(true);
@@ -647,6 +695,42 @@ public class MyCloudJ_ implements PlugIn {
 			mainRightPanel.setBorder(title4);
 		}
 	}
+	
+	private void disableRodsGUI() {
+		rodsLblConnectionStatus.setText("Not Connected!");
+	}
+	
+	private void disableDbxGUI() {
+		dbxAccessCodeTextField.setText("");
+		dbxAccessCodeTextField.setEnabled(false);
+		btnConnect.setEnabled(false);
+		dbxLblConnectionStatus.setText("");
+		userInfo.setText("");
+	}
+	
+	private void disableJTreeGUI() {
+		JFrame enclosingFrame = cloudFileTree.getEnclosingFrame();
+		if (enclosingFrame != null)
+			enclosingFrame.dispose();
+		
+		srcTxt.setText("");
+		targetTxt.setText("");
+		logMessages.setText("");
+		
+		setEnabledAll(mainRightPanel, false);		
+	}
+	
+	private void freeCloudResources() {
+		try {
+			cloudHandler.disconnect();
+		} catch (CloudException e1) {
+			JOptionPane.showMessageDialog(mainFrame, "Error",
+					e1.getCloudError(),
+					JOptionPane.ERROR_MESSAGE);
+			e1.printStackTrace();
+		}
+	}
+	
 	
 	class BtnDbxAccessListener implements ActionListener {
 		@Override
@@ -699,7 +783,7 @@ public class MyCloudJ_ implements PlugIn {
 					userName = dbxUtility.getUserName();
 					country = dbxUtility.getCountry();
 					userQuota = dbxUtility.getUserQuota();
-					lblConnectionStatus.setText("Connected as " + userName);
+					dbxLblConnectionStatus.setText("Connected as " + userName);
 					userInfo.setText("Username: " + userName + "\nCountry: "
 							+ country + "\nQuota: " + userQuota + " GB");
 
@@ -758,23 +842,24 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			rodsUtilsObj.setUsername("rods");
 			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.0.100");
+			rodsUtilsObj.setHost("192.168.0.102");
 			rodsUtilsObj.setPort(1247);
 			rodsUtilsObj.setZone("BragadiruZone");
 			rodsUtilsObj.setRes("test1-resc");
 
 			try {
 				rodsUtilsObj.login();
+				userIsConnected = true;
 
 				cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 				buildFileSelectionTrees(cloudHomeDirectoryPath,
 						LOCAL_HOME_DIRECTORY_PATH);
 			} catch (CloudException e1) {
-				lblConnectionStatus.setText("Error connecting to iRODS!");
+				rodsLblConnectionStatus.setText("Error connecting to iRODS!");
 				e1.printStackTrace();
 				return;
 			}
-			lblConnectionStatus.setText("Connected to iRODS");
+			rodsLblConnectionStatus.setText("Connected to iRODS");
 			setEnabledAll(mainRightPanel, true);
 		}
 	}
