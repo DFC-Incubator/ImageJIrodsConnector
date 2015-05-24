@@ -463,11 +463,6 @@ public class MyCloudJ_ implements PlugIn {
 		btnFileChooser1 = new JButton("Browse");
 		rPanel2.add(btnFileChooser1);
 
-		/*
-		 * Jlabel : "Target"
-		 * 
-		 * Added onto rPanel3
-		 */
 		JLabel targetLbl = new JLabel("Target: ");
 		rPanel3.add(targetLbl);
 
@@ -610,6 +605,74 @@ public class MyCloudJ_ implements PlugIn {
 		mainFrame.setVisible(true);
 
 	}
+	
+	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
+			String localHomeDirectoryPath) throws CloudException {
+
+		// build file browsing trees for cloud
+		cloudFileTree = new CloudFileTree(cloudHomeDirectoryPath, cloudHandler);
+		// build file browsing trees for local files
+		localFileTree = new LocalFileTree(localHomeDirectoryPath);
+	}
+	
+	/*
+	 * -------------------------
+	 * A lot of Action Listeners
+	 * -------------------------
+	 */
+	
+	class BtnDbxLoginRadioListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			mainLeftPanel.setBorder(title1);
+			lPanelRodsSpecific.setVisible(false);
+			lPanelDbSpecific.setVisible(true);
+			mainRightPanel.setBorder(title3);
+		}
+	}
+
+	class BtnRodsLoginRadioListener implements ActionListener {
+
+		/**
+		 * ActionListener for the "Connect to iRODS" button - initialize the
+		 * cloud handler with an iRODS object - enable the screen for entering
+		 * the credentials for the iRODS
+		 */
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			cloudHandler = new RodsOperations();
+			mainLeftPanel.setBorder(title2);
+			lPanelRodsSpecific.setVisible(true);
+			lPanelDbSpecific.setVisible(false);
+			mainRightPanel.setBorder(title4);
+		}
+	}
+	
+	class BtnDbxAccessListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// if user if not connected, then execute if block
+			if (userIsConnected == 0) {
+				try {
+					cloudHandler.login();
+					dbxAccessCodeTextField.setEnabled(true);
+					btnConnect.setEnabled(true);
+				} catch (CloudException e4) {
+					JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
+							"MyCLoudJ - Access Error",
+							JOptionPane.ERROR_MESSAGE);
+					e4.printStackTrace();
+				}
+			}
+			// If userStatus=1 (is already connected), no need to use connect
+			// connect button, warning for user
+			else {
+				JOptionPane.showMessageDialog(mainFrame, "Already connected !",
+						"MyCLoudJ - Already Connected",
+						JOptionPane.WARNING_MESSAGE);
+			}
+		}
+	}
 
 	class BtnDbxConnectListener implements ActionListener {
 		@Override
@@ -674,154 +737,7 @@ public class MyCloudJ_ implements PlugIn {
 			}
 		}
 	}
-
-	class BtnDbxAccessListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			// if user if not connected, then execute if block
-			if (userIsConnected == 0) {
-				try {
-					cloudHandler.login();
-					dbxAccessCodeTextField.setEnabled(true);
-					btnConnect.setEnabled(true);
-				} catch (CloudException e4) {
-					JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
-							"MyCLoudJ - Access Error",
-							JOptionPane.ERROR_MESSAGE);
-					e4.printStackTrace();
-				}
-			}
-			// If userStatus=1 (is already connected), no need to use connect
-			// connect button, warning for user
-			else {
-				JOptionPane.showMessageDialog(mainFrame, "Already connected !",
-						"MyCLoudJ - Already Connected",
-						JOptionPane.WARNING_MESSAGE);
-			}
-		}
-	}
-
-	class BtnExpandDownloadTreeListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent aE) {
-			try {
-				cloudFileTree.expandDownloadTree();
-			} catch (CloudException e) {
-				// TODO: Display a error for the user inside the browse box
-				e.printStackTrace();
-				return;
-			}
-			cloudFileTree.getEnclosingFrame().pack();
-		}
-	}
-
-	class BtnExpandUploadTreeListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			try {
-				cloudFileTree.expandUploadTree();
-			} catch (CloudException e) {
-				// TODO: Display a error for the user inside the browse box
-				e.printStackTrace();
-				return;
-			}
-			cloudFileTree.getEnclosingFrame().pack();
-		}
-	}
-
-	class BtnSelectListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			String selectedNodePath = cloudFileTree
-					.getSelectedNodePathDownloadTree();
-
-			srcTxt.setText(selectedNodePath);
-			cloudFileTree.getEnclosingFrame().dispose();
-		}
-	}
-
-	class BtnFileChooser1Listener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			// upload file to cloud
-			if (uploadRadioButton.isSelected()) {
-				localFileTree.openSelectionGUI(false);
-				srcTxt.setText(localFileTree.getSelectedFilePath());
-			}
-			// download file from cloud
-			else if (downloadRadioButton.isSelected()) {
-				cloudFileTree.createEnclosingFrameDownload();
-				cloudFileTree.getExpandButton().addActionListener(
-						new BtnExpandDownloadTreeListener());
-				cloudFileTree.getSelectButton().addActionListener(
-						new BtnSelectListener());
-				cloudFileTree.getCancelButton().addActionListener(
-						new BtnCancelListener());
-			}
-		}
-	}
-
-	class BtnFileChooser2Listener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			// upload file to cloud
-			if (uploadRadioButton.isSelected()) {
-				cloudFileTree.createEnclosingFrameUpload();
-				cloudFileTree.getExpandButton().addActionListener(
-						new BtnExpandUploadTreeListener());
-				cloudFileTree.getSelectButton().addActionListener(
-						new BtnSelect2Listener());
-				cloudFileTree.getCancelButton().addActionListener(
-						new BtnCancelListener());
-			//download file from cloud
-			} else if (downloadRadioButton.isSelected()) {
-				localFileTree.openSelectionGUI(true);
-				targetTxt.setText(localFileTree.getSelectedFilePath());
-				targetTxt.setEditable(false);
-			}
-		}
-
-		class BtnSelect2Listener implements ActionListener {
-			public void actionPerformed(ActionEvent e) {
-				// Get the latest node selected
-				String selectedNodePath = cloudFileTree
-						.getSelectedNodePathUploadTree();
-				targetTxt.setText(selectedNodePath);
-				cloudFileTree.getEnclosingFrame().dispose();
-			}
-		}
-	}
-
-	class BtnCancelListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			cloudFileTree.getEnclosingFrame().dispose();
-		}
-	}
-
-	class BtnStartListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			final String sourcePath = srcTxt.getText();
-			final String destinationPath = targetTxt.getText();
-
-			if (sourcePath.equals("") || destinationPath.equals("")) {
-				logMessages.append("Error: Select the files/folder to upload/download\n\n");
-				return;
-			}
-			
-			if (uploadRadioButton.isSelected()) {
-				UploadThread uploadThread = new UploadThread(cloudHandler, logMessages);
-				uploadThread.prepareForUpload(sourcePath, destinationPath);
-				uploadThread.start();
-			}
-			else if (downloadRadioButton.isSelected()) {
-				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);
-				downloadThread.prepareForDownload(sourcePath, destinationPath);
-				downloadThread.start();
-			}
-		}
-	}
-
+	
 	class BtnConnectRodsListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -862,7 +778,7 @@ public class MyCloudJ_ implements PlugIn {
 			setEnabledAll(mainRightPanel, true);
 		}
 	}
-
+	
 	class BtnDownloadRadioListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -884,43 +800,128 @@ public class MyCloudJ_ implements PlugIn {
 			targetTxt.setText("");
 		}
 	}
-
-	class BtnDbxLoginRadioListener implements ActionListener {
+	
+	class BtnFileChooser1Listener implements ActionListener {
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			mainLeftPanel.setBorder(title1);
-			lPanelRodsSpecific.setVisible(false);
-			lPanelDbSpecific.setVisible(true);
-			mainRightPanel.setBorder(title3);
+		public void actionPerformed(ActionEvent arg0) {
+			// upload file to cloud
+			if (uploadRadioButton.isSelected()) {
+				localFileTree.openSelectionGUI(false);
+				srcTxt.setText(localFileTree.getSelectedFilePath());
+			}
+			// download file from cloud
+			else if (downloadRadioButton.isSelected()) {
+				cloudFileTree.createEnclosingFrameDownload();
+				cloudFileTree.getExpandButton().addActionListener(
+						new BtnExpandDownloadTreeListener());
+				cloudFileTree.getSelectButton().addActionListener(
+						new BtnSelectListener());
+				cloudFileTree.getCancelButton().addActionListener(
+						new BtnCancelListener());
+			}
 		}
 	}
 
-	class BtnRodsLoginRadioListener implements ActionListener {
-
-		/**
-		 * ActionListener for the "Connect to iRODS" button - initialize the
-		 * cloud handler with an iRODS object - enable the screen for entering
-		 * the credentials for the iRODS
-		 */
+	class BtnFileChooser2Listener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			cloudHandler = new RodsOperations();
-			mainLeftPanel.setBorder(title2);
-			lPanelRodsSpecific.setVisible(true);
-			lPanelDbSpecific.setVisible(false);
-			mainRightPanel.setBorder(title4);
+			// upload file to cloud
+			if (uploadRadioButton.isSelected()) {
+				cloudFileTree.createEnclosingFrameUpload();
+				cloudFileTree.getExpandButton().addActionListener(
+						new BtnExpandUploadTreeListener());
+				cloudFileTree.getSelectButton().addActionListener(
+						new BtnSelect2Listener());
+				cloudFileTree.getCancelButton().addActionListener(
+						new BtnCancelListener());
+			//download file from cloud
+			} else if (downloadRadioButton.isSelected()) {
+				localFileTree.openSelectionGUI(true);
+				targetTxt.setText(localFileTree.getSelectedFilePath());
+				targetTxt.setEditable(false);
+			}
 		}
 	}
 
-	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
-			String localHomeDirectoryPath) throws CloudException {
+	class BtnSelectListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent ae) {
+			String selectedNodePath = cloudFileTree
+					.getSelectedNodePathDownloadTree();
 
-		// build file browsing trees for cloud
-		cloudFileTree = new CloudFileTree(cloudHomeDirectoryPath, cloudHandler);
-		// build file browsing trees for local files
-		localFileTree = new LocalFileTree(localHomeDirectoryPath);
+			srcTxt.setText(selectedNodePath);
+			cloudFileTree.getEnclosingFrame().dispose();
+		}
+	}
+	
+	class BtnSelect2Listener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			// Get the latest node selected
+			String selectedNodePath = cloudFileTree
+					.getSelectedNodePathUploadTree();
+			targetTxt.setText(selectedNodePath);
+			cloudFileTree.getEnclosingFrame().dispose();
+		}
+	}
+	
+	class BtnExpandDownloadTreeListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent aE) {
+			try {
+				cloudFileTree.expandDownloadTree();
+			} catch (CloudException e) {
+				// TODO: Display a error for the user inside the browse box
+				e.printStackTrace();
+				return;
+			}
+			cloudFileTree.getEnclosingFrame().pack();
+		}
 	}
 
+	class BtnExpandUploadTreeListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent ae) {
+			try {
+				cloudFileTree.expandUploadTree();
+			} catch (CloudException e) {
+				// TODO: Display a error for the user inside the browse box
+				e.printStackTrace();
+				return;
+			}
+			cloudFileTree.getEnclosingFrame().pack();
+		}
+	}
+	
+	class BtnCancelListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			cloudFileTree.getEnclosingFrame().dispose();
+		}
+	}
+
+	class BtnStartListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			final String sourcePath = srcTxt.getText();
+			final String destinationPath = targetTxt.getText();
+
+			if (sourcePath.equals("") || destinationPath.equals("")) {
+				logMessages.append("Error: Select the files/folder to upload/download\n\n");
+				return;
+			}
+			
+			if (uploadRadioButton.isSelected()) {
+				UploadThread uploadThread = new UploadThread(cloudHandler, logMessages);
+				uploadThread.prepareForUpload(sourcePath, destinationPath);
+				uploadThread.start();
+			}
+			else if (downloadRadioButton.isSelected()) {
+				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);
+				downloadThread.prepareForDownload(sourcePath, destinationPath);
+				downloadThread.start();
+			}
+		}
+	}
+	
 	/*
 	 * Function to enable/disable components inside a container(works for Nested
 	 * containers)
