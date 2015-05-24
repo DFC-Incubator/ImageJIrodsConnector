@@ -1,7 +1,5 @@
 package CloudGui;
 
-import general.GeneralUtility;
-import ij.io.Opener;
 import ij.plugin.PlugIn;
 
 import java.awt.Color;
@@ -11,14 +9,11 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -27,18 +22,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTree;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+
 
 import cloud_interfaces.CloudException;
-import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
 import rods_backend.RodsOperations;
 import dropbox_backend.DropboxOperations;
@@ -91,20 +79,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * isFileDownload: true if it's a file download, false otherwise
 	 */
 	private boolean isFileDownload = false;
-
-	/**
-	 * Variables used during Download process:
-	 * 
-	 * @targetCloudPath : stores the "Target Dropbox Path" where users wants to
-	 *                  upload data from local machine
-	 * @fileLocalPath : stores the "Source Local Machine File Path" which has to
-	 *                be uploaded
-	 * @folderLocalPath : stores the "Source Local Machine Folder Path" which
-	 *                  has to be uploaded
-	 */
-	private String targetCloudPath = "/", fileLocalPath = "",
-			folderLocalPath = ".";
-
+	
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
 	// ------------------------------------------------------------------------
