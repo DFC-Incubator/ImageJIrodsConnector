@@ -27,7 +27,8 @@ import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
 
 public class RodsOperations implements CloudOperations {
-	IRODSFileFactory irodsFileFactory;
+	private IRODSFileFactory irodsFileFactory;
+	private IRODSSession session;
 	private String user;
 	private String password;
 	private String host;
@@ -52,7 +53,6 @@ public class RodsOperations implements CloudOperations {
 	public void login() throws CloudException {
 		String error;
 		IRODSProtocolManager connectionManager;
-		IRODSSession session;
 		IRODSAccount account;
 		IRODSAccessObjectFactory accessObjectFactory;
 
@@ -71,6 +71,20 @@ public class RodsOperations implements CloudOperations {
 			error = "Error login to iRODS";
 			throw (new CloudException(error));
 		}
+	}
+
+	@Override
+	public void disconnect() throws CloudException {
+		String error;
+		// TODO: check for other resources to be closed
+		if (session != null)
+			try {
+				session.closeSession();
+			} catch (JargonException e) {
+				e.printStackTrace();
+				error = "Error closing the session with the iRODS server";
+				throw (new CloudException(error));
+			}
 	}
 
 	public String getHomeDirectory() throws CloudException {

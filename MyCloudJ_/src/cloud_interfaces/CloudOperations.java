@@ -4,6 +4,8 @@ import java.util.List;
 
 public interface CloudOperations {
 	public void login() throws CloudException;
+	
+	public void disconnect() throws CloudException;
 
 	public void downloadFile(String cloudPath, String localPath)
 			throws CloudException;

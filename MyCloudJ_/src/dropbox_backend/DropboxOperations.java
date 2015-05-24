@@ -166,6 +166,11 @@ public class DropboxOperations implements CloudOperations {
 		}
 
 	}
+	
+	@Override
+	public void disconnect() throws CloudException {
+		// TODO: close resources
+	}
 
 	public boolean isFile(String filePath) throws CloudException {
 		DbxEntry metaData = null;
