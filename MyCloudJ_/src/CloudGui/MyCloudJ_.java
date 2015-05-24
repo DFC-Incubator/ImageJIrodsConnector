@@ -66,7 +66,7 @@ public class MyCloudJ_ implements PlugIn {
 	/**
 	 * userIsConnected: true if user connected to cloud, false otherwise
 	 */
-	private int userIsConnected;
+	private boolean userIsConnected;
 
 	/**
 	 * after login, initialized to user home directory
@@ -652,7 +652,7 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// if user if not connected, then execute if block
-			if (userIsConnected == 0) {
+			if (!userIsConnected) {
 				try {
 					cloudHandler.login();
 					dbxAccessCodeTextField.setEnabled(true);
@@ -685,12 +685,12 @@ public class MyCloudJ_ implements PlugIn {
 
 				// if user is previously not connected and access code is not
 				// empty then connect it
-				if (userIsConnected == 0 && !dbxAccessCode.equals("")) {
+				if (!userIsConnected && !dbxAccessCode.equals("")) {
 					// connect user to dropbox
 					dbxUtility.DbxLinkUser(dbxAccessCode);
 
 					// user status changed to 1(i.e., connected)
-					userIsConnected = 1;
+					userIsConnected = true;
 
 					/*
 					 * Retrieve username, country and quota from dropbox account
@@ -718,14 +718,14 @@ public class MyCloudJ_ implements PlugIn {
 					setEnabledAll(mainRightPanel, true);
 				}
 				// If user is already connected userStatus=1, warning for user
-				else if (userIsConnected == 1)
+				else if (userIsConnected == true)
 					JOptionPane.showMessageDialog(mainFrame,
 							"Already connected !",
 							"MyCLoudJ - Already Connected",
 							JOptionPane.WARNING_MESSAGE);
 				// If user is not connected but there is no access code,
 				// information for user
-				else if (userIsConnected == 0 && dbxAccessCode.equals(""))
+				else if (!userIsConnected && dbxAccessCode.equals(""))
 					JOptionPane.showMessageDialog(mainFrame,
 							"Enter Access Code !",
 							"MyCLoudJ - Enter Access code",
