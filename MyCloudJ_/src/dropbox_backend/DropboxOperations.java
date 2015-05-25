@@ -25,17 +25,11 @@ import com.dropbox.core.*;
 
 import general.GeneralUtility;
 
-import java.awt.Desktop;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 
 // Dropbox APIs calls for the MyCloudJ_ plugin are made from this class
 public class DropboxOperations implements CloudOperations {
@@ -166,7 +160,7 @@ public class DropboxOperations implements CloudOperations {
 		}
 
 	}
-	
+
 	@Override
 	public void disconnect() throws CloudException {
 		// TODO: close resources
@@ -211,8 +205,8 @@ public class DropboxOperations implements CloudOperations {
 
 		try {
 			inputStream = new FileInputStream(inputFile);
-			DbxEntry.File uploadedFile = client.uploadFile(TargetDbxPath,
-					DbxWriteMode.add(), inputFile.length(), inputStream);
+			client.uploadFile(TargetDbxPath, DbxWriteMode.add(),
+					inputFile.length(), inputStream);
 		} catch (DbxException e) {
 			error = "Error uploading on Dropbox" + e.getMessage();
 			throw (new CloudException(error));
@@ -249,7 +243,7 @@ public class DropboxOperations implements CloudOperations {
 			throws CloudException {
 		String error;
 		TargetDbxPath = formatPathForDbx(TargetDbxPath);
-		
+
 		// Replace Path separator '\\' (for windows) to Dropbox Path Separator
 		// '/'
 		String newFolderLocalPath = FolderLocalPath.replace('\\', '/');
@@ -320,7 +314,7 @@ public class DropboxOperations implements CloudOperations {
 	public void downloadFile(String FileDbxPath, String TargetLocalPath)
 			throws CloudException {
 		FileDbxPath = formatPathForDbx(FileDbxPath);
-		
+
 		// Extract the filename from the absolute path i.e. the last part
 		String fileName = FileDbxPath.substring(FileDbxPath.lastIndexOf("/"));
 		OutputStream outputStream = null;
