@@ -440,7 +440,7 @@ public class DropboxOperations implements CloudOperations {
 		}
 
 		Iterator<DbxEntry> iterChildren;
-		if (folderInfo != null) {
+		if (folderInfo != null && folderInfo.children != null) {
 			iterChildren = folderInfo.children.iterator();
 			DbxEntry child;
 			while (iterChildren.hasNext()) {
