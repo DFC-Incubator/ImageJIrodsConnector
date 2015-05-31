@@ -40,7 +40,7 @@ Mentor2: <a href="visakh@incf.org">Visakh Muraleedharan</a>   </p>
 <a id="re-factoring" class="anchor" href="#re-factoring" aria-hidden="true"><span class="octicon octicon-link"></span></a>Re-factoring</h3>
 
 <p>My project is forked from Atin's repository: <a href="https://github.com/Atin007/dbclient">https://github.com/Atin007/dbclient</a>, which is a GSoc 2014 project. Atin's project implements an ImageJ plugin for Dropbox, so I thought that it would be appropriate to integrate my new iRODS functionality as another cloud service.<br>
-A lot of re-factoring was done to the old project in order to make it clear and easier to support for future developers. The problems with the coding style from the Gsoc 2014's project was that: </p>
+A lot of re-factoring was done to the old project in order to make it clear and easier to support for future developers. The problems with the coding style from the Gsoc 2014's project was that (quote from the project proposal belonging to Desmond, Joshua A.): </p>
 
 <blockquote>
 <p>The current project is nothing short of a mess, with a thorough lack of documentation, an
@@ -53,7 +53,8 @@ entirety with anonymous class definitions, managing multiple threads, handling d
 Dropbox, making numerous calls to Swing, Dropbox, AWT, and ImageJ libraries, building and
 representing the file tree from Dropbox, determining the operating system of the user, and probably
 If anyone ever wants to build off or further develop MyCloudJ, refactoring is a must. No
-further work could possibly get around that</p>
+further work could possibly get around that.
+Before starting to implement the functionality for iRODS, a lot of refactoring work was done. This work also continued while adding iRODS features. I will present the re-factoring challenges in this separate chapter, trying to isolate the presentation of the functionality from the presentation of the re-factoring. Stay tunned!</p>
 </blockquote>
 
       <footer class="site-footer">
