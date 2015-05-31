@@ -842,7 +842,7 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			rodsUtilsObj.setUsername("rods");
 			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.0.102");
+			rodsUtilsObj.setHost("192.168.1.4");
 			rodsUtilsObj.setPort(1247);
 			rodsUtilsObj.setZone("BragadiruZone");
 			rodsUtilsObj.setRes("test1-resc");
@@ -998,6 +998,7 @@ public class MyCloudJ_ implements PlugIn {
 				UploadThread uploadThread = new UploadThread(cloudHandler, logMessages);
 				uploadThread.prepareForUpload(sourcePath, destinationPath);
 				uploadThread.start();
+				
 			}
 			else if (downloadRadioButton.isSelected()) {
 				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);

@@ -106,8 +106,8 @@ public class CloudFileTree {
 		this.cloudHandler = cloudHandler;
 
 		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
-		downloadTree = new JTree(downloadRoot);
 		downloadTreeModel = new DefaultTreeModel(downloadRoot);
+		downloadTree = new JTree(downloadTreeModel);
 
 		rootFiles = cloudHandler.listFiles(homeDirectoryPath);
 		addChildren(downloadRoot, downloadTreeModel, rootFiles);
@@ -122,8 +122,8 @@ public class CloudFileTree {
 		 * clicks
 		 */
 		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
-		uploadTree = new JTree(uploadRoot);
 		uploadTreeModel = new DefaultTreeModel(uploadRoot);
+		uploadTree = new JTree(uploadTreeModel);
 		addChildrenFolder(downloadRoot, downloadTreeModel, rootFiles);
 		getUploadTree().getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
