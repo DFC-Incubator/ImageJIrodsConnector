@@ -36,6 +36,26 @@ Mentor2: <a href="visakh@incf.org">Visakh Muraleedharan</a>   </p>
 
 <p>ImageJ is a public domain Java image processing program designed with an open architecture that provides extensibility via Java plugins. The aim of this project is to develop an ImageJ plugin which can be used to download/upload datasets from/to iRODS (Integrated Rule-Oriented Data System), an open source data management software used by the research community in order to take control of their data, regardless of where and on what device the data is stored</p>
 
+<h3>
+<a id="re-factoring" class="anchor" href="#re-factoring" aria-hidden="true"><span class="octicon octicon-link"></span></a>Re-factoring</h3>
+
+<p>My project is forked from Atin's repository: <a href="https://github.com/Atin007/dbclient">https://github.com/Atin007/dbclient</a>, which is a GSoc 2014 project. Atin's project implements an ImageJ plugin for Dropbox, so I thought that it would be appropriate to integrate my new iRODS functionality as another cloud service.<br>
+A lot of re-factoring was done to the old project in order to make it clear and easier to support for future developers. The problems with the coding style from the Gsoc 2014's project was that: </p>
+
+<blockquote>
+<p>The current project is nothing short of a mess, with a thorough lack of documentation, an
+absence of automated JUnit tests, and a strong disregard for object oriented design principles. The
+program admittedly works as it should, but from a software design perspective, it is unusable. In one
+of the two classes within the entire program, for example, there is a method called “run” that is over
+1000 lines long, (or, according to a SLOC counter, about 550 lines without comments). The method
+“run” encapsulates building the GUI and its every component, defining all action listeners in their
+entirety with anonymous class definitions, managing multiple threads, handling data validation from
+Dropbox, making numerous calls to Swing, Dropbox, AWT, and ImageJ libraries, building and
+representing the file tree from Dropbox, determining the operating system of the user, and probably
+If anyone ever wants to build off or further develop MyCloudJ, refactoring is a must. No
+further work could possibly get around that</p>
+</blockquote>
+
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/dorugucea91/CloudPlugin">CloudPlugin</a> is maintained by <a href="https://github.com/dorugucea91">dorugucea91</a>.</span>
 
