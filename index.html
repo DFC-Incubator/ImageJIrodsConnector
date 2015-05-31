@@ -60,9 +60,50 @@ Before starting to implement the functionality for iRODS, a lot of refactoring w
 <h3>
 <a id="week-1" class="anchor" href="#week-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Week 1</h3>
 
-<p>Deliverable: Plugin with a simple GUI, asking for iRODS credentials. The plugin can create a session with the iRODS server and display a successful/not successful connection message.  </p>
+<p><u>Deliverable:</u> Plugin with a simple GUI, asking for iRODS credentials. The plugin can create a session with the iRODS server and display a successful/not successful connection message.  </p>
+
+<p>As can be observed from the below picture, I kept the GUI from Atin's project and modified just the login box, by providing the user with text inputs for entering the credentials. The user can switch between Dropbox and iRODS login using a Radio Button.</p>
 
 <p>iRODS Login Screen<img src="images/screen_login_irods.png"></a></p>
+
+<p>Code implementing the login part can be found in the login method from the rods_backend package. Every cloud plugin should implement a login method and that's the reason for making the login method an operation in the CloudOperations interface. </p>
+
+<pre><code>
+import org.irods.jargon.core.connection.IRODSAccount;
+import org.irods.jargon.core.connection.IRODSProtocolManager;
+import org.irods.jargon.core.connection.IRODSSession;
+import org.irods.jargon.core.connection.IRODSSimpleProtocolManager;
+import org.irods.jargon.core.exception.JargonException;
+import org.irods.jargon.core.pub.IRODSAccessObjectFactory;
+import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
+import org.irods.jargon.core.pub.io.IRODSFile;
+
+public void login() throws CloudException {    
+	String error;    
+	IRODSProtocolManager connectionManager;   
+	IRODSAccount account;   
+	IRODSAccessObjectFactory accessObjectFactory;
+
+	try {
+		connectionManager = IRODSSimpleProtocolManager.instance();
+		session = IRODSSession.instance(connectionManager);
+		account = new IRODSAccount(host, port, user, password,
+				homeDirectoryPath, zone, res);
+		accessObjectFactory = IRODSAccessObjectFactoryImpl
+				.instance(session);
+		irodsFileFactory = accessObjectFactory.getIRODSFileFactory(account);
+
+		buildHomePath();
+		userIsLogged = true;
+	} catch (JargonException e) {
+		error = "Error login to iRODS";
+		throw (new CloudException(error));
+	}
+}
+</code></pre>
+
+<p>As can be seen from the imports used,  the communication with the iRODS server was done using the <a href="https://github.com/DICE-UNC/jargon">Jargon API</a>, version 4.0.2.1. I created a jar (jargon-core-4.0.2.1-SNAPSHOT-jar-with-dependencies.jar) with the Jargon functionality and placed it in the libs folder fro  then I linked my project against this jar.
+A detailed explanation with all the fields used for the connection can be found <a href="https://github.com/DICE-UNC/jargon/wiki/Managing-connections">here</a>, but the field that we are intersted in is <i>irodsFileFactory</i>. This is the handler which will be used for reading/writing iRODS files from the cloud server. </p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/dorugucea91/CloudPlugin">CloudPlugin</a> is maintained by <a href="https://github.com/dorugucea91">dorugucea91</a>.</span>
