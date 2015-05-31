@@ -102,8 +102,10 @@ public void login() throws CloudException {
 }
 </code></pre>
 
-<p>As can be seen from the imports used,  the communication with the iRODS server was done using the <a href="https://github.com/DICE-UNC/jargon">Jargon API</a>, version 4.0.2.1. I created a jar (jargon-core-4.0.2.1-SNAPSHOT-jar-with-dependencies.jar) with the Jargon functionality and placed it in the libs folder fro  then I linked my project against this jar.
+<p>As can be seen from the imports used,  the communication with the iRODS server was done using the <a href="https://github.com/DICE-UNC/jargon">Jargon API</a>, version 4.0.2.1. I created a jar (jargon-core-4.0.2.1-SNAPSHOT-jar-with-dependencies.jar) with the Jargon functionality and placed it in the libs folder then I linked my project against this jar.
 A detailed explanation with all the fields used for the connection can be found <a href="https://github.com/DICE-UNC/jargon/wiki/Managing-connections">here</a>, but the field that we are intersted in is <i>irodsFileFactory</i>. This is the handler which will be used for reading/writing iRODS files from the cloud server. </p>
+
+<p><u>iRODS server setup:</u> My changes were tested using a Virtual Box machine where I installed iRODS. The proposal of my mentors was to setup a public VM for easier testing. They provide me this machine and I installed iRODS on it. The problem is that I can't use the default listening port for iRODS (1247) because is not opened yet. Also, modifying the iRODS server to listen on port 80 (which is open) gave me an <a href="files/error_log">error</a>. We'll find a solution next week. </p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/dorugucea91/CloudPlugin">CloudPlugin</a> is maintained by <a href="https://github.com/dorugucea91">dorugucea91</a>.</span>
