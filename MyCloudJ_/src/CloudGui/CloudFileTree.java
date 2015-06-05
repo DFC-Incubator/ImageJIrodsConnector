@@ -171,25 +171,26 @@ public class CloudFileTree {
 	}
 
 	public void expandUploadTree() throws CloudException {
-		expandTree(getUploadTree(), uploadTreeModel, true);
+		expandTree(getUploadTree(), uploadTreeModel, true,
+				getSelectedNodePath(uploadTree));
 	}
 
 	public void expandDownloadTree() throws CloudException {
-		expandTree(getDownloadTree(), downloadTreeModel, false);
+		expandTree(getDownloadTree(), downloadTreeModel, false,
+				getSelectedNodePath(downloadTree));
 	}
 
 	private void expandTree(JTree tree, DefaultTreeModel treeModel,
-			boolean onlyFolders) throws CloudException {
-		String selectedFilePath = "";
+			boolean onlyFolders, String selectedFilePath) throws CloudException {
 		// parent node of the currently selected node
 		DefaultMutableTreeNode parentNode = null;
 
 		TreePath parentPath = tree.getSelectionPath();
+		if (parentPath == null)
+			return;
 		parentNode = (DefaultMutableTreeNode) (parentPath
 				.getLastPathComponent());
 
-		// get the subfiles of the currently selected node
-		selectedFilePath = getSelectedNodePath(tree);
 		List<CloudFile> cloudFiles = cloudHandler.listFiles(selectedFilePath);
 
 		if (onlyFolders)
@@ -198,6 +199,24 @@ public class CloudFileTree {
 			addChildren(parentNode, treeModel, cloudFiles);
 
 		tree.expandPath(new TreePath(parentNode.getPath()));
+	}
+
+	public synchronized void updateTrees(String path, boolean onlyFolders) {
+		String selectedFilePath = "";
+
+		try {
+			// update the upload tree
+			selectedFilePath = getSelectedNodePath(uploadTree);
+			if (selectedFilePath.startsWith(path) == true)
+				expandTree(uploadTree, uploadTreeModel, false, selectedFilePath);
+
+			// update the download tree
+			selectedFilePath = getSelectedNodePath(downloadTree);
+			if (selectedFilePath.startsWith(path) == true)
+				expandTree(downloadTree, downloadTreeModel, false, selectedFilePath);
+		} catch (CloudException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private String getSelectedNodePath(JTree tree) {

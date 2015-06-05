@@ -25,7 +25,6 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
-
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 import rods_backend.RodsOperations;
@@ -842,7 +841,7 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			rodsUtilsObj.setUsername("rods");
 			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.1.4");
+			rodsUtilsObj.setHost("192.168.0.103");
 			rodsUtilsObj.setPort(1247);
 			rodsUtilsObj.setZone("BragadiruZone");
 			rodsUtilsObj.setRes("test1-resc");
@@ -995,10 +994,9 @@ public class MyCloudJ_ implements PlugIn {
 			}
 			
 			if (uploadRadioButton.isSelected()) {
-				UploadThread uploadThread = new UploadThread(cloudHandler, logMessages);
+				UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, logMessages);
 				uploadThread.prepareForUpload(sourcePath, destinationPath);
 				uploadThread.start();
-				
 			}
 			else if (downloadRadioButton.isSelected()) {
 				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);

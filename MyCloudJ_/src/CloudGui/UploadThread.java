@@ -15,12 +15,14 @@ public class UploadThread extends Thread {
 	private String sourcePath;
 	private String destinationPath;
 	private boolean isFileUpload;
+	private CloudFileTree cloudFileTree;
 	// TODO: check parallel access to logMessages
 	private JTextArea logMessages;
 
-	public UploadThread(CloudOperations cloudHandler, JTextArea logMessages) {
+	public UploadThread(CloudOperations cloudHandler,  CloudFileTree cloudFileTree, JTextArea logMessages) {
 		this.cloudHandler = cloudHandler;
 		this.logMessages = logMessages;
+		this.cloudFileTree = cloudFileTree;
 	}
 
 	public void prepareForUpload(String sourcePath, String destinationPath) {
@@ -45,7 +47,6 @@ public class UploadThread extends Thread {
 		if (isFileUpload) {
 			try {
 				cloudHandler.uploadFile(sourcePath, destinationPath);
-				// TODO: add the freshly uploaded file in the selected browsing tree
 			} catch (CloudException e) {
 				logMessages.append("Error uploading file " + e.getCloudError()
 						+ "!\n\n");
@@ -65,6 +66,10 @@ public class UploadThread extends Thread {
 		}
 
 		logMessages.append("Uploading of " + sourcePath + " Complete !\n\n");
+		
+		// update the file browsing tree with the new node
+		cloudFileTree.updateTrees(destinationPath, true);
+		
 		// Open in the default application
 		Opener openfile = new Opener();
 		openfile.open(sourcePath);
