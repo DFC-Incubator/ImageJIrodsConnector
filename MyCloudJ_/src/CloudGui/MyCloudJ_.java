@@ -1,5 +1,6 @@
 package CloudGui;
 
+import general.JTextFieldLimit;
 import ij.plugin.PlugIn;
 
 import java.awt.Color;
@@ -535,45 +536,54 @@ public class MyCloudJ_ implements PlugIn {
 		JPanel lPanel12 = new JPanel(new FlowLayout());
 		JPanel lPanel13 = new JPanel(new FlowLayout());
 
+		int maxCharsTextField = 25;
+		int maxColumnsTextField = 19;
+		
 		JLabel labelRodsUser;
-		labelRodsUser = new JLabel("iRods User:   ");
+		labelRodsUser = new JLabel("iRods User:  ");
 		lPanel6.add(labelRodsUser);
-		user = new JTextField(17);
+		user = new JTextField(maxColumnsTextField);
+		user.setDocument(new JTextFieldLimit(maxCharsTextField));
 		user.setText(null);
 		lPanel6.add(user);
 
 		JLabel labelRodsPassword;
 		labelRodsPassword = new JLabel("iRods Pass:  ");
 		lPanel7.add(labelRodsPassword);
-		rodsPassword = new JPasswordField(17);
+		rodsPassword = new JPasswordField(maxColumnsTextField);
+		rodsPassword.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsPassword.setText(null);
 		lPanel7.add(rodsPassword);
 
 		JLabel labelRodsHost;
 		labelRodsHost = new JLabel("iRods Host:   ");
 		lPanel8.add(labelRodsHost);
-		rodsHost = new JTextField(17);
+		rodsHost = new JTextField(maxColumnsTextField);
+		rodsHost.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsHost.setText(null);
 		lPanel8.add(rodsHost);
 
 		JLabel labelRodsPort;
 		labelRodsPort = new JLabel("iRods Port:    ");
 		lPanel9.add(labelRodsPort);
-		rodsHostPort = new JTextField(17);
+		rodsHostPort = new JTextField(maxColumnsTextField);
+		rodsHostPort.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsHostPort.setText(null);
 		lPanel9.add(rodsHostPort);
 
 		JLabel labelRodsZone;
-		labelRodsZone = new JLabel("iRods Zone:  ");
+		labelRodsZone = new JLabel("iRods Zone:   ");
 		lPanel10.add(labelRodsZone);
-		rodsZone = new JTextField(17);
+		rodsZone = new JTextField(maxColumnsTextField);
+		rodsZone.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsZone.setText(null);
 		lPanel10.add(rodsZone);
 
 		JLabel labelRodsRes;
-		labelRodsRes = new JLabel("Resource:     ");
+		labelRodsRes = new JLabel("Resource:      ");
 		lPanel11.add(labelRodsRes);
-		rodsRes = new JTextField(17);
+		rodsRes = new JTextField(maxColumnsTextField);
+		rodsRes.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsRes.setText(null);
 		lPanel11.add(rodsRes);
 
