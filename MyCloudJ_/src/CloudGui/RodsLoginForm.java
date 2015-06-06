@@ -160,4 +160,28 @@ public class RodsLoginForm {
 	public void setLoginRodsButton(JButton loginRodsButton) {
 		this.loginRodsButton = loginRodsButton;
 	}
+
+	public String getUserName() {
+		return user.getText();
+	}
+
+	public String getRodsPassword() {
+		return rodsPassword.getText();
+	}
+
+	public String getRodsHost() {
+		return rodsHost.getText();
+	}
+
+	public String getRodsHostPort() {
+		return rodsHostPort.getText();
+	}
+
+	public String getRodsZone() {
+		return rodsZone.getText();
+	}
+
+	public String getRodsRes() {
+		return rodsRes.getText();
+	}
 }

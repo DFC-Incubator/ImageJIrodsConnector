@@ -567,31 +567,28 @@ public class MyCloudJ_ implements PlugIn {
 	}
 	
 	class BtnConnectRodsListener implements ActionListener {
+		private String host, zone, resource, user, password;
+		int port;
+		
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			RodsOperations rodsUtilsObj = (RodsOperations) cloudHandler;
-
-			/*
-			 * rodsUtilsObj.setUsername(user.getText());
-			 * rodsUtilsObj.setIrodsPassword(rodsPassword.getText());
-			 * rodsUtilsObj.setHost(rodsHost.getText());
-			 * rodsUtilsObj.setPort(Integer.parseInt(rodsHostPort.getText()));
-			 * rodsUtilsObj.setZone(rodsZone.getText());
-			 * rodsUtilsObj.setRes(rodsRes.getText());
-			 */
-
+			
 			/*
 			 * TESTING -temporary solution for not entering the credentials for
 			 * every run
 			 */
-			rodsUtilsObj.setUsername("rods");
-			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.0.104");
-			rodsUtilsObj.setPort(1247);
-			rodsUtilsObj.setZone("BragadiruZone");
-			rodsUtilsObj.setRes("test1-resc");
-
+//			rodsUtilsObj.setUsername("rods");
+//			rodsUtilsObj.setIrodsPassword("rods");
+//			rodsUtilsObj.setHost("192.168.0.104");
+//			rodsUtilsObj.setPort(1247);
+//			rodsUtilsObj.setZone("BragadiruZone");
+//			rodsUtilsObj.setRes("test1-resc");
+			
 			try {
+				checkLoginCredentials();
+				rodsUtilsObj.setCredentials(user, password, host, port, zone, resource);
+				
 				rodsUtilsObj.login();
 				userIsConnected = true;
 				disableRodsLoginForm();
@@ -602,6 +599,10 @@ public class MyCloudJ_ implements PlugIn {
 			} catch (CloudException e1) {
 				rodsLoginForm.setStatus("Error connecting to iRODS!");
 				e1.printStackTrace();
+				JOptionPane.showMessageDialog(mainFrame,
+						e1.getCloudError(),
+						"Login error",
+						JOptionPane.WARNING_MESSAGE);
 				return;
 			}
 			rodsLoginForm.setStatus("Connected to iRODS");
@@ -610,6 +611,38 @@ public class MyCloudJ_ implements PlugIn {
 		
 		private void disableRodsLoginForm() {
 			rodsLoginForm.disable();
+		}
+		
+		public void checkLoginCredentials() throws CloudException {
+			String messages = "";
+			
+			host = rodsLoginForm.getRodsHost();
+			zone = rodsLoginForm.getRodsZone();
+			resource = rodsLoginForm.getRodsRes();
+			user = rodsLoginForm.getUserName();
+			password = rodsLoginForm.getRodsPassword();
+			String portString = rodsLoginForm.getRodsHostPort();
+			
+			
+			if (host.length() == 0) 
+				messages = messages.concat("- iRods Host cannot be empty \n");
+			if (zone.length() == 0)
+				messages = messages.concat("- iRods Zone cannot be empty \n");
+			if (portString.length() == 0) 
+				messages = messages.concat("- iRods Port cannot be empty \n");
+			else 
+				try {
+					port = Integer.parseInt(portString);
+				} catch (NumberFormatException e) {
+					messages = messages.concat("- the iRODS port value is wrong \n");
+				}
+			if (user.length() == 0)
+				messages = messages.concat("- iRods user cannot be empty \n");
+			if (password.length() == 0)
+				messages = messages.concat("- iRods Pass cannot be empty \n");
+			
+			if (messages.length() > 0) 
+				throw (new CloudException(messages = "The login failed because: \n\n".concat(messages)));
 		}
 	}
 	

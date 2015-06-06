@@ -68,6 +68,7 @@ public class RodsOperations implements CloudOperations {
 			buildHomePath();
 			userIsLogged = true;
 		} catch (JargonException e) {
+			e.printStackTrace();
 			error = "Error login to iRODS";
 			throw (new CloudException(error));
 		}
@@ -332,6 +333,15 @@ public class RodsOperations implements CloudOperations {
 
 	public String getUsername() {
 		return user;
+	}
+	
+	public void setCredentials(String user, String password, String host, int port, String zone, String resource) {
+		setUsername(user);
+		setIrodsPassword(password);
+		setHost(host);
+		setPort(port);
+		setZone(zone);
+		setRes(resource);
 	}
 
 	public void setUsername(String username) {
