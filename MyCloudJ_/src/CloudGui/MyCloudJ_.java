@@ -16,7 +16,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -223,32 +222,8 @@ public class MyCloudJ_ implements PlugIn {
 	// ------------------------------------------------------------------------
 	// fields specific to RODS functionality and GUI
 	// ------------------------------------------------------------------------
-	/**
-	 * enabled if rodsLoginRadioButton is selected contains components for
-	 * entering Dbx credentials
-	 */
-	private JPanel lPanelRodsSpecific;
-
-	/**
-	 * rods credentials
-	 */
-	private JTextField user, rodsPassword, rodsHost, rodsHostPort, rodsZone,
-			rodsRes;
+	RodsLoginForm rodsLoginForm;
 	
-	/**
-	 * This label will display the connection status of the plugin along with
-	 * username (if connected) Status Format : Connected as <username> or Not
-	 * Connected!
-	 * 
-	 * Note : Initial status "Not Connected!"
-	 */
-	private JLabel rodsLblConnectionStatus;
-
-	/**
-	 * button to start the login process
-	 */
-	private JButton loginRodsButton;
-
 	/**
 	 * RODS specific titles for topPanel1 and topPanel2
 	 */
@@ -264,7 +239,7 @@ public class MyCloudJ_ implements PlugIn {
 		dbxLoginRadioButton.addActionListener(new BtnDbxLoginRadioListener());
 		irodsLoginRadioButton
 				.addActionListener(new BtnRodsLoginRadioListener());
-		loginRodsButton.addActionListener(new BtnConnectRodsListener());
+		rodsLoginForm.getLoginRodsButton().addActionListener(new BtnConnectRodsListener());
 		btnConnect.addActionListener(new BtnDbxConnectListener());
 		accessDbxButton.addActionListener(new BtnDbxAccessListener());
 		btnFileChooser2.addActionListener(new BtnFileChooser2Listener());
@@ -511,114 +486,12 @@ public class MyCloudJ_ implements PlugIn {
 		mainRightPanel.add(rPanel3);
 		mainRightPanel.add(rPanel4);
 		mainRightPanel.add(rPanel5);
-
-		// Initially all the components of topPanel2 are disabled. It is enabled
-		// after successful connection with user's dropbox account
-		GuiUtils.enableComponentsFromContainer(mainRightPanel, false);
-
-		/*
-		 * lPanelRodsSpecific : This panel contains Dropbox specific elements
-		 * contained in the next five labels lPanel6 : iRODS user lPanel7 :
-		 * iRODS password lPanel8 : iRODS Host lPanel9 : iRODS Port lPanel10 :
-		 * iRODS Zone lPanel11 : iRODS default resource
-		 * 
-		 * Note : lPanelRodsSpecific will be added into topPanel1(left side of
-		 * the mainFrame)
-		 */
-		lPanelRodsSpecific = new JPanel(new FlowLayout());
-		JPanel lPanel6 = new JPanel(new FlowLayout());
-		JPanel lPanel7 = new JPanel(new FlowLayout());
-		JPanel lPanel8 = new JPanel(new FlowLayout());
-		JPanel lPanel9 = new JPanel(new FlowLayout());
-		JPanel lPanel10 = new JPanel(new FlowLayout());
-		JPanel lPanel11 = new JPanel(new FlowLayout());
-		JPanel lPanel12 = new JPanel(new FlowLayout());
-		JPanel lPanel13 = new JPanel(new FlowLayout());
-
-		int maxCharsTextField = 25;
-		int maxColumnsTextField = 19;
 		
-		JLabel labelRodsUser;
-		labelRodsUser = new JLabel("iRods User:  ");
-		lPanel6.add(labelRodsUser);
-		user = new JTextField(maxColumnsTextField);
-		user.setDocument(new JTextFieldLimit(maxCharsTextField));
-		user.setText(null);
-		lPanel6.add(user);
-
-		JLabel labelRodsPassword;
-		labelRodsPassword = new JLabel("iRods Pass:  ");
-		lPanel7.add(labelRodsPassword);
-		rodsPassword = new JPasswordField(maxColumnsTextField);
-		rodsPassword.setDocument(new JTextFieldLimit(maxCharsTextField));
-		rodsPassword.setText(null);
-		lPanel7.add(rodsPassword);
-
-		JLabel labelRodsHost;
-		labelRodsHost = new JLabel("iRods Host:   ");
-		lPanel8.add(labelRodsHost);
-		rodsHost = new JTextField(maxColumnsTextField);
-		rodsHost.setDocument(new JTextFieldLimit(maxCharsTextField));
-		rodsHost.setText(null);
-		lPanel8.add(rodsHost);
-
-		JLabel labelRodsPort;
-		labelRodsPort = new JLabel("iRods Port:    ");
-		lPanel9.add(labelRodsPort);
-		rodsHostPort = new JTextField(maxColumnsTextField);
-		rodsHostPort.setDocument(new JTextFieldLimit(maxCharsTextField));
-		rodsHostPort.setText(null);
-		lPanel9.add(rodsHostPort);
-
-		JLabel labelRodsZone;
-		labelRodsZone = new JLabel("iRods Zone:   ");
-		lPanel10.add(labelRodsZone);
-		rodsZone = new JTextField(maxColumnsTextField);
-		rodsZone.setDocument(new JTextFieldLimit(maxCharsTextField));
-		rodsZone.setText(null);
-		lPanel10.add(rodsZone);
-
-		JLabel labelRodsRes;
-		labelRodsRes = new JLabel("Resource:      ");
-		lPanel11.add(labelRodsRes);
-		rodsRes = new JTextField(maxColumnsTextField);
-		rodsRes.setDocument(new JTextFieldLimit(maxCharsTextField));
-		rodsRes.setText(null);
-		lPanel11.add(rodsRes);
-
-		loginRodsButton = new JButton("Access iRODS!");
-		lPanel12.add(loginRodsButton);
+		rodsLoginForm = new RodsLoginForm();
+		rodsLoginForm.draw();
 		
-		rodsLblConnectionStatus = new JLabel("Not Connected!");
-		lPanel13.add(rodsLblConnectionStatus);
-
-		lPanel6.setLayout(new FlowLayout(FlowLayout.CENTER));
-		lPanel7.setLayout(new FlowLayout(FlowLayout.CENTER));
-		lPanel8.setLayout(new FlowLayout(FlowLayout.CENTER));
-		lPanel9.setLayout(new FlowLayout(FlowLayout.CENTER));
-		lPanel10.setLayout(new FlowLayout(FlowLayout.CENTER));
-		lPanel11.setLayout(new FlowLayout(FlowLayout.CENTER));
-		lPanel12.setLayout(new FlowLayout(FlowLayout.CENTER));
-
-		lPanelRodsSpecific.add(lPanel6);
-		lPanelRodsSpecific.add(lPanel7);
-		lPanelRodsSpecific.add(lPanel8);
-		lPanelRodsSpecific.add(lPanel9);
-		lPanelRodsSpecific.add(lPanel10);
-		lPanelRodsSpecific.add(lPanel11);
-		lPanelRodsSpecific.add(lPanel12);
-		lPanelRodsSpecific.add(lPanel13);
-		mainLeftPanel.add(lPanelRodsSpecific);
-		lPanelRodsSpecific.setLayout(new BoxLayout(lPanelRodsSpecific,
-				BoxLayout.Y_AXIS));
-		lPanelRodsSpecific.setVisible(false);
-
-		/*
-		 * Add the topPanel1(Left side) and topPanel2(Right side) to mainFrame.
-		 * Also set mainFrame visible
-		 */
+		mainLeftPanel.add(rodsLoginForm.getlPanelRodsSpecific());
 		lPanelDbSpecific.setPreferredSize(new Dimension(700, 360));
-		lPanelRodsSpecific.setPreferredSize(new Dimension(700, 320));
 		mainFrame.add(mainLeftPanel);
 		mainFrame.add(mainRightPanel);
 		mainFrame.setVisible(true);
@@ -664,15 +537,13 @@ public class MyCloudJ_ implements PlugIn {
 
 			cloudHandler = new DropboxOperations();
 			mainLeftPanel.setBorder(title1);
-			lPanelRodsSpecific.setVisible(false);
+			rodsLoginForm.setVisible(false);
 			lPanelDbSpecific.setVisible(true);
 			mainRightPanel.setBorder(title3);
 		}
 		
 		private void disableRodsGUI() {
-			rodsLblConnectionStatus.setText("Not Connected!");
-			GuiUtils.enableTextFieldsFromContainer(lPanelRodsSpecific, true);
-			loginRodsButton.setEnabled(true);
+			rodsLoginForm.restoreToOriginalState();
 		}
 	}
 	
@@ -705,7 +576,7 @@ public class MyCloudJ_ implements PlugIn {
 			
 			cloudHandler = new RodsOperations();
 			mainLeftPanel.setBorder(title2);
-			lPanelRodsSpecific.setVisible(true);
+			rodsLoginForm.setVisible(true);
 			lPanelDbSpecific.setVisible(false);
 			mainRightPanel.setBorder(title4);
 		}
@@ -867,17 +738,16 @@ public class MyCloudJ_ implements PlugIn {
 				buildFileSelectionTrees(cloudHomeDirectoryPath,
 						LOCAL_HOME_DIRECTORY_PATH);
 			} catch (CloudException e1) {
-				rodsLblConnectionStatus.setText("Error connecting to iRODS!");
+				rodsLoginForm.setStatus("Error connecting to iRODS!");
 				e1.printStackTrace();
 				return;
 			}
-			rodsLblConnectionStatus.setText("Connected to iRODS");
+			rodsLoginForm.setStatus("Connected to iRODS");
 			GuiUtils.enableComponentsFromContainer(mainRightPanel, true);
 		}
 		
 		private void disableRodsLoginForm() {
-			GuiUtils.enableTextFieldsFromContainer(lPanelRodsSpecific, false);
-			loginRodsButton.setEnabled(false);
+			rodsLoginForm.disable();
 		}
 	}
 	
