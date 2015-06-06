@@ -155,64 +155,14 @@ public class MyCloudJ_ implements PlugIn {
 	// ------------------------------------------------------------------------
 	// fields specific to Dbx functionality and GUI
 	// ------------------------------------------------------------------------
-	/**
-	 * enabled if dbxLoginRadioButton is selected contains components for
-	 * entering Dbx credentials
-	 */
-	private JPanel lPanelDbSpecific;
-
-	/**
-	 * instructions: displayed in the Dbx screen
-	 */
-	private String displayInstructions = "";
-	private String heading = "  Instructions : \n \n";
-	private String step1 = "  1. Click the \"Access Dropbox !\" button below. It will open the Dropbox app URL in the default browser.\n \n";
-	private String step2 = "  2. Next, Sign-in to the Dropbox account and allow the MyCloudJ App.\n \n";
-	private String step3 = "  3. On clicking the \"Allow\" button, Dropbox will generate an access code.\n \n";
-	private String step4 = "  4. Copy the \"access code\" and paste it in the text field below.\n \n";
-	private String step5 = "  5. Click the \"Connect !\" button. You can now access Dropbox.\n \n";
-	private String note1 = "  Note: Enter the correct access code!";
-
-	/**
-	 * This is used to open the Application Url in the default browser.
-	 */
-	private JButton accessDbxButton;
-
-	/**
-	 * this is where user has to paste the Dbx Access Code. Plugin can only be
-	 * connected if user enters the correct "Access Code" and clicks "Connect"
-	 * button
-	 * 
-	 * Note : Initially disabled.
-	 */
-	private JTextField dbxAccessCodeTextField;
+	
+	DropboxLoginForm dropboxLoginForm;
 
 	/**
 	 * authorizeUrl : stores the Application Url
 	 */
 	private String dbxAccessCode;
 
-	/**
-	 * "Connect to Dropbox button". Users need to click this button, once they
-	 * paste the access code in the textfield
-	 * 
-	 * Note : Intially disabled.
-	 */
-	private JButton btnConnect;
-	
-	/**
-	 * This label will display the connection status of the plugin along with
-	 * username (if connected) Status Format : Connected as <username> or Not
-	 * Connected!
-	 * 
-	 * Note : Initial status "Not Connected!"
-	 */
-	private JLabel dbxLblConnectionStatus;
-
-	/**
-	 * User's Dropbox information: user name + user country + user quota (GB)
-	 */
-	private JTextArea userInfo;
 	private String userName = "", country = "", userQuota = "";
 
 	/**
@@ -240,8 +190,8 @@ public class MyCloudJ_ implements PlugIn {
 		irodsLoginRadioButton
 				.addActionListener(new BtnRodsLoginRadioListener());
 		rodsLoginForm.getLoginRodsButton().addActionListener(new BtnConnectRodsListener());
-		btnConnect.addActionListener(new BtnDbxConnectListener());
-		accessDbxButton.addActionListener(new BtnDbxAccessListener());
+		dropboxLoginForm.getBtnConnect().addActionListener(new BtnDbxConnectListener());
+		dropboxLoginForm.getAccessDbxButton().addActionListener(new BtnDbxAccessListener());
 		btnFileChooser2.addActionListener(new BtnFileChooser2Listener());
 		/*
 		 * Set source/target address to "" whenever radio button is changed from
@@ -292,25 +242,6 @@ public class MyCloudJ_ implements PlugIn {
 		 */
 		JPanel lPanel0 = new JPanel(new FlowLayout());
 		JPanel lPanelAlign = new JPanel(new FlowLayout());
-
-		/*
-		 * lPanelDbSpecific : This panel contains Dropbox specific elements
-		 * contained in the next five labels lPanel1 : To display Instructions
-		 * lPanel2 : Access Dropbox Button lPanel3 : Access code label, Access
-		 * Code JTextField and Connect button lPanel4 : User Status Label:
-		 * Connected as <username> or Not Connected lPanel5 : To display dropbox
-		 * related information: <username>, <country> and <user quota(in GBs)>
-		 * 
-		 * Note : lPanelDbSpecific will be added into topPanel1(left side of the
-		 * mainFrame)
-		 */
-		lPanelDbSpecific = new JPanel(new FlowLayout());
-		JPanel lPanel1 = new JPanel(new FlowLayout());
-		JPanel lPanel2 = new JPanel(new FlowLayout());
-		JPanel lPanel3 = new JPanel(new FlowLayout());
-		JPanel lPanel4 = new JPanel(new FlowLayout());
-		JPanel lPanel5 = new JPanel(new FlowLayout());
-
 		/*
 		 * Add ButtonGroup : Radio buttons for selecting the service to connect.
 		 * 
@@ -324,78 +255,14 @@ public class MyCloudJ_ implements PlugIn {
 		serviceToLogin.add(irodsLoginRadioButton);
 		lPanel0.add(dbxLoginRadioButton);
 		lPanel0.add(irodsLoginRadioButton);
-
-		/*
-		 * Add JTextArea : This text area is used to display instructions for
-		 * the new users.
-		 * 
-		 * Added onto panel1
-		 */
-		displayInstructions = heading + step1 + step2 + step3 + step4 + step5
-				+ note1;
-		JTextArea instructions = new JTextArea(displayInstructions);
-		instructions.setEditable(false);
-		lPanel1.add(instructions);
-
-		accessDbxButton = new JButton("Access Dropbox  !");
-		lPanel2.add(accessDbxButton);
-
-		/*
-		 * Add JLabel : "Access Code".
-		 * 
-		 * Added onto panel3
-		 */
-		JLabel lbl1;
-		lbl1 = new JLabel("Dropbox Access Code: ");
-		lPanel3.add(lbl1);
-
-		dbxAccessCodeTextField = new JTextField(25);
-		dbxAccessCodeTextField.setText(null);
-		dbxAccessCodeTextField.setEnabled(false);
-		lPanel3.add(dbxAccessCodeTextField);
-
-		btnConnect = new JButton("Connect !");
-		btnConnect.setEnabled(false);
-		lPanel3.add(btnConnect);
-
-		/*
-		 * Add JLabel for user status -> connected or not connected. This label
-		 * will display the connection status of the plugin along with username
-		 * (if connected) Status Format : Connected as <username> or Not
-		 * Connected!
-		 * 
-		 * Added onto panel4
-		 * 
-		 * Note : Intial status "Not Connected !"
-		 */
-		dbxLblConnectionStatus = new JLabel("Not Connected!");
-		lPanel4.add(dbxLblConnectionStatus);
-
-		userInfo = new JTextArea("\n\n");
-		userInfo.setEditable(false);
-		lPanel5.add(userInfo);
-
-		/*
-		 * Event Handling for btnConnect. This handles the complete set set of
-		 * events that has to be executed after user presses the "Connect"
-		 * button.
-		 */
-
-		/*
-		 * Added all the components related to connection in the topPanel1(Left
-		 * side of the mainFrame).
-		 */
+		
+		dropboxLoginForm = new DropboxLoginForm();
+		dropboxLoginForm.draw();
+		
 		mainLeftPanel.add(lPanel0);
 		mainLeftPanel.add(lPanelAlign);
-		lPanelDbSpecific.add(lPanel1);
-		lPanelDbSpecific.add(lPanel2);
-		lPanelDbSpecific.add(lPanel3);
-		lPanelDbSpecific.add(lPanel4);
-		lPanelDbSpecific.add(lPanel5);
-		lPanelDbSpecific.setLayout(new BoxLayout(lPanelDbSpecific,
-				BoxLayout.Y_AXIS));
-		mainLeftPanel.add(lPanelDbSpecific);
-
+		mainLeftPanel.add(dropboxLoginForm.getlPanelDbSpecific());
+		
 		/*
 		 * Let's start working on topPanel2(Right side of the mainFrame)
 		 */
@@ -491,7 +358,6 @@ public class MyCloudJ_ implements PlugIn {
 		rodsLoginForm.draw();
 		
 		mainLeftPanel.add(rodsLoginForm.getlPanelRodsSpecific());
-		lPanelDbSpecific.setPreferredSize(new Dimension(700, 360));
 		mainFrame.add(mainLeftPanel);
 		mainFrame.add(mainRightPanel);
 		mainFrame.setVisible(true);
@@ -538,7 +404,7 @@ public class MyCloudJ_ implements PlugIn {
 			cloudHandler = new DropboxOperations();
 			mainLeftPanel.setBorder(title1);
 			rodsLoginForm.setVisible(false);
-			lPanelDbSpecific.setVisible(true);
+			dropboxLoginForm.setVisible(true);
 			mainRightPanel.setBorder(title3);
 		}
 		
@@ -577,16 +443,12 @@ public class MyCloudJ_ implements PlugIn {
 			cloudHandler = new RodsOperations();
 			mainLeftPanel.setBorder(title2);
 			rodsLoginForm.setVisible(true);
-			lPanelDbSpecific.setVisible(false);
+			dropboxLoginForm.setVisible(false);
 			mainRightPanel.setBorder(title4);
 		}
 		
 		private void disableDbxGUI() {
-			dbxAccessCodeTextField.setText("");
-			dbxAccessCodeTextField.setEnabled(false);
-			btnConnect.setEnabled(false);
-			dbxLblConnectionStatus.setText("");
-			userInfo.setText("");
+			dropboxLoginForm.disable();
 		}
 	}
 	
@@ -621,8 +483,8 @@ public class MyCloudJ_ implements PlugIn {
 			if (!userIsConnected) {
 				try {
 					cloudHandler.login();
-					dbxAccessCodeTextField.setEnabled(true);
-					btnConnect.setEnabled(true);
+					dropboxLoginForm.setEnabledAccessCodeField(true);
+					dropboxLoginForm.getBtnConnect().setEnabled(true);
 				} catch (CloudException e4) {
 					JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
 							"MyCLoudJ - Access Error",
@@ -647,7 +509,7 @@ public class MyCloudJ_ implements PlugIn {
 
 			try {
 				// retrieve the access code from textfield
-				dbxAccessCode = dbxAccessCodeTextField.getText();
+				dbxAccessCode = dropboxLoginForm.getAccesssCode();
 
 				// if user is previously not connected and access code is not
 				// empty then connect it
@@ -665,8 +527,8 @@ public class MyCloudJ_ implements PlugIn {
 					userName = dbxUtility.getUserName();
 					country = dbxUtility.getCountry();
 					userQuota = dbxUtility.getUserQuota();
-					dbxLblConnectionStatus.setText("Connected as " + userName);
-					userInfo.setText("Username: " + userName + "\nCountry: "
+					dropboxLoginForm.setStatus("Connected as " + userName);
+					dropboxLoginForm.setUserInfo("Username: " + userName + "\nCountry: "
 							+ country + "\nQuota: " + userQuota + " GB");
 
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
@@ -678,7 +540,7 @@ public class MyCloudJ_ implements PlugIn {
 					 * right panel(which contains the tasks section) after the
 					 * user is connected.
 					 */
-					dbxAccessCodeTextField.setEnabled(false);
+					dropboxLoginForm.setEnabledAccessCodeField(false);;
 					// All the components of topPanel2 are enabled after
 					// successful connection with user's dropbox account
 					GuiUtils.enableComponentsFromContainer(mainRightPanel, true);
