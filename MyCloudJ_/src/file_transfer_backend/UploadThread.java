@@ -1,4 +1,4 @@
-package CloudGui;
+package file_transfer_backend;
 
 import general.GeneralUtility;
 import ij.io.Opener;
@@ -7,6 +7,7 @@ import java.io.File;
 
 import javax.swing.JTextArea;
 
+import CloudGui.CloudFileTree;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 

@@ -3,8 +3,6 @@ package CloudGui;
 import ij.plugin.PlugIn;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -30,6 +28,8 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 import rods_backend.RodsOperations;
 import dropbox_backend.DropboxOperations;
+import file_transfer_backend.DownloadThread;
+import file_transfer_backend.UploadThread;
 
 /**
  * @author Atin Mathur (mathuratin007@gmail.com) - Dropbox functionality

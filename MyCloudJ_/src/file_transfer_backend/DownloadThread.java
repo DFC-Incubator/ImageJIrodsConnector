@@ -1,4 +1,4 @@
-package CloudGui;
+package file_transfer_backend;
 
 import general.GeneralUtility;
 import ij.io.Opener;
