@@ -668,6 +668,12 @@ public class MyCloudJ_ implements PlugIn {
 			lPanelDbSpecific.setVisible(true);
 			mainRightPanel.setBorder(title3);
 		}
+		
+		private void disableRodsGUI() {
+			rodsLblConnectionStatus.setText("Not Connected!");
+			enableTextFieldsFromContainer(lPanelRodsSpecific, true);
+			loginRodsButton.setEnabled(true);
+		}
 	}
 	
 	class BtnRodsLoginRadioListener implements ActionListener {
@@ -703,18 +709,14 @@ public class MyCloudJ_ implements PlugIn {
 			lPanelDbSpecific.setVisible(false);
 			mainRightPanel.setBorder(title4);
 		}
-	}
-	
-	private void disableRodsGUI() {
-		rodsLblConnectionStatus.setText("Not Connected!");
-	}
-	
-	private void disableDbxGUI() {
-		dbxAccessCodeTextField.setText("");
-		dbxAccessCodeTextField.setEnabled(false);
-		btnConnect.setEnabled(false);
-		dbxLblConnectionStatus.setText("");
-		userInfo.setText("");
+		
+		private void disableDbxGUI() {
+			dbxAccessCodeTextField.setText("");
+			dbxAccessCodeTextField.setEnabled(false);
+			btnConnect.setEnabled(false);
+			dbxLblConnectionStatus.setText("");
+			userInfo.setText("");
+		}
 	}
 	
 	private void disableJTreeGUI() {
@@ -851,7 +853,7 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			rodsUtilsObj.setUsername("rods");
 			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("192.168.0.103");
+			rodsUtilsObj.setHost("192.168.0.104");
 			rodsUtilsObj.setPort(1247);
 			rodsUtilsObj.setZone("BragadiruZone");
 			rodsUtilsObj.setRes("test1-resc");
@@ -859,7 +861,8 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				rodsUtilsObj.login();
 				userIsConnected = true;
-
+				disableRodsLoginForm();
+			
 				cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 				buildFileSelectionTrees(cloudHomeDirectoryPath,
 						LOCAL_HOME_DIRECTORY_PATH);
@@ -870,6 +873,11 @@ public class MyCloudJ_ implements PlugIn {
 			}
 			rodsLblConnectionStatus.setText("Connected to iRODS");
 			setEnabledAll(mainRightPanel, true);
+		}
+		
+		private void disableRodsLoginForm() {
+			enableTextFieldsFromContainer(lPanelRodsSpecific, false);
+			loginRodsButton.setEnabled(false);
 		}
 	}
 	
@@ -1030,6 +1038,19 @@ public class MyCloudJ_ implements PlugIn {
 				component.setEnabled(enabled);
 				if (component instanceof Container) {
 					setEnabledAll((Container) component, enabled);
+				}
+			}
+		}
+	}
+	
+	public void enableTextFieldsFromContainer(Container container, boolean enabled) {
+		Component[] components = container.getComponents();
+		if (components.length > 0) {
+			for (Component component : components) {
+				if (component instanceof JTextField)
+					component.setEnabled(enabled);
+				if (component instanceof Container) {
+					enableTextFieldsFromContainer((Container) component, enabled);
 				}
 			}
 		}
