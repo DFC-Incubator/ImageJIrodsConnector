@@ -514,7 +514,7 @@ public class MyCloudJ_ implements PlugIn {
 
 		// Initially all the components of topPanel2 are disabled. It is enabled
 		// after successful connection with user's dropbox account
-		setEnabledAll(mainRightPanel, false);
+		GuiUtils.enableComponentsFromContainer(mainRightPanel, false);
 
 		/*
 		 * lPanelRodsSpecific : This panel contains Dropbox specific elements
@@ -671,7 +671,7 @@ public class MyCloudJ_ implements PlugIn {
 		
 		private void disableRodsGUI() {
 			rodsLblConnectionStatus.setText("Not Connected!");
-			enableTextFieldsFromContainer(lPanelRodsSpecific, true);
+			GuiUtils.enableTextFieldsFromContainer(lPanelRodsSpecific, true);
 			loginRodsButton.setEnabled(true);
 		}
 	}
@@ -728,7 +728,7 @@ public class MyCloudJ_ implements PlugIn {
 		targetTxt.setText("");
 		logMessages.setText("");
 		
-		setEnabledAll(mainRightPanel, false);		
+		GuiUtils.enableComponentsFromContainer(mainRightPanel, false);		
 	}
 	
 	private void freeCloudResources() {
@@ -810,7 +810,7 @@ public class MyCloudJ_ implements PlugIn {
 					dbxAccessCodeTextField.setEnabled(false);
 					// All the components of topPanel2 are enabled after
 					// successful connection with user's dropbox account
-					setEnabledAll(mainRightPanel, true);
+					GuiUtils.enableComponentsFromContainer(mainRightPanel, true);
 				}
 				// If user is already connected userStatus=1, warning for user
 				else if (userIsConnected == true)
@@ -872,11 +872,11 @@ public class MyCloudJ_ implements PlugIn {
 				return;
 			}
 			rodsLblConnectionStatus.setText("Connected to iRODS");
-			setEnabledAll(mainRightPanel, true);
+			GuiUtils.enableComponentsFromContainer(mainRightPanel, true);
 		}
 		
 		private void disableRodsLoginForm() {
-			enableTextFieldsFromContainer(lPanelRodsSpecific, false);
+			GuiUtils.enableTextFieldsFromContainer(lPanelRodsSpecific, false);
 			loginRodsButton.setEnabled(false);
 		}
 	}
@@ -1020,38 +1020,6 @@ public class MyCloudJ_ implements PlugIn {
 				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);
 				downloadThread.prepareForDownload(sourcePath, destinationPath);
 				downloadThread.start();
-			}
-		}
-	}
-	
-	/*
-	 * Function to enable/disable components inside a container(works for Nested
-	 * containers)
-	 * 
-	 * Parameters: Container container : container which you have to
-	 * disable/enable enabled : boolean value, true(enable) or false(disable)
-	 */
-	public void setEnabledAll(Container container, boolean enabled) {
-		Component[] components = container.getComponents();
-		if (components.length > 0) {
-			for (Component component : components) {
-				component.setEnabled(enabled);
-				if (component instanceof Container) {
-					setEnabledAll((Container) component, enabled);
-				}
-			}
-		}
-	}
-	
-	public void enableTextFieldsFromContainer(Container container, boolean enabled) {
-		Component[] components = container.getComponents();
-		if (components.length > 0) {
-			for (Component component : components) {
-				if (component instanceof JTextField)
-					component.setEnabled(enabled);
-				if (component instanceof Container) {
-					enableTextFieldsFromContainer((Container) component, enabled);
-				}
 			}
 		}
 	}
