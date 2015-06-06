@@ -1,6 +1,5 @@
 package CloudGui;
 
-import general.JTextFieldLimit;
 import ij.plugin.PlugIn;
 
 import java.awt.Color;
