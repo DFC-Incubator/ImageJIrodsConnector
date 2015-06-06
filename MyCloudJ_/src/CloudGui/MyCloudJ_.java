@@ -18,6 +18,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -544,7 +545,7 @@ public class MyCloudJ_ implements PlugIn {
 		JLabel labelRodsPassword;
 		labelRodsPassword = new JLabel("iRods Password:  ");
 		lPanel7.add(labelRodsPassword);
-		rodsPassword = new JTextField(25);
+		rodsPassword = new JPasswordField(25);
 		rodsPassword.setText(null);
 		lPanel7.add(rodsPassword);
 
