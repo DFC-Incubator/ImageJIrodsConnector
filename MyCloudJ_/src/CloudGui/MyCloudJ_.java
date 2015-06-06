@@ -536,44 +536,44 @@ public class MyCloudJ_ implements PlugIn {
 		JPanel lPanel13 = new JPanel(new FlowLayout());
 
 		JLabel labelRodsUser;
-		labelRodsUser = new JLabel("iRods User:           ");
+		labelRodsUser = new JLabel("iRods User:   ");
 		lPanel6.add(labelRodsUser);
-		user = new JTextField(25);
+		user = new JTextField(17);
 		user.setText(null);
 		lPanel6.add(user);
 
 		JLabel labelRodsPassword;
-		labelRodsPassword = new JLabel("iRods Password:  ");
+		labelRodsPassword = new JLabel("iRods Pass:  ");
 		lPanel7.add(labelRodsPassword);
-		rodsPassword = new JPasswordField(25);
+		rodsPassword = new JPasswordField(17);
 		rodsPassword.setText(null);
 		lPanel7.add(rodsPassword);
 
 		JLabel labelRodsHost;
-		labelRodsHost = new JLabel("iRods Host:           ");
+		labelRodsHost = new JLabel("iRods Host:   ");
 		lPanel8.add(labelRodsHost);
-		rodsHost = new JTextField(25);
+		rodsHost = new JTextField(17);
 		rodsHost.setText(null);
 		lPanel8.add(rodsHost);
 
 		JLabel labelRodsPort;
-		labelRodsPort = new JLabel("iRods Port:            ");
+		labelRodsPort = new JLabel("iRods Port:    ");
 		lPanel9.add(labelRodsPort);
-		rodsHostPort = new JTextField(25);
+		rodsHostPort = new JTextField(17);
 		rodsHostPort.setText(null);
 		lPanel9.add(rodsHostPort);
 
 		JLabel labelRodsZone;
-		labelRodsZone = new JLabel("iRods Zone:          ");
+		labelRodsZone = new JLabel("iRods Zone:  ");
 		lPanel10.add(labelRodsZone);
-		rodsZone = new JTextField(25);
+		rodsZone = new JTextField(17);
 		rodsZone.setText(null);
 		lPanel10.add(rodsZone);
 
 		JLabel labelRodsRes;
-		labelRodsRes = new JLabel("Default Resource:");
+		labelRodsRes = new JLabel("Resource:     ");
 		lPanel11.add(labelRodsRes);
-		rodsRes = new JTextField(25);
+		rodsRes = new JTextField(17);
 		rodsRes.setText(null);
 		lPanel11.add(rodsRes);
 
@@ -583,12 +583,12 @@ public class MyCloudJ_ implements PlugIn {
 		rodsLblConnectionStatus = new JLabel("Not Connected!");
 		lPanel13.add(rodsLblConnectionStatus);
 
-		lPanel6.setLayout(new FlowLayout(FlowLayout.LEFT));
-		lPanel7.setLayout(new FlowLayout(FlowLayout.LEFT));
-		lPanel8.setLayout(new FlowLayout(FlowLayout.LEFT));
-		lPanel9.setLayout(new FlowLayout(FlowLayout.LEFT));
-		lPanel10.setLayout(new FlowLayout(FlowLayout.LEFT));
-		lPanel11.setLayout(new FlowLayout(FlowLayout.LEFT));
+		lPanel6.setLayout(new FlowLayout(FlowLayout.CENTER));
+		lPanel7.setLayout(new FlowLayout(FlowLayout.CENTER));
+		lPanel8.setLayout(new FlowLayout(FlowLayout.CENTER));
+		lPanel9.setLayout(new FlowLayout(FlowLayout.CENTER));
+		lPanel10.setLayout(new FlowLayout(FlowLayout.CENTER));
+		lPanel11.setLayout(new FlowLayout(FlowLayout.CENTER));
 		lPanel12.setLayout(new FlowLayout(FlowLayout.CENTER));
 
 		lPanelRodsSpecific.add(lPanel6);
