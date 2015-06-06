@@ -1028,11 +1028,8 @@ public class MyCloudJ_ implements PlugIn {
 		if (components.length > 0) {
 			for (Component component : components) {
 				component.setEnabled(enabled);
-				if (component instanceof Container) { // has to be a container
-														// to contain components
-					setEnabledAll((Container) component, enabled); // the
-																	// recursive
-																	// call
+				if (component instanceof Container) {
+					setEnabledAll((Container) component, enabled);
 				}
 			}
 		}
