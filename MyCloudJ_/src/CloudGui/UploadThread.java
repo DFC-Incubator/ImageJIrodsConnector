@@ -52,6 +52,7 @@ public class UploadThread extends Thread {
 						+ "!\n\n");
 
 				e.printStackTrace();
+				return;
 			}
 		} else {
 			try {
