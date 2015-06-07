@@ -53,14 +53,14 @@ entirety with anonymous class definitions, managing multiple threads, handling d
 Dropbox, making numerous calls to Swing, Dropbox, AWT, and ImageJ libraries, building and
 representing the file tree from Dropbox, determining the operating system of the user, and probably
 If anyone ever wants to build off or further develop MyCloudJ, refactoring is a must. No
-further work could possibly get around that.
-Before starting to implement the functionality for iRODS, a lot of refactoring work was done. This work also continued while adding iRODS features. I will present the re-factoring challenges in this separate chapter, trying to isolate the presentation of the functionality from the presentation of the re-factoring. Stay tunned!</p>
-</blockquote>
+further work could possibly get around that. </p></blockquote>
+
+<p>Before starting to implement the functionality for iRODS, a lot of refactoring work was done. This work also continued while adding iRODS features. I will present the re-factoring challenges in this separate chapter, trying to isolate the presentation of the functionality from the presentation of the re-factoring. Stay tunned!</p>
 
 <h3>
 <a id="week-1" class="anchor" href="#week-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Week 1</h3>
 
-<p><u>Deliverable:</u> Plugin with a simple GUI, asking for iRODS credentials. The plugin can create a session with the iRODS server and display a successful/not successful connection message.  </p>
+<p><u>Deliverable 1:</u> Plugin with a simple GUI, asking for iRODS credentials. The plugin can create a session with the iRODS server and display a successful/not successful connection message.  </p>
 
 <p>As can be observed from the below picture, I kept the GUI from Atin's project and modified just the login box, by providing the user with text inputs for entering the credentials. The user can switch between Dropbox and iRODS login using a Radio Button.</p>
 
@@ -106,6 +106,40 @@ public void login() throws CloudException {
 A detailed explanation with all the fields used for the connection can be found <a href="https://github.com/DICE-UNC/jargon/wiki/Managing-connections">here</a>, but the field that we are intersted in is <i>irodsFileFactory</i>. This is the handler which will be used for reading/writing iRODS files from the cloud server. </p>
 
 <p><u>iRODS server setup:</u> My changes were tested using a Virtual Box machine where I installed iRODS. The proposal of my mentors was to setup a public VM for easier testing. They provide me this machine and I installed iRODS on it. The problem is that I can't use the default listening port for iRODS (1247) because is not opened yet. Also, modifying the iRODS server to listen on port 80 (which is open) gave me an <a href="files/error_log">error</a>. We'll find a solution next week. </p>
+
+<h3>
+<a id="week-2" class="anchor" href="#week-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Week 2</h3>
+
+<p><u>Deliverable 2:</u> Plugin wih the capability to browse the local file system and the remote iRODS file system.  </p>
+
+<p>After a successful login to the iRODS server, input elements (RadioButton, JButton) from the right side of the main frame (iRODS Tasks) are activated:
+<img src="images/active_right_frame.png"></p>
+
+<p> The "Browse" buttons from the right side can be used for searching files either on the local file system or on the remote cloud file system, depending on the selected RadioButton (Upload/Download). First image illustrates the window for browsing files on the cloud filesystem while the second image shows the window for browsing files on the local file system: </p>
+
+<p><img src="images/browse_cloud.png">&nbsp;&nbsp;&nbsp;<img src="images/browse_local.png"></p>
+
+
+<p>UMLs describing the browsing functionality are displayed in the below figure. In order to separate the functionality between browsing trees, I created two distinct classes: 
+<ul>
+<li><p>CloudFileTree - implements methods for browsing the cloud file system. In order to make this class easy extendable to another cloud file system, the constructor of CloudFileTree receives as parameter a CloudOperations handler. In this way, CloudFileTree can be used to browse the file system for any cloud service which implements the CloudOperations interface, more specific, the listFiles method which creates a list with CloudFiles from a specific path. In my program, the CloudFileTree is used to browse the iRODS file system by implementing the back end communication with the iRODS server in the RodsOperations class but the CloudFileTree can be easy extended to browse the Dropbox filesystem if back end communication with Dropbox implements the CloudOperations class.<p>
+<p>The basic principle from this class is very simple: every time the user clicks the Expand button, the selected node is expanded with a list of CloudFiles by calling the listFiles method. It's worth mentioning that the listFiles method is the only method used from the cloud handler.<p>
+
+ </li>
+<li>LocalFileTree - implements methods for browsing the local file system. This class is very simple because it uses the built-in ImageJ file browser. </li>
+</ul>
+
+MyCloudJ_ class just calls methods for drawing the file selection window and afterwards, it assigns ActionListeners for the JButtons inside these windows. Specific browsing processing is done inside those CloudFileTree and LocalFileTree.
+  </p>
+<p><img src="images/uml_browsing.png"></p>
+
+<p><u>Server setup:</u> My mentors opened the port 1247 on the remote VM and I successfully tested my work. The main problem that I encountered was that the default resource specified at login didn't exist on the iRODS server and I got some errors while uploading files. Solved this problem by not specfing a default resource. The iRODS community helped me to solve the<a href="https://groups.google.com/forum/#!topic/irod-chat/dOIOrhMnbSw"> problem.</a></p>
+
+
+
+
+
+
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/dorugucea91/CloudPlugin">CloudPlugin</a> is maintained by <a href="https://github.com/dorugucea91">dorugucea91</a>.</span>
