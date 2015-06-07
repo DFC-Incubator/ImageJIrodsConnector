@@ -534,7 +534,6 @@ public class MyCloudJ_ implements PlugIn {
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildFileSelectionTrees(cloudHomeDirectoryPath,
 							LOCAL_HOME_DIRECTORY_PATH);
-
 					/*
 					 * Disable the access code textfield and enable the the
 					 * right panel(which contains the tasks section) after the

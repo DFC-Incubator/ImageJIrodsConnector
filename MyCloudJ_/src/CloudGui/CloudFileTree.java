@@ -94,7 +94,7 @@ public class CloudFileTree {
 
 		// This will position the JFrame in the center of the screen
 		enclosingFrame.setLocationRelativeTo(null);
-		enclosingFrame.setTitle("Dropbox - Browse!");
+		enclosingFrame.setTitle("Cloud Browse");
 		enclosingFrame.setSize(350, 200);
 		enclosingFrame.setResizable(true);
 		enclosingFrame.pack();
