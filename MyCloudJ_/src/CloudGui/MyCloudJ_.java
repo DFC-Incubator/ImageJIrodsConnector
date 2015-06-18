@@ -353,6 +353,7 @@ public class MyCloudJ_ implements PlugIn {
 		mainRightPanel.add(rPanel3);
 		mainRightPanel.add(rPanel4);
 		mainRightPanel.add(rPanel5);
+		GuiUtils.enableComponentsFromContainer(mainRightPanel, false);
 		
 		rodsLoginForm = new RodsLoginForm();
 		rodsLoginForm.draw();
