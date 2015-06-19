@@ -3,7 +3,6 @@ package CloudGui;
 import ij.plugin.PlugIn;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,15 +10,10 @@ import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
@@ -85,10 +79,10 @@ public class MyCloudJ_ implements PlugIn {
 	/**
 	 * @topPanel1: left side of the mainFrame, components used for connecting to
 	 *             the cloud
-	 * @topPanel2: right side of the mainFrame, components used for
-	 *             downloading/uploading
 	 */
-	private JPanel mainLeftPanel, mainRightPanel;
+	private JPanel mainLeftPanel;
+	
+	TasksWindow tasksWindow;
 
 	/**
 	 * two radio buttons inside topPanel1:
@@ -109,48 +103,10 @@ public class MyCloudJ_ implements PlugIn {
 	private String irodsLoginS = "Connect to iRODS";
 
 	/**
-	 * two radio buttons inside topPanel2
-	 * 
-	 * @uploadRadioButton: user will upload a file/folder to cloud
-	 * @downloadRadioButton: user will download a file/folder from cloud
-	 */
-	private JRadioButton uploadRadioButton, downloadRadioButton;
-
-	/**
 	 * this holds the JTree node that is selected by the user for
 	 * upload/download
 	 */
 	public Object node, parentNode;
-
-	/**
-	 * button to open file chooser for the source file
-	 */
-	private JButton btnFileChooser1;
-
-	/**
-	 * button to open the file chooser for the target file
-	 */
-	private JButton btnFileChooser2;
-
-	/**
-	 * source address
-	 */
-	private JTextField srcTxt;
-
-	/**
-	 * destination address
-	 */
-	private JTextField targetTxt;
-
-	/**
-	 * button to start download/upload
-	 */
-	private JButton btnStart;
-
-	/**
-	 * msgs will be used for displaying task related information to user
-	 */
-	private JTextArea logMessages;
 
 	// ------------------------------------------------------------------------
 	// fields specific to Dbx functionality and GUI
@@ -185,21 +141,21 @@ public class MyCloudJ_ implements PlugIn {
 	}
 
 	private void assignActionListeners() {
-		btnFileChooser1.addActionListener(new BtnFileChooser1Listener());
+		tasksWindow.getBtnFileChooser1().addActionListener(new BtnFileChooser1Listener());
 		dbxLoginRadioButton.addActionListener(new BtnDbxLoginRadioListener());
 		irodsLoginRadioButton
 				.addActionListener(new BtnRodsLoginRadioListener());
 		rodsLoginForm.getLoginRodsButton().addActionListener(new BtnConnectRodsListener());
 		dropboxLoginForm.getBtnConnect().addActionListener(new BtnDbxConnectListener());
 		dropboxLoginForm.getAccessDbxButton().addActionListener(new BtnDbxAccessListener());
-		btnFileChooser2.addActionListener(new BtnFileChooser2Listener());
+		tasksWindow.getBtnFileChooser2().addActionListener(new BtnFileChooser2Listener());
 		/*
 		 * Set source/target address to "" whenever radio button is changed from
 		 * rButton1(upload) to rButtoon2(download) and vice versa.
 		 */
-		uploadRadioButton.addActionListener(new BtnUploadRadioListener());
-		downloadRadioButton.addActionListener(new BtnDownloadRadioListener());
-		btnStart.addActionListener(new BtnStartListener());
+		tasksWindow.getUploadRadioButton().addActionListener(new BtnUploadRadioListener());
+		tasksWindow.getDownloadRadioButton().addActionListener(new BtnDownloadRadioListener());
+		tasksWindow.getBtnStart().addActionListener(new BtnStartListener());
 	}
 
 	private void drawGUI() {
@@ -224,17 +180,10 @@ public class MyCloudJ_ implements PlugIn {
 		mainLeftPanel.setBorder(title1);
 
 		// topPanel2
-		mainRightPanel = new JPanel();
-		mainRightPanel.setLayout(new BoxLayout(mainRightPanel,
-				BoxLayout.PAGE_AXIS));
-		mainRightPanel.setBorder(title3);
-
-		logMessages = new JTextArea();
-		logMessages.setLineWrap(true);
-		logMessages.setWrapStyleWord(true);
-
-		// First we'll add components to topPanel1. Then, we'll start with
-		// topPanel2
+		tasksWindow = new TasksWindow();
+		tasksWindow.draw();
+		tasksWindow.setTitle(title3);
+		tasksWindow.resetAndDisable();
 
 		/*
 		 * These panels will add into topPanel1 (Left side of the frame) lPanel0
@@ -263,106 +212,13 @@ public class MyCloudJ_ implements PlugIn {
 		mainLeftPanel.add(lPanelAlign);
 		mainLeftPanel.add(dropboxLoginForm.getlPanelDbSpecific());
 		
-		/*
-		 * Let's start working on topPanel2(Right side of the mainFrame)
-		 */
-
-		/*
-		 * JPanels : To be added to topPanel2(Right side of mainFrame)
-		 * 
-		 * rPanel1 : Contains label "Tasks:" rPanel2 : Contains Radio buttons
-		 * "Upload" and "Download".
-		 * 
-		 * Added to topPanel2
-		 */
-		JPanel rPanel1 = new JPanel(new FlowLayout());
-		JPanel rPanel2 = new JPanel(new FlowLayout());
-		JPanel rPanel3 = new JPanel(new FlowLayout());
-		JPanel rPanel4 = new JPanel(new FlowLayout());
-		JPanel rPanel5 = new JPanel(new FlowLayout());
-
-		/*
-		 * Add JLabel : "Tasks". Download/Upload
-		 * 
-		 * Added to rPanel1
-		 */
-		JLabel lblTasks;
-		lblTasks = new JLabel("Tasks: ");
-		rPanel1.add(lblTasks);
-
-		uploadRadioButton = new JRadioButton("Upload");
-		downloadRadioButton = new JRadioButton("Download", true);
-		ButtonGroup group = new ButtonGroup();
-		group.add(uploadRadioButton);
-		group.add(downloadRadioButton);
-		rPanel1.add(uploadRadioButton);
-		rPanel1.add(downloadRadioButton);
-
-		/*
-		 * Add JLabel : "Source".
-		 * 
-		 * Added to rPanel2
-		 */
-		JLabel lblSrc;
-		lblSrc = new JLabel("Source: ");
-		rPanel2.add(lblSrc);
-
-		srcTxt = new JTextField("", 25);
-		srcTxt.setEditable(false);
-		rPanel2.add(srcTxt);
-
-		btnFileChooser1 = new JButton("Browse");
-		rPanel2.add(btnFileChooser1);
-
-		JLabel targetLbl = new JLabel("Target: ");
-		rPanel3.add(targetLbl);
-
-		targetTxt = new JTextField("", 25);
-		targetTxt.setEditable(false);
-		rPanel3.add(targetTxt);
-
-		btnFileChooser2 = new JButton("Browse");
-		rPanel3.add(btnFileChooser2);
-
-		btnStart = new JButton("Start !");
-		rPanel4.add(btnStart);
-
-		/*
-		 * JLabel : "Messages"
-		 * 
-		 * Added onto rPanel5
-		 */
-		JLabel lblMsg = new JLabel("Messages: ");
-		rPanel5.add(lblMsg);
-
-		/*
-		 * JTextArea : For user's information (task related) Added onto rPanel5
-		 * Added the scrollpane to text area
-		 */
-		JScrollPane msgsScrollPane = new JScrollPane(logMessages);
-		msgsScrollPane
-				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		msgsScrollPane.setPreferredSize(new Dimension(340, 220));
-		rPanel5.add(msgsScrollPane);
-
-		/*
-		 * Add rPanels to topPanel2(right side)
-		 */
-		mainRightPanel.add(rPanel1);
-		mainRightPanel.add(rPanel2);
-		mainRightPanel.add(rPanel3);
-		mainRightPanel.add(rPanel4);
-		mainRightPanel.add(rPanel5);
-		GuiUtils.enableComponentsFromContainer(mainRightPanel, false);
-		
 		rodsLoginForm = new RodsLoginForm();
 		rodsLoginForm.draw();
 		
 		mainLeftPanel.add(rodsLoginForm.getlPanelRodsSpecific());
 		mainFrame.add(mainLeftPanel);
-		mainFrame.add(mainRightPanel);
+		mainFrame.add(tasksWindow.getPanel());
 		mainFrame.setVisible(true);
-
 	}
 	
 	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
@@ -394,6 +250,7 @@ public class MyCloudJ_ implements PlugIn {
 					
 					disableRodsGUI();
 					disableJTreeGUI();
+					tasksWindow.resetAndDisable();
 					freeCloudResources();
 				// cancel the switch to Dropboxs
 				} else {
@@ -406,7 +263,7 @@ public class MyCloudJ_ implements PlugIn {
 			mainLeftPanel.setBorder(title1);
 			rodsLoginForm.setVisible(false);
 			dropboxLoginForm.setVisible(true);
-			mainRightPanel.setBorder(title3);
+			tasksWindow.setTitle(title3);
 		}
 		
 		private void disableRodsGUI() {
@@ -433,6 +290,7 @@ public class MyCloudJ_ implements PlugIn {
 					
 					disableDbxGUI();
 					disableJTreeGUI();
+					tasksWindow.resetAndDisable();
 					freeCloudResources();
 				// cancel the switch to iRODS
 				} else {
@@ -445,7 +303,7 @@ public class MyCloudJ_ implements PlugIn {
 			mainLeftPanel.setBorder(title2);
 			rodsLoginForm.setVisible(true);
 			dropboxLoginForm.setVisible(false);
-			mainRightPanel.setBorder(title4);
+			tasksWindow.setTitle(title4);
 		}
 		
 		private void disableDbxGUI() {
@@ -457,12 +315,6 @@ public class MyCloudJ_ implements PlugIn {
 		JFrame enclosingFrame = cloudFileTree.getEnclosingFrame();
 		if (enclosingFrame != null)
 			enclosingFrame.dispose();
-		
-		srcTxt.setText("");
-		targetTxt.setText("");
-		logMessages.setText("");
-		
-		GuiUtils.enableComponentsFromContainer(mainRightPanel, false);		
 	}
 	
 	private void freeCloudResources() {
@@ -541,9 +393,9 @@ public class MyCloudJ_ implements PlugIn {
 					 * user is connected.
 					 */
 					dropboxLoginForm.setEnabledAccessCodeField(false);;
-					// All the components of topPanel2 are enabled after
+					// All the components of right window are enabled after
 					// successful connection with user's dropbox account
-					GuiUtils.enableComponentsFromContainer(mainRightPanel, true);
+					tasksWindow.enable();;
 				}
 				// If user is already connected userStatus=1, warning for user
 				else if (userIsConnected == true)
@@ -606,7 +458,7 @@ public class MyCloudJ_ implements PlugIn {
 				return;
 			}
 			rodsLoginForm.setStatus("Connected to iRODS");
-			GuiUtils.enableComponentsFromContainer(mainRightPanel, true);
+			tasksWindow.enable();
 		}
 		
 		private void disableRodsLoginForm() {
@@ -649,22 +501,14 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnDownloadRadioListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// Reset source address to ""
-			srcTxt.setText("");
-
-			// Reset target address to ""
-			targetTxt.setText("");
+			tasksWindow.resetSelectionPaths();
 		}
 	}
 
 	class BtnUploadRadioListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// Reset source address to ""
-			srcTxt.setText("");
-
-			// Reset target address to ""
-			targetTxt.setText("");
+			tasksWindow.resetSelectionPaths();
 		}
 	}
 	
@@ -672,12 +516,12 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			// upload file to cloud
-			if (uploadRadioButton.isSelected()) {
+			if (tasksWindow.getUploadRadioButton().isSelected()) {
 				localFileTree.openSelectionGUI(false);
-				srcTxt.setText(localFileTree.getSelectedFilePath());
+				tasksWindow.setSourcePath(localFileTree.getSelectedFilePath());
 			}
 			// download file from cloud
-			else if (downloadRadioButton.isSelected()) {
+			else if (tasksWindow.getDownloadRadioButton().isSelected()) {
 				cloudFileTree.createEnclosingFrameDownload();
 				cloudFileTree.getExpandButton().addActionListener(
 						new BtnExpandDownloadTreeListener());
@@ -693,7 +537,7 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// upload file to cloud
-			if (uploadRadioButton.isSelected()) {
+			if (tasksWindow.getUploadRadioButton().isSelected()) {
 				cloudFileTree.createEnclosingFrameUpload();
 				cloudFileTree.getExpandButton().addActionListener(
 						new BtnExpandUploadTreeListener());
@@ -702,10 +546,10 @@ public class MyCloudJ_ implements PlugIn {
 				cloudFileTree.getCancelButton().addActionListener(
 						new BtnCancelListener());
 			//download file from cloud
-			} else if (downloadRadioButton.isSelected()) {
+			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
 				localFileTree.openSelectionGUI(true);
-				targetTxt.setText(localFileTree.getSelectedFilePath());
-				targetTxt.setEditable(false);
+				tasksWindow.setDestinationPath(localFileTree.getSelectedFilePath());
+				tasksWindow.disableDestinationPath();
 			}
 		}
 	}
@@ -716,7 +560,7 @@ public class MyCloudJ_ implements PlugIn {
 			String selectedNodePath = cloudFileTree
 					.getSelectedNodePathDownloadTree();
 
-			srcTxt.setText(selectedNodePath);
+			tasksWindow.setSourcePath(selectedNodePath);
 			cloudFileTree.getEnclosingFrame().dispose();
 		}
 	}
@@ -726,7 +570,7 @@ public class MyCloudJ_ implements PlugIn {
 			// Get the latest node selected
 			String selectedNodePath = cloudFileTree
 					.getSelectedNodePathUploadTree();
-			targetTxt.setText(selectedNodePath);
+			tasksWindow.setDestinationPath(selectedNodePath);
 			cloudFileTree.getEnclosingFrame().dispose();
 		}
 	}
@@ -768,21 +612,21 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnStartListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			final String sourcePath = srcTxt.getText();
-			final String destinationPath = targetTxt.getText();
+			final String sourcePath = tasksWindow.getSourcePath();
+			final String destinationPath = tasksWindow.getDestinationPath();
 
 			if (sourcePath.equals("") || destinationPath.equals("")) {
-				logMessages.append("Error: Select the files/folder to upload/download\n\n");
+				tasksWindow.getLogArea().append("Error: Select the files/folder to upload/download\n\n");
 				return;
 			}
 			
-			if (uploadRadioButton.isSelected()) {
-				UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, logMessages);
+			if (tasksWindow.getUploadRadioButton().isSelected()) {
+				UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogArea());
 				uploadThread.prepareForUpload(sourcePath, destinationPath);
 				uploadThread.start();
 			}
-			else if (downloadRadioButton.isSelected()) {
-				DownloadThread downloadThread = new DownloadThread(cloudHandler, logMessages);
+			else if (tasksWindow.getDownloadRadioButton().isSelected()) {
+				DownloadThread downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogArea());
 				downloadThread.prepareForDownload(sourcePath, destinationPath);
 				downloadThread.start();
 			}
