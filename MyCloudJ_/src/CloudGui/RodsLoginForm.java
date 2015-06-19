@@ -27,15 +27,6 @@ public class RodsLoginForm {
 	
 	
 	public void draw() {
-		/*
-		 * lPanelRodsSpecific : This panel contains Dropbox specific elements
-		 * contained in the next five labels lPanel6 : iRODS user lPanel7 :
-		 * iRODS password lPanel8 : iRODS Host lPanel9 : iRODS Port lPanel10 :
-		 * iRODS Zone lPanel11 : iRODS default resource
-		 * 
-		 * Note : lPanelRodsSpecific will be added into topPanel1(left side of
-		 * the mainFrame)
-		 */
 		setlPanelRodsSpecific(new JPanel(new FlowLayout()));
 		JPanel lPanel6 = new JPanel(new FlowLayout());
 		JPanel lPanel7 = new JPanel(new FlowLayout());
@@ -49,57 +40,65 @@ public class RodsLoginForm {
 		int maxCharsTextField = 25;
 		int maxColumnsTextField = 19;
 		
+		// user
 		JLabel labelRodsUser;
 		labelRodsUser = new JLabel("iRods User:  ");
-		lPanel6.add(labelRodsUser);
 		user = new JTextField(maxColumnsTextField);
 		user.setDocument(new JTextFieldLimit(maxCharsTextField));
 		user.setText(null);
+		lPanel6.add(labelRodsUser);
 		lPanel6.add(user);
-
+		
+		// password
 		JLabel labelRodsPassword;
 		labelRodsPassword = new JLabel("iRods Pass:  ");
-		lPanel7.add(labelRodsPassword);
 		rodsPassword = new JPasswordField(maxColumnsTextField);
 		rodsPassword.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsPassword.setText(null);
+		lPanel7.add(labelRodsPassword);
 		lPanel7.add(rodsPassword);
-
+		
+		// host
 		JLabel labelRodsHost;
 		labelRodsHost = new JLabel("iRods Host:   ");
-		lPanel8.add(labelRodsHost);
 		rodsHost = new JTextField(maxColumnsTextField);
 		rodsHost.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsHost.setText(null);
+		lPanel8.add(labelRodsHost);
 		lPanel8.add(rodsHost);
-
+		
+		// port
 		JLabel labelRodsPort;
 		labelRodsPort = new JLabel("iRods Port:    ");
-		lPanel9.add(labelRodsPort);
 		rodsHostPort = new JTextField(maxColumnsTextField);
 		rodsHostPort.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsHostPort.setText(null);
+		lPanel9.add(labelRodsPort);
 		lPanel9.add(rodsHostPort);
-
+		
+		// zone
 		JLabel labelRodsZone;
 		labelRodsZone = new JLabel("iRods Zone:   ");
-		lPanel10.add(labelRodsZone);
 		rodsZone = new JTextField(maxColumnsTextField);
 		rodsZone.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsZone.setText(null);
+		lPanel10.add(labelRodsZone);
 		lPanel10.add(rodsZone);
-
+		
+		// resource
 		JLabel labelRodsRes;
 		labelRodsRes = new JLabel("Resource:      ");
-		lPanel11.add(labelRodsRes);
 		rodsRes = new JTextField(maxColumnsTextField);
 		rodsRes.setDocument(new JTextFieldLimit(maxCharsTextField));
 		rodsRes.setText(null);
+		lPanel11.add(labelRodsRes);
 		lPanel11.add(rodsRes);
-
+		
+		// button for connectiing to iRODS
 		setLoginRodsButton(new JButton("Access iRODS!"));
 		lPanel12.add(getLoginRodsButton());
 		
+		// connection status
 		rodsLblConnectionStatus = new JLabel("Not Connected!");
 		lPanel13.add(rodsLblConnectionStatus);
 
@@ -130,7 +129,7 @@ public class RodsLoginForm {
 		getLoginRodsButton().setEnabled(false);
 	}
 	
-	public void restoreToOriginalState() {
+	public void resetAndEnable() {
 		rodsLblConnectionStatus.setText("Not Connected!");
 		GuiUtils.enableTextFieldsFromContainer(lPanelRodsSpecific, true);
 		getLoginRodsButton().setEnabled(true);

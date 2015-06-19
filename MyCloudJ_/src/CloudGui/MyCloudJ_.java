@@ -33,15 +33,7 @@ import file_transfer_backend.UploadThread;
  * @description : Dropbox functionality: Google Summer of Code 2014
  * @project iRODS functionality: Google Summer of Code 2015 Project
  * @organization : International Neuroinformatics Coordinating Facility, Belgian
- *               Node FileName : MyCloudJ_.java (package CloudConnect) ImageJ
- *               Plugin for CLoud Client.
- * @users : Image Processing Researchers (Neuroscientists etc.)
- * @motivation : To facilitate the sharing of datasets among ImageJ users
- * @technologies : Java, Dropbox Core APIs,Jargon API, Restful Web Services,
- *               Swing GUI Installation : Put the plugin/MyCloudJ_.jar to the
- *               plugins/ folder of the ImageJ. It will show up in the plugins
- *               when you run ImageJ. Requirements : ImageJ alongwith JRE 1.7 or
- *               later.
+ *               Node
  */
 public class MyCloudJ_ implements PlugIn {
 	// ------------------------------------------------------------------------
@@ -51,88 +43,50 @@ public class MyCloudJ_ implements PlugIn {
 	CloudFileTree cloudFileTree;
 	LocalFileTree localFileTree;
 
-	/**
-	 * cloudHandler : generic interface for cloud operations
-	 */
+	// generic interface for cloud operations
 	private CloudOperations cloudHandler = new DropboxOperations();
 
-	/**
-	 * userIsConnected: true if user connected to cloud, false otherwise
-	 */
+	// true if user connected to cloud, false otherwise
 	private boolean userIsConnected;
 
-	/**
-	 * after login, initialized to user home directory
-	 */
+	// after login, initialized to user home directory
 	private String cloudHomeDirectoryPath;
 
 	private final String LOCAL_HOME_DIRECTORY_PATH = ".";
-	
+
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
 	// ------------------------------------------------------------------------
-	/**
-	 * contains the whole GUI for the MyCloudJ_ plugin
-	 */
+
+	// contains the whole GUI for the MyCloudJ_ plugin
 	private JFrame mainFrame;
 
-	/**
-	 * @topPanel1: left side of the mainFrame, components used for connecting to
-	 *             the cloud
-	 */
-	private JPanel mainLeftPanel;
-	
+	// left side of the mainFrame, components used for connecting to the cloud
+	private JPanel loginWindow;
+
+	// right side of the mainFrame
 	TasksWindow tasksWindow;
 
-	/**
-	 * two radio buttons inside topPanel1:
-	 * 
-	 * @dbxLoginRadioButton: draw screen for Dbx Login
-	 * @irodsLoginRadioButton: draw screen for RODS login
+	/*
+	 * two radio buttons inside topPanel1: - dbxLoginRadioButton: draw screen
+	 * for Dbx Login - irodsLoginRadioButton: draw screen for RODS login
 	 */
 	private JRadioButton dbxLoginRadioButton, irodsLoginRadioButton;
-
-	/**
-	 * text for dbxLoginRadioButton
-	 */
-	private String dbLoginS = "Connect to Dropbox";
-
-	/**
-	 * text for irodsLoginRadioButton
-	 */
-	private String irodsLoginS = "Connect to iRODS";
-
-	/**
-	 * this holds the JTree node that is selected by the user for
-	 * upload/download
-	 */
-	public Object node, parentNode;
 
 	// ------------------------------------------------------------------------
 	// fields specific to Dbx functionality and GUI
 	// ------------------------------------------------------------------------
-	
 	DropboxLoginForm dropboxLoginForm;
 
-	/**
-	 * authorizeUrl : stores the Application Url
-	 */
-	private String dbxAccessCode;
-
-	private String userName = "", country = "", userQuota = "";
-
-	/**
-	 * Dbx specific titles for topPanel1 and topPanel2
-	 */
+	// Dbx specific titles for topPanel1 and topPanel2
 	private TitledBorder title1, title3;
+
 	// ------------------------------------------------------------------------
 	// fields specific to RODS functionality and GUI
 	// ------------------------------------------------------------------------
 	RodsLoginForm rodsLoginForm;
-	
-	/**
-	 * RODS specific titles for topPanel1 and topPanel2
-	 */
+
+	// specific titles for topPanel1 and topPanel2
 	private TitledBorder title2, title4;
 
 	public void run(String arg) {
@@ -140,32 +94,14 @@ public class MyCloudJ_ implements PlugIn {
 		assignActionListeners();
 	}
 
-	private void assignActionListeners() {
-		tasksWindow.getBtnFileChooser1().addActionListener(new BtnFileChooser1Listener());
-		dbxLoginRadioButton.addActionListener(new BtnDbxLoginRadioListener());
-		irodsLoginRadioButton
-				.addActionListener(new BtnRodsLoginRadioListener());
-		rodsLoginForm.getLoginRodsButton().addActionListener(new BtnConnectRodsListener());
-		dropboxLoginForm.getBtnConnect().addActionListener(new BtnDbxConnectListener());
-		dropboxLoginForm.getAccessDbxButton().addActionListener(new BtnDbxAccessListener());
-		tasksWindow.getBtnFileChooser2().addActionListener(new BtnFileChooser2Listener());
-		/*
-		 * Set source/target address to "" whenever radio button is changed from
-		 * rButton1(upload) to rButtoon2(download) and vice versa.
-		 */
-		tasksWindow.getUploadRadioButton().addActionListener(new BtnUploadRadioListener());
-		tasksWindow.getDownloadRadioButton().addActionListener(new BtnDownloadRadioListener());
-		tasksWindow.getBtnStart().addActionListener(new BtnStartListener());
-	}
-
 	private void drawGUI() {
+		// mainFrame = loginWindow + tasksWindow
 		mainFrame = new JFrame();
 		mainFrame.setLayout(new FlowLayout());
 		mainFrame.setTitle("CloudConnect - MyCloudJ");
 		mainFrame.setSize(1200, 450);
 		mainFrame.setResizable(false);
-		// This will position the JFrame in the center of the screen
-		mainFrame.setLocationRelativeTo(null);
+		mainFrame.setLocationRelativeTo(null); // center the mainFrame
 
 		Border blackline = BorderFactory.createLineBorder(Color.black);
 		title1 = BorderFactory.createTitledBorder(blackline, "Dropbox Connect");
@@ -173,54 +109,47 @@ public class MyCloudJ_ implements PlugIn {
 		title3 = BorderFactory.createTitledBorder(blackline, "Dropbox Tasks");
 		title4 = BorderFactory.createTitledBorder(blackline, "iRODS Tasks");
 
-		// topPanel1
-		mainLeftPanel = new JPanel();
-		mainLeftPanel.setLayout(new BoxLayout(mainLeftPanel,
+		// left panel of the mainFrame
+		loginWindow = new JPanel();
+		loginWindow.setLayout(new BoxLayout(loginWindow,
 				BoxLayout.PAGE_AXIS));
-		mainLeftPanel.setBorder(title1);
+		loginWindow.setBorder(title1);
 
-		// topPanel2
+		// right panel of the mainFrame
 		tasksWindow = new TasksWindow();
 		tasksWindow.draw();
 		tasksWindow.setTitle(title3);
 		tasksWindow.resetAndDisable();
-
-		/*
-		 * These panels will add into topPanel1 (Left side of the frame) lPanel0
-		 * : To display connection option: Dropbox or iRODS
-		 */
-		JPanel lPanel0 = new JPanel(new FlowLayout());
-		JPanel lPanelAlign = new JPanel(new FlowLayout());
-		/*
-		 * Add ButtonGroup : Radio buttons for selecting the service to connect.
-		 * 
-		 * Added onto panel0
-		 */
-		dbxLoginRadioButton = new JRadioButton(dbLoginS);
+		
+		//Radio buttons for selecting the service to connect.
+		dbxLoginRadioButton = new JRadioButton("Connect to Dropbox");
 		dbxLoginRadioButton.setSelected(true);
-		irodsLoginRadioButton = new JRadioButton(irodsLoginS);
+		irodsLoginRadioButton = new JRadioButton("Connect to iRODS");
 		ButtonGroup serviceToLogin = new ButtonGroup();
 		serviceToLogin.add(dbxLoginRadioButton);
 		serviceToLogin.add(irodsLoginRadioButton);
+		// place the radio buttons inside a JPanel
+		JPanel lPanel0 = new JPanel(new FlowLayout());
 		lPanel0.add(dbxLoginRadioButton);
 		lPanel0.add(irodsLoginRadioButton);
+		loginWindow.add(lPanel0); 
 		
+		// add the dropbox login form to the mainFrame
 		dropboxLoginForm = new DropboxLoginForm();
 		dropboxLoginForm.draw();
+		loginWindow.add(new JPanel(new FlowLayout()));
+		loginWindow.add(dropboxLoginForm.getlPanelDbSpecific());
 		
-		mainLeftPanel.add(lPanel0);
-		mainLeftPanel.add(lPanelAlign);
-		mainLeftPanel.add(dropboxLoginForm.getlPanelDbSpecific());
-		
+		// add the iRODS login form to the mainFrame
 		rodsLoginForm = new RodsLoginForm();
 		rodsLoginForm.draw();
+		loginWindow.add(rodsLoginForm.getlPanelRodsSpecific());
 		
-		mainLeftPanel.add(rodsLoginForm.getlPanelRodsSpecific());
-		mainFrame.add(mainLeftPanel);
+		mainFrame.add(loginWindow);
 		mainFrame.add(tasksWindow.getPanel());
 		mainFrame.setVisible(true);
 	}
-	
+
 	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
 			String localHomeDirectoryPath) throws CloudException {
 
@@ -229,30 +158,46 @@ public class MyCloudJ_ implements PlugIn {
 		// build file browsing trees for local files
 		localFileTree = new LocalFileTree(localHomeDirectoryPath);
 	}
-	
-	/*
-	 * -------------------------
-	 * A lot of Action Listeners
-	 * -------------------------
-	 */
-	
+
+	private void assignActionListeners() {
+		tasksWindow.getBtnFileChooser1().addActionListener(
+				new BtnFileChooser1Listener());
+		dbxLoginRadioButton.addActionListener(new BtnDbxLoginRadioListener());
+		irodsLoginRadioButton
+				.addActionListener(new BtnRodsLoginRadioListener());
+		rodsLoginForm.getLoginRodsButton().addActionListener(
+				new BtnConnectRodsListener());
+		dropboxLoginForm.getBtnConnect().addActionListener(
+				new BtnDbxConnectListener());
+		dropboxLoginForm.getAccessDbxButton().addActionListener(
+				new BtnDbxAccessListener());
+		tasksWindow.getBtnFileChooser2().addActionListener(
+				new BtnFileChooser2Listener());
+		tasksWindow.getUploadRadioButton().addActionListener(
+				new BtnUploadRadioListener());
+		tasksWindow.getDownloadRadioButton().addActionListener(
+				new BtnDownloadRadioListener());
+		tasksWindow.getBtnStart().addActionListener(new BtnStartListener());
+	}
+
+	// A lot of Action Listeners designed as inside classes
 	class BtnDbxLoginRadioListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			if (userIsConnected) {
-				Object[] message = { "Are you sure you want to connect to Dropbox? \nYou will be disconnected from iRODS" };
+				Object[] message = { "Are you sure you want to connect to Dropbox?\nYou will be disconnected from iRODS" };
 
 				int option = JOptionPane.showConfirmDialog(null, message,
 						"Confirm", JOptionPane.OK_CANCEL_OPTION);
-				
+
 				// switch to Dropbox
 				if (option == JOptionPane.OK_OPTION) {
 					userIsConnected = false;
-					
+
 					disableRodsGUI();
 					disableJTreeGUI();
 					tasksWindow.resetAndDisable();
 					freeCloudResources();
-				// cancel the switch to Dropboxs
+					// cancel the switch to Dropboxs
 				} else {
 					irodsLoginRadioButton.setSelected(true);
 					return;
@@ -260,17 +205,17 @@ public class MyCloudJ_ implements PlugIn {
 			}
 
 			cloudHandler = new DropboxOperations();
-			mainLeftPanel.setBorder(title1);
+			loginWindow.setBorder(title1);
 			rodsLoginForm.setVisible(false);
 			dropboxLoginForm.setVisible(true);
 			tasksWindow.setTitle(title3);
 		}
-		
+
 		private void disableRodsGUI() {
-			rodsLoginForm.restoreToOriginalState();
+			rodsLoginForm.resetAndEnable();
 		}
 	}
-	
+
 	class BtnRodsLoginRadioListener implements ActionListener {
 		/**
 		 * ActionListener for the "Connect to iRODS" button - initialize the
@@ -280,55 +225,53 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (userIsConnected) {
-				Object[] message = { "Are you sure you want to connect to iRODS? \nYou will be disconnected from Dropbox" };
+				Object[] message = { "Are you sure you want to connect to iRODS?\nYou will be disconnected from Dropbox" };
 				int option = JOptionPane.showConfirmDialog(null, message,
 						"Confirm", JOptionPane.OK_CANCEL_OPTION);
-				
+
 				// switch to iRODS
 				if (option == JOptionPane.OK_OPTION) {
 					userIsConnected = false;
-					
+
 					disableDbxGUI();
 					disableJTreeGUI();
 					tasksWindow.resetAndDisable();
 					freeCloudResources();
-				// cancel the switch to iRODS
+					// cancel the switch to iRODS
 				} else {
 					dbxLoginRadioButton.setSelected(true);
 					return;
 				}
 			}
-			
+
 			cloudHandler = new RodsOperations();
-			mainLeftPanel.setBorder(title2);
+			loginWindow.setBorder(title2);
 			rodsLoginForm.setVisible(true);
 			dropboxLoginForm.setVisible(false);
 			tasksWindow.setTitle(title4);
 		}
-		
+
 		private void disableDbxGUI() {
 			dropboxLoginForm.disable();
 		}
 	}
-	
+
 	private void disableJTreeGUI() {
 		JFrame enclosingFrame = cloudFileTree.getEnclosingFrame();
 		if (enclosingFrame != null)
 			enclosingFrame.dispose();
 	}
-	
+
 	private void freeCloudResources() {
 		try {
 			cloudHandler.disconnect();
 		} catch (CloudException e1) {
 			JOptionPane.showMessageDialog(mainFrame, "Error",
-					e1.getCloudError(),
-					JOptionPane.ERROR_MESSAGE);
+					e1.getCloudError(), JOptionPane.ERROR_MESSAGE);
 			e1.printStackTrace();
 		}
 	}
-	
-	
+
 	class BtnDbxAccessListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -356,6 +299,9 @@ public class MyCloudJ_ implements PlugIn {
 	}
 
 	class BtnDbxConnectListener implements ActionListener {
+		String userName, country, userQuota;
+		String dbxAccessCode;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			DropboxOperations dbxUtility = (DropboxOperations) cloudHandler;
@@ -381,8 +327,9 @@ public class MyCloudJ_ implements PlugIn {
 					country = dbxUtility.getCountry();
 					userQuota = dbxUtility.getUserQuota();
 					dropboxLoginForm.setStatus("Connected as " + userName);
-					dropboxLoginForm.setUserInfo("Username: " + userName + "\nCountry: "
-							+ country + "\nQuota: " + userQuota + " GB");
+					dropboxLoginForm.setUserInfo("Username: " + userName
+							+ "\nCountry: " + country + "\nQuota: " + userQuota
+							+ " GB");
 
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildFileSelectionTrees(cloudHomeDirectoryPath,
@@ -392,10 +339,11 @@ public class MyCloudJ_ implements PlugIn {
 					 * right panel(which contains the tasks section) after the
 					 * user is connected.
 					 */
-					dropboxLoginForm.setEnabledAccessCodeField(false);;
+					dropboxLoginForm.setEnabledAccessCodeField(false);
+					
 					// All the components of right window are enabled after
 					// successful connection with user's dropbox account
-					tasksWindow.enable();;
+					tasksWindow.enable();
 				}
 				// If user is already connected userStatus=1, warning for user
 				else if (userIsConnected == true)
@@ -417,87 +365,86 @@ public class MyCloudJ_ implements PlugIn {
 			}
 		}
 	}
-	
+
 	class BtnConnectRodsListener implements ActionListener {
 		private String host, zone, resource, user, password;
 		int port;
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			RodsOperations rodsUtilsObj = (RodsOperations) cloudHandler;
-			
+
 			/*
 			 * TESTING -temporary solution for not entering the credentials for
 			 * every run
 			 */
-//			rodsUtilsObj.setUsername("rods");
-//			rodsUtilsObj.setIrodsPassword("rods");
-//			rodsUtilsObj.setHost("192.168.0.104");
-//			rodsUtilsObj.setPort(1247);
-//			rodsUtilsObj.setZone("BragadiruZone");
-//			rodsUtilsObj.setRes("test1-resc");
-			
+			// rodsUtilsObj.setUsername("rods");
+			// rodsUtilsObj.setIrodsPassword("rods");
+			// rodsUtilsObj.setHost("192.168.0.104");
+			// rodsUtilsObj.setPort(1247);
+			// rodsUtilsObj.setZone("BragadiruZone");
+			// rodsUtilsObj.setRes("test1-resc");
+
 			try {
 				checkLoginCredentials();
-				rodsUtilsObj.setCredentials(user, password, host, port, zone, resource);
-				
+				rodsUtilsObj.setCredentials(user, password, host, port, zone,
+						resource);
+
 				rodsUtilsObj.login();
 				userIsConnected = true;
 				disableRodsLoginForm();
-			
+
 				cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 				buildFileSelectionTrees(cloudHomeDirectoryPath,
 						LOCAL_HOME_DIRECTORY_PATH);
 			} catch (CloudException e1) {
 				rodsLoginForm.setStatus("Error connecting to iRODS!");
 				e1.printStackTrace();
-				JOptionPane.showMessageDialog(mainFrame,
-						e1.getCloudError(),
-						"Login error",
-						JOptionPane.WARNING_MESSAGE);
+				JOptionPane.showMessageDialog(mainFrame, e1.getCloudError(),
+						"Login error", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
 			rodsLoginForm.setStatus("Connected to iRODS");
 			tasksWindow.enable();
 		}
-		
+
 		private void disableRodsLoginForm() {
 			rodsLoginForm.disable();
 		}
-		
+
 		public void checkLoginCredentials() throws CloudException {
 			String messages = "";
-			
+
 			host = rodsLoginForm.getRodsHost();
 			zone = rodsLoginForm.getRodsZone();
 			resource = rodsLoginForm.getRodsRes();
 			user = rodsLoginForm.getUserName();
 			password = rodsLoginForm.getRodsPassword();
 			String portString = rodsLoginForm.getRodsHostPort();
-			
-			
-			if (host.length() == 0) 
-				messages = messages.concat("- iRods Host cannot be empty \n");
+
+			if (host.length() == 0)
+				messages = messages.concat("- iRods Host cannot be empty\n");
 			if (zone.length() == 0)
-				messages = messages.concat("- iRods Zone cannot be empty \n");
-			if (portString.length() == 0) 
-				messages = messages.concat("- iRods Port cannot be empty \n");
-			else 
+				messages = messages.concat("- iRods Zone cannot be empty\n");
+			if (portString.length() == 0)
+				messages = messages.concat("- iRods Port cannot be empty\n");
+			else
 				try {
 					port = Integer.parseInt(portString);
 				} catch (NumberFormatException e) {
-					messages = messages.concat("- the iRODS port value is wrong \n");
+					messages = messages.concat("- the iRODS port value is wrong\n");
 				}
 			if (user.length() == 0)
-				messages = messages.concat("- iRods user cannot be empty \n");
+				messages = messages.concat("- iRods user cannot be empty\n");
 			if (password.length() == 0)
-				messages = messages.concat("- iRods Pass cannot be empty \n");
-			
-			if (messages.length() > 0) 
-				throw (new CloudException(messages = "The login failed because: \n\n".concat(messages)));
+				messages = messages.concat("- iRods Pass cannot be empty\n");
+
+			if (messages.length() > 0)
+				throw (new CloudException(
+						messages = "The login failed because:\n\n".concat(messages)));
 		}
 	}
-	
+
 	class BtnDownloadRadioListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -511,7 +458,7 @@ public class MyCloudJ_ implements PlugIn {
 			tasksWindow.resetSelectionPaths();
 		}
 	}
-	
+
 	class BtnFileChooser1Listener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
@@ -545,10 +492,11 @@ public class MyCloudJ_ implements PlugIn {
 						new BtnSelect2Listener());
 				cloudFileTree.getCancelButton().addActionListener(
 						new BtnCancelListener());
-			//download file from cloud
+				// download file from cloud
 			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
 				localFileTree.openSelectionGUI(true);
-				tasksWindow.setDestinationPath(localFileTree.getSelectedFilePath());
+				tasksWindow.setDestinationPath(localFileTree
+						.getSelectedFilePath());
 				tasksWindow.disableDestinationPath();
 			}
 		}
@@ -564,7 +512,7 @@ public class MyCloudJ_ implements PlugIn {
 			cloudFileTree.getEnclosingFrame().dispose();
 		}
 	}
-	
+
 	class BtnSelect2Listener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			// Get the latest node selected
@@ -574,7 +522,7 @@ public class MyCloudJ_ implements PlugIn {
 			cloudFileTree.getEnclosingFrame().dispose();
 		}
 	}
-	
+
 	class BtnExpandDownloadTreeListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent aE) {
@@ -602,7 +550,7 @@ public class MyCloudJ_ implements PlugIn {
 			cloudFileTree.getEnclosingFrame().pack();
 		}
 	}
-	
+
 	class BtnCancelListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			cloudFileTree.getEnclosingFrame().dispose();
@@ -619,13 +567,12 @@ public class MyCloudJ_ implements PlugIn {
 				tasksWindow.getLogArea().append("Error: Select the files/folder to upload/download\n\n");
 				return;
 			}
-			
+
 			if (tasksWindow.getUploadRadioButton().isSelected()) {
 				UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogArea());
 				uploadThread.prepareForUpload(sourcePath, destinationPath);
 				uploadThread.start();
-			}
-			else if (tasksWindow.getDownloadRadioButton().isSelected()) {
+			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
 				DownloadThread downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogArea());
 				downloadThread.prepareForDownload(sourcePath, destinationPath);
 				downloadThread.start();
