@@ -37,15 +37,15 @@ public class RodsOperations implements CloudOperations {
 	private int port;
 	private String homeDirectoryPath;
 	private boolean userIsLogged;
-	private static final String RodsDelimiter = "/";
+	private static final String RODS_DELIMITER = "/";
 
 	private void buildHomePath() {
 		StringBuilder homeBuilder = new StringBuilder();
-		homeBuilder.append(RodsDelimiter);
+		homeBuilder.append(RODS_DELIMITER);
 		homeBuilder.append(zone);
-		homeBuilder.append(RodsDelimiter);
+		homeBuilder.append(RODS_DELIMITER);
 		homeBuilder.append("home");
-		homeBuilder.append(RodsDelimiter);
+		homeBuilder.append(RODS_DELIMITER);
 		homeBuilder.append(user);
 		homeDirectoryPath = homeBuilder.toString();
 	}
@@ -109,7 +109,7 @@ public class RodsOperations implements CloudOperations {
 
 		// extract the name of the file from full path
 		fileName = GeneralUtility.getLastComponentFromPath(cloudPath,
-				RodsDelimiter);
+				RODS_DELIMITER);
 		localPath += (GeneralUtility.getSystemSeparator() + fileName);
 
 		try {
@@ -246,7 +246,7 @@ public class RodsOperations implements CloudOperations {
 		if (inputFolder.isDirectory()) {
 			try {
 				IRODSFile irodsFile = irodsFileFactory
-						.instanceIRODSFile(cloudPath + RodsDelimiter
+						.instanceIRODSFile(cloudPath + RODS_DELIMITER
 								+ folderName);
 				irodsFile.mkdir();
 			} catch (JargonException e) {
@@ -258,9 +258,9 @@ public class RodsOperations implements CloudOperations {
 			String[] files = inputFolder.list();
 			for (int i = 0; i < files.length; i++)
 				uploadFolder(localPath + GeneralUtility.getSystemSeparator()
-						+ files[i], cloudPath + RodsDelimiter + folderName);
+						+ files[i], cloudPath + RODS_DELIMITER + folderName);
 		} else if (inputFolder.isFile()) {
-			uploadFile(localPath, cloudPath + RodsDelimiter + folderName);
+			uploadFile(localPath, cloudPath + RODS_DELIMITER + folderName);
 		}
 	}
 
@@ -274,8 +274,8 @@ public class RodsOperations implements CloudOperations {
 		fileList = new ArrayList<CloudFile>();
 
 		// add "/" at the end of the path, otherwise Jargon API complains
-		if (!cloudDirectoryPath.endsWith(RodsDelimiter))
-			cloudDirectoryPath = cloudDirectoryPath.concat(RodsDelimiter);
+		if (!cloudDirectoryPath.endsWith(RODS_DELIMITER))
+			cloudDirectoryPath = cloudDirectoryPath.concat(RODS_DELIMITER);
 
 		irodsFile = accessFile(cloudDirectoryPath);
 		File[] children = irodsFile.listFiles();
@@ -311,7 +311,7 @@ public class RodsOperations implements CloudOperations {
 	private void checkCloudPath(String path) throws CloudException {
 		String error;
 
-		if (path == null || path.contains(RodsDelimiter) == false) {
+		if (path == null || path.contains(RODS_DELIMITER) == false) {
 			error = "Invalid Cloud Path";
 			throw (new CloudException(error));
 		}
