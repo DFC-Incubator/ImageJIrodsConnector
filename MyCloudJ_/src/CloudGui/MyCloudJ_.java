@@ -560,8 +560,8 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnStartListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			final String sourcePath = tasksWindow.getSourcePath();
-			final String destinationPath = tasksWindow.getDestinationPath();
+			String sourcePath = tasksWindow.getSourcePath();
+			String destinationPath = tasksWindow.getDestinationPath();
 
 			if (sourcePath.equals("") || destinationPath.equals("")) {
 				tasksWindow.getLogger().writeLog("Error: Select the files/folder to upload/download\n\n");

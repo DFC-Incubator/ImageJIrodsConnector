@@ -9,7 +9,7 @@ import cloud_interfaces.CloudOperations;
 public class DownloadThread extends Thread {
 	private CloudOperations cloudHandler;
 	private String sourcePath;
-	private String destinationPath;
+	private String destPath;
 	private Logger logger;
 
 	public DownloadThread(CloudOperations cloudHandler, Logger logger) {
@@ -19,8 +19,8 @@ public class DownloadThread extends Thread {
 
 	public void prepareForDownload(String sourcePath, String destinationPath) {
 		this.sourcePath = sourcePath;
-		this.destinationPath = destinationPath;
-		
+		this.destPath = destinationPath;
+
 		logger.writeLog("Downloading from cloud path: " + sourcePath
 				+ " to local path: " + destinationPath + "\n\n");
 	}
@@ -28,38 +28,30 @@ public class DownloadThread extends Thread {
 	public void run() {
 		String fileName;
 		boolean isFileDownload = false;
-		
+		// file/folder
+		String downloadType = "";
+
 		try {
 			isFileDownload = cloudHandler.isFile(sourcePath);
-		} catch (CloudException e1) {
-			logger.writeLog(e1.getCloudError() + "\n\n");
-			e1.printStackTrace();
+			downloadType = isFileDownload ? "file" : "folder";
+			
+			if (isFileDownload)
+				cloudHandler.downloadFile(sourcePath, destPath);
+			else
+				cloudHandler.downloadFolder(sourcePath, destPath);
+		} catch (CloudException e) {
+			logger.writeLog("Error downloading " + downloadType + " " + e.getCloudError()
+					+ "!\n\n");
+			e.printStackTrace();
+			return;
 		}
-
-		if (isFileDownload) {
-			try {
-				cloudHandler.downloadFile(sourcePath, destinationPath);
-			} catch (CloudException e) {
-				logger.writeLog("Error uploading folder " + e.getCloudError() + "!\n\n");
-				e.printStackTrace();
-				return;
-			}
-			logger.writeLog("Downloading of " + sourcePath + " complete !\n\n");
-		} else {
-			try {
-				cloudHandler.downloadFolder(sourcePath, destinationPath);
-			} catch (CloudException e) {
-				logger.writeLog("Error downloading folder: " + e.getMessage() + "!\n\n");
-				e.printStackTrace();
-				return;
-			}
-			logger.writeLog("Downloading of " + sourcePath + " complete !\n\n");
-		}
+		
+		logger.writeLog("Downloading of " + sourcePath + " complete !\n\n");
 
 		// TODO: check for null return values
 		fileName = GeneralUtility.getLastComponentFromPath(sourcePath, "/");
 		fileName = GeneralUtility.getSystemSeparator() + fileName;
 		Opener openfile = new Opener();
-		openfile.open(destinationPath + fileName);
+		openfile.open(destPath + fileName);
 	}
 }
