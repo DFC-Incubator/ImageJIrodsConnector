@@ -159,14 +159,9 @@ public class RodsOperations implements CloudOperations {
 		checkPaths(localPath, cloudPath);
 		irodsFile = null;
 
-		/*
-		 * Create a folder on the local machine with last part of the of the
-		 * cloudPath
-		 */
-		// TODO: fix this method of extracting the last path from path
-		// TODO: maybe use a method from GeneralUtility
+		// build the path for the local folder
 		String folderName = GeneralUtility.getLastComponentFromPath(cloudPath,
-				"/");
+				RODS_DELIMITER);
 		localPath += (GeneralUtility.getSystemSeparator() + folderName);
 
 		// creates the directory on disk
