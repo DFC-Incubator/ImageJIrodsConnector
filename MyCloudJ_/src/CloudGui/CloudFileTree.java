@@ -207,12 +207,12 @@ public class CloudFileTree {
 		try {
 			// update the upload tree
 			selectedFilePath = getSelectedNodePath(uploadTree);
-			if (selectedFilePath.startsWith(path) == true)
+			if (selectedFilePath != null && selectedFilePath.startsWith(path) == true)
 				expandTree(uploadTree, uploadTreeModel, false, selectedFilePath);
 
 			// update the download tree
 			selectedFilePath = getSelectedNodePath(downloadTree);
-			if (selectedFilePath.startsWith(path) == true)
+			if (selectedFilePath != null && selectedFilePath.startsWith(path) == true)
 				expandTree(downloadTree, downloadTreeModel, false, selectedFilePath);
 		} catch (CloudException e) {
 			e.printStackTrace();
@@ -224,6 +224,9 @@ public class CloudFileTree {
 		int componentNo;
 
 		TreePath parentPath = tree.getSelectionPath();
+		if (parentPath == null)
+			return null;
+		
 		componentNo = parentPath.getPathCount();
 
 		for (int i = 0; i < componentNo; i++) {
