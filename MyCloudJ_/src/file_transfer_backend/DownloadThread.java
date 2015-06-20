@@ -21,8 +21,8 @@ public class DownloadThread extends Thread {
 		this.sourcePath = sourcePath;
 		this.destPath = destinationPath;
 
-		logger.writeLog("Downloading from cloud path: " + sourcePath
-				+ " to local path: " + destinationPath + "\n\n");
+		logger.writeLog("Downloading from cloud path " + sourcePath
+				+ " to local path " + destinationPath + "\n\n");
 	}
 
 	public void run() {
@@ -34,18 +34,18 @@ public class DownloadThread extends Thread {
 		try {
 			isFileDownload = cloudHandler.isFile(sourcePath);
 			downloadType = isFileDownload ? "file" : "folder";
-			
+
 			if (isFileDownload)
 				cloudHandler.downloadFile(sourcePath, destPath);
 			else
 				cloudHandler.downloadFolder(sourcePath, destPath);
 		} catch (CloudException e) {
-			logger.writeLog("Error downloading " + downloadType + ". " + e.getCloudError()
-					+ "\n\n");
+			logger.writeLog("Error downloading " + downloadType + " "
+					+ sourcePath + ". " + e.getCloudError() + "\n\n");
 			e.printStackTrace();
 			return;
 		}
-		
+
 		logger.writeLog("Downloading of " + sourcePath + " complete \n\n");
 
 		fileName = GeneralUtility.getLastComponentFromPath(sourcePath, "/");

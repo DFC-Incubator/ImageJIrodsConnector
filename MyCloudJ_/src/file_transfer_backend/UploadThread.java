@@ -52,7 +52,8 @@ public class UploadThread extends Thread {
 			else
 				cloudHandler.uploadFolder(sourcePath, destPath);
 		} catch (CloudException e) {
-			logger.writeLog("Error uploading " + uploadType + ". " + e.getCloudError() + "\n\n");
+			logger.writeLog("Error uploading " + uploadType + " " + sourcePath
+					+ ". " + e.getCloudError() + "\n\n");
 			e.printStackTrace();
 			return;
 		}

@@ -167,7 +167,7 @@ public class RodsOperations implements CloudOperations {
 		// creates the directory on disk
 		boolean newFolder = new File(localPath).mkdirs();
 		if (!newFolder) {
-			error = "Local file system error while creating local folder: " + localPath;
+			error = "Local file system error while creating local folder " + localPath;
 			throw (new CloudException(error));
 		}
 
@@ -182,7 +182,7 @@ public class RodsOperations implements CloudOperations {
 			}
 		} catch (JargonException e) {
 			e.printStackTrace();
-			error = "Error accesing the file on cloud";
+			error = "Error accesing the cloud file " + cloudPath;
 			throw (new CloudException(error.concat(e.getMessage())));
 		}
 	}
