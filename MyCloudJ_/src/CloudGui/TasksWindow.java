@@ -10,7 +10,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
@@ -26,7 +25,7 @@ public class TasksWindow {
 	// button to start download/upload
 	private JButton btnStart;
 	// msgs will be used for displaying task related information to user
-	private JTextArea logMessages;
+	private Logger logger;
 
 	public void draw() {
 		// main panel is composed of five little panels
@@ -75,10 +74,10 @@ public class TasksWindow {
 
 		// area for displaying the status of the upload/download
 		JLabel lblMsg = new JLabel("Messages: ");
-		logMessages = new JTextArea();
-		logMessages.setLineWrap(true);
-		logMessages.setWrapStyleWord(true);
-		JScrollPane msgsScrollPane = new JScrollPane(logMessages);
+		logger = new Logger();
+		logger.getLogger().setLineWrap(true);
+		logger.getLogger().setWrapStyleWord(true);
+		JScrollPane msgsScrollPane = new JScrollPane(logger.getLogger());
 		msgsScrollPane
 				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		msgsScrollPane.setPreferredSize(new Dimension(340, 220));
@@ -104,7 +103,7 @@ public class TasksWindow {
 	public void resetSelectionPaths() {
 		sourcePath.setText("");
 		destinationPath.setText("");
-		logMessages.setText("");
+		logger.reset();
 	}
 
 	public void setTitle(TitledBorder title) {
@@ -175,12 +174,8 @@ public class TasksWindow {
 		this.destinationPath.setText(targetTxt);
 	}
 
-	public JTextArea getLogArea() {
-		return logMessages;
-	}
-
-	public void setLogArea(JTextArea logMessages) {
-		this.logMessages = logMessages;
+	public Logger getLogger() {
+		return logger;
 	}
 
 	public void disableDestinationPath() {

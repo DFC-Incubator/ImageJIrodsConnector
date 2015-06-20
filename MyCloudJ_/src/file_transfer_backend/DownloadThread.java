@@ -2,9 +2,7 @@ package file_transfer_backend;
 
 import general.GeneralUtility;
 import ij.io.Opener;
-
-import javax.swing.JTextArea;
-
+import CloudGui.Logger;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 
@@ -12,19 +10,18 @@ public class DownloadThread extends Thread {
 	private CloudOperations cloudHandler;
 	private String sourcePath;
 	private String destinationPath;
-	// TODO: check parallel access to logMessages
-	private JTextArea logMessages;
+	private Logger logger;
 
-	public DownloadThread(CloudOperations cloudHandler, JTextArea logMessages) {
+	public DownloadThread(CloudOperations cloudHandler, Logger logger) {
 		this.cloudHandler = cloudHandler;
-		this.logMessages = logMessages;
+		this.logger = logger;
 	}
 
 	public void prepareForDownload(String sourcePath, String destinationPath) {
 		this.sourcePath = sourcePath;
 		this.destinationPath = destinationPath;
 		
-		logMessages.append("Downloading from cloud path: " + sourcePath
+		logger.writeLog("Downloading from cloud path: " + sourcePath
 				+ " to local path: " + destinationPath + "\n\n");
 	}
 
@@ -35,7 +32,7 @@ public class DownloadThread extends Thread {
 		try {
 			isFileDownload = cloudHandler.isFile(sourcePath);
 		} catch (CloudException e1) {
-			logMessages.append(e1.getCloudError() + "\n\n");
+			logger.writeLog(e1.getCloudError() + "\n\n");
 			e1.printStackTrace();
 		}
 
@@ -43,25 +40,20 @@ public class DownloadThread extends Thread {
 			try {
 				cloudHandler.downloadFile(sourcePath, destinationPath);
 			} catch (CloudException e) {
-				logMessages.append("Error uploading folder "
-						+ e.getCloudError() + "!\n\n");
+				logger.writeLog("Error uploading folder " + e.getCloudError() + "!\n\n");
 				e.printStackTrace();
 				return;
 			}
-			logMessages.append("Downloading of " + sourcePath
-					+ " Complete !\n\n");
+			logger.writeLog("Downloading of " + sourcePath + " complete !\n\n");
 		} else {
 			try {
 				cloudHandler.downloadFolder(sourcePath, destinationPath);
 			} catch (CloudException e) {
-				logMessages.append("Error downloading folder " + e.getMessage()
-						+ "!\n\n");
+				logger.writeLog("Error downloading folder: " + e.getMessage() + "!\n\n");
 				e.printStackTrace();
 				return;
 			}
-			logMessages.append("Downloading of " + sourcePath
-					+ " Complete !\n\n");
-
+			logger.writeLog("Downloading of " + sourcePath + " complete !\n\n");
 		}
 
 		// TODO: check for null return values

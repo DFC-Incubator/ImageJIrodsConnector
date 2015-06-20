@@ -4,10 +4,8 @@ import general.GeneralUtility;
 import ij.io.Opener;
 
 import java.io.File;
-
-import javax.swing.JTextArea;
-
 import CloudGui.CloudFileTree;
+import CloudGui.Logger;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 
@@ -17,12 +15,11 @@ public class UploadThread extends Thread {
 	private String destinationPath;
 	private boolean isFileUpload;
 	private CloudFileTree cloudFileTree;
-	// TODO: check parallel access to logMessages
-	private JTextArea logMessages;
+	private Logger logger;
 
-	public UploadThread(CloudOperations cloudHandler,  CloudFileTree cloudFileTree, JTextArea logMessages) {
+	public UploadThread(CloudOperations cloudHandler,  CloudFileTree cloudFileTree, Logger logger) {
 		this.cloudHandler = cloudHandler;
-		this.logMessages = logMessages;
+		this.logger = logger;
 		this.cloudFileTree = cloudFileTree;
 	}
 
@@ -40,8 +37,7 @@ public class UploadThread extends Thread {
 		this.sourcePath = sourcePath;
 		this.destinationPath = destinationPath;
 		
-		logMessages.append("Uploading " + sourcePath
-				+ " to cloud path: " + destinationPath + "\n\n");
+		logger.writeLog("Uploading " + sourcePath + " to cloud path: " + destinationPath + "\n\n");
 	}
 
 	public void run() {
@@ -49,25 +45,21 @@ public class UploadThread extends Thread {
 			try {
 				cloudHandler.uploadFile(sourcePath, destinationPath);
 			} catch (CloudException e) {
-				logMessages.append("Error uploading file " + e.getCloudError()
-						+ "!\n\n");
-
+				logger.writeLog("Error uploading file " + e.getCloudError() + "!\n\n");
 				e.printStackTrace();
 				return;
 			}
 		} else {
 			try {
 				cloudHandler.uploadFolder(sourcePath, destinationPath);
-				// TODO: add the freshly uploaded folder in the selected browsing tree
 			} catch (CloudException e) {
-				logMessages.append("Error uploading folder "
-						+ e.getCloudError() + "!\n\n");
+				logger.writeLog("Error uploading folder " + e.getCloudError() + "!\n\n");
 				e.printStackTrace();
 				return;
 			}
 		}
 
-		logMessages.append("Uploading of " + sourcePath + " Complete !\n\n");
+		logger.writeLog("Uploading of " + sourcePath + " Complete !\n\n");
 		
 		// update the file browsing tree with the new node
 		cloudFileTree.updateTrees(destinationPath, true);

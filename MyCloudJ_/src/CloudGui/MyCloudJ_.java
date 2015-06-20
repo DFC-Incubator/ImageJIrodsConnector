@@ -564,16 +564,16 @@ public class MyCloudJ_ implements PlugIn {
 			final String destinationPath = tasksWindow.getDestinationPath();
 
 			if (sourcePath.equals("") || destinationPath.equals("")) {
-				tasksWindow.getLogArea().append("Error: Select the files/folder to upload/download\n\n");
+				tasksWindow.getLogger().writeLog("Error: Select the files/folder to upload/download\n\n");
 				return;
 			}
 
 			if (tasksWindow.getUploadRadioButton().isSelected()) {
-				UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogArea());
+				UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogger());
 				uploadThread.prepareForUpload(sourcePath, destinationPath);
 				uploadThread.start();
 			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
-				DownloadThread downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogArea());
+				DownloadThread downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogger());
 				downloadThread.prepareForDownload(sourcePath, destinationPath);
 				downloadThread.start();
 			}
