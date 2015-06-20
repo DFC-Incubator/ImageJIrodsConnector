@@ -40,15 +40,14 @@ public class DownloadThread extends Thread {
 			else
 				cloudHandler.downloadFolder(sourcePath, destPath);
 		} catch (CloudException e) {
-			logger.writeLog("Error downloading " + downloadType + " " + e.getCloudError()
-					+ "!\n\n");
+			logger.writeLog("Error downloading " + downloadType + ". " + e.getCloudError()
+					+ "\n\n");
 			e.printStackTrace();
 			return;
 		}
 		
-		logger.writeLog("Downloading of " + sourcePath + " complete !\n\n");
+		logger.writeLog("Downloading of " + sourcePath + " complete \n\n");
 
-		// TODO: check for null return values
 		fileName = GeneralUtility.getLastComponentFromPath(sourcePath, "/");
 		fileName = GeneralUtility.getSystemSeparator() + fileName;
 		Opener openfile = new Opener();

@@ -69,7 +69,7 @@ public class RodsOperations implements CloudOperations {
 			userIsLogged = true;
 		} catch (JargonException e) {
 			e.printStackTrace();
-			error = "Error login to iRODS:\n";
+			error = "Error login to iRODS: ";
 			throw (new CloudException(error.concat(e.getMessage())));
 		}
 	}
@@ -83,8 +83,8 @@ public class RodsOperations implements CloudOperations {
 				session.closeSession();
 			} catch (JargonException e) {
 				e.printStackTrace();
-				error = "Error closing the session with the iRODS server:\n";
-				throw (new CloudException(error.concat(error)));
+				error = "Error closing the session with the iRODS server: ";
+				throw (new CloudException(error.concat(e.getMessage())));
 			}
 	}
 
@@ -128,24 +128,24 @@ public class RodsOperations implements CloudOperations {
 			fos.write(saveAsFileByteStream);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			error = "File System Error:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "File System Error: ";
+			throw (new CloudException(error.concat(e.getMessage())));
 		} catch (IOException e) {
 			e.printStackTrace();
-			error = "File System Error:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "File System Error: ";
+			throw (new CloudException(error.concat(e.getMessage())));
 		} catch (JargonException e) {
 			e.printStackTrace();
-			error = "File was not found on iRODS server:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "File was not found on iRODS server: ";
+			throw (new CloudException(error.concat(e.getMessage())));
 		} finally {
 			try {
 				if (fos != null)
 					fos.close();
 			} catch (IOException e) {
 				e.printStackTrace();
-				error = "File System Error:\n";
-				throw (new CloudException(error.concat(error)));
+				error = "File System Error: ";
+				throw (new CloudException(error.concat(e.getMessage())));
 			}
 		}
 	}
@@ -172,8 +172,8 @@ public class RodsOperations implements CloudOperations {
 		// creates the directory on disk
 		boolean newFolder = new File(localPath).mkdirs();
 		if (!newFolder) {
-			error = "Local File System error:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "Local file system error while creating local folder: " + localPath;
+			throw (new CloudException(error));
 		}
 
 		try {
@@ -187,8 +187,8 @@ public class RodsOperations implements CloudOperations {
 			}
 		} catch (JargonException e) {
 			e.printStackTrace();
-			error = "Error accesing the file on cloud:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "Error accesing the file on cloud";
+			throw (new CloudException(error.concat(e.getMessage())));
 		}
 	}
 
@@ -212,20 +212,20 @@ public class RodsOperations implements CloudOperations {
 			irodsFileOutputStream.write(fileContent, 0, fileContent.length);
 		} catch (JargonException e) {
 			e.printStackTrace();
-			error = "iRODS internal error:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "iRODS internal error: ";
+			throw (new CloudException(error.concat(e.getMessage())));
 		} catch (IOException e) {
 			e.printStackTrace();
-			error = "Local file system error:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "Local file system error: ";
+			throw (new CloudException(error.concat(e.getMessage())));
 		} finally {
 			try {
 				if (irodsFileOutputStream != null)
 					irodsFileOutputStream.close();
 			} catch (IOException e) {
 				e.printStackTrace();
-				error = "Error closing iRODS file:\n";
-				throw (new CloudException(error.concat(error)));
+				error = "Error closing iRODS file:";
+				throw (new CloudException(error.concat(e.getMessage())));
 			}
 		}
 	}
@@ -291,8 +291,8 @@ public class RodsOperations implements CloudOperations {
 		try {
 			irodsFile = irodsFileFactory.instanceIRODSFile(filePath);
 		} catch (JargonException e) {
-			String error = "iRODS: Could not acces " + filePath + ":\n";
-			throw (new CloudException(error.concat(error)));
+			String error = "iRODS: Could not acces " + filePath + ": ";
+			throw (new CloudException(error.concat(e.getMessage())));
 		}
 		return irodsFile;
 	}
@@ -312,8 +312,8 @@ public class RodsOperations implements CloudOperations {
 		String error;
 
 		if (path == null || path.contains(RodsDelimiter) == false) {
-			error = "Invalid Cloud Path:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "Invalid Cloud Path";
+			throw (new CloudException(error));
 		}
 	}
 
@@ -326,8 +326,8 @@ public class RodsOperations implements CloudOperations {
 			GeneralUtility.checkLocalPath(localPath);
 		} catch (Exception e1) {
 			e1.printStackTrace();
-			error = "Invalid local Path:\n";
-			throw (new CloudException(error.concat(error)));
+			error = "Invalid local path: ";
+			throw (new CloudException(error.concat(e1.getMessage())));
 		}
 	}
 

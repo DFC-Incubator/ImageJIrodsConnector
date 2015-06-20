@@ -26,7 +26,7 @@ public class UploadThread extends Thread {
 		this.cloudFileTree = cloudFileTree;
 	}
 
-	public void prepareForUpload(String sourcePath, String destPath) {
+	public void prepareForUpload(String sourcePath, String destinationPath) {
 		File file = new File(sourcePath);
 
 		if (file.isFile()) {
@@ -36,13 +36,13 @@ public class UploadThread extends Thread {
 					sourcePath, "/");
 
 			// Append the filename at the end of the destination path
-			destPath += ("/" + fileName);
+			destinationPath += ("/" + fileName);
 		}
 		this.sourcePath = sourcePath;
-		this.destPath = destPath;
+		this.destPath = destinationPath;
 
 		logger.writeLog("Uploading " + sourcePath + " to cloud path: "
-				+ destPath + "\n\n");
+				+ destinationPath + "\n\n");
 	}
 
 	public void run() {
@@ -52,12 +52,12 @@ public class UploadThread extends Thread {
 			else
 				cloudHandler.uploadFolder(sourcePath, destPath);
 		} catch (CloudException e) {
-			logger.writeLog("Error uploading " + uploadType + " " + e.getCloudError() + "!\n\n");
+			logger.writeLog("Error uploading " + uploadType + ". " + e.getCloudError() + "\n\n");
 			e.printStackTrace();
 			return;
 		}
 
-		logger.writeLog("Uploading of " + sourcePath + " Complete !\n\n");
+		logger.writeLog("Uploading of " + sourcePath + " complete \n\n");
 
 		// update the file browsing tree with the new node
 		cloudFileTree.updateTrees(destPath, true);

@@ -378,17 +378,17 @@ public class MyCloudJ_ implements PlugIn {
 			 * TESTING -temporary solution for not entering the credentials for
 			 * every run
 			 */
-			// rodsUtilsObj.setUsername("rods");
-			// rodsUtilsObj.setIrodsPassword("rods");
-			// rodsUtilsObj.setHost("192.168.0.104");
-			// rodsUtilsObj.setPort(1247);
-			// rodsUtilsObj.setZone("BragadiruZone");
-			// rodsUtilsObj.setRes("test1-resc");
+			 rodsUtilsObj.setUsername("rods");
+			 rodsUtilsObj.setIrodsPassword("rods");
+			 rodsUtilsObj.setHost("192.168.0.100");
+			 rodsUtilsObj.setPort(1247);
+			 rodsUtilsObj.setZone("BragadiruZone");
+			 rodsUtilsObj.setRes("test1-resc");
 
 			try {
-				checkLoginCredentials();
-				rodsUtilsObj.setCredentials(user, password, host, port, zone,
-						resource);
+				//checkLoginCredentials();
+				//rodsUtilsObj.setCredentials(user, password, host, port, zone,
+					//	resource);
 
 				rodsUtilsObj.login();
 				userIsConnected = true;
