@@ -207,12 +207,13 @@ public class CloudFileTree {
 		try {
 			// update the upload tree
 			selectedFilePath = getSelectedNodePath(uploadTree);
-			if (selectedFilePath != null && selectedFilePath.startsWith(path) == true)
+			if (selectedFilePath != null && path.startsWith(selectedFilePath) == true) 
 				expandTree(uploadTree, uploadTreeModel, false, selectedFilePath);
 
 			// update the download tree
 			selectedFilePath = getSelectedNodePath(downloadTree);
-			if (selectedFilePath != null && selectedFilePath.startsWith(path) == true)
+			
+			if (selectedFilePath != null && path.startsWith(selectedFilePath) == true) 
 				expandTree(downloadTree, downloadTreeModel, false, selectedFilePath);
 		} catch (CloudException e) {
 			e.printStackTrace();
