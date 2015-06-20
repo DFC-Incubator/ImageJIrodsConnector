@@ -6,10 +6,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
