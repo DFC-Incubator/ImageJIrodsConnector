@@ -3,10 +3,10 @@ package rods_backend;
 import general.GeneralUtility;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,8 +100,9 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void downloadFile(String cloudPath, String localPath)
 			throws CloudException {
-
 		FileOutputStream fos = null;
+		IRODSFileInputStream irodsFileInputStream = null;
+		int bytesRead, chunkSize = 4096;
 		String error = "";
 		String fileName;
 
@@ -115,17 +116,18 @@ public class RodsOperations implements CloudOperations {
 		try {
 			// access the file on cloud
 			IRODSFile irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
-			IRODSFileInputStream irodsFileInputStream = irodsFileFactory
+			irodsFileInputStream = irodsFileFactory
 					.instanceIRODSFileInputStream(irodsFile);
 
-			// save the file as a byte stream
-			byte[] saveAsFileByteStream = new byte[(int) irodsFile.length()];
-			irodsFileInputStream.read(saveAsFileByteStream, 0,
-					(int) irodsFile.length());
-
-			// write the byte stream to disk
+			// access the file on the local filesystem
 			fos = new FileOutputStream(localPath);
-			fos.write(saveAsFileByteStream);
+
+			// save the file as a byte stream
+			byte[] saveAsFileByteStream = new byte[chunkSize];
+
+			while ((bytesRead = irodsFileInputStream.read(saveAsFileByteStream,
+					0, chunkSize)) != -1)
+				fos.write(saveAsFileByteStream, 0, bytesRead);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			error = "File System Error: ";
@@ -142,9 +144,11 @@ public class RodsOperations implements CloudOperations {
 			try {
 				if (fos != null)
 					fos.close();
+				if (irodsFileInputStream != null)
+					irodsFileInputStream.close();
 			} catch (IOException e) {
 				e.printStackTrace();
-				error = "File System Error: ";
+				error = "Error closing streams: ";
 				throw (new CloudException(error.concat(e.getMessage())));
 			}
 		}
@@ -167,7 +171,8 @@ public class RodsOperations implements CloudOperations {
 		// creates the directory on disk
 		boolean newFolder = new File(localPath).mkdirs();
 		if (!newFolder) {
-			error = "Local file system error while creating local folder " + localPath;
+			error = "Local file system error while creating local folder "
+					+ localPath;
 			throw (new CloudException(error));
 		}
 
@@ -190,21 +195,30 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void uploadFile(String localPath, String cloudPath)
 			throws CloudException {
+		IRODSFileOutputStream irodsFileOutputStream = null;
+		FileInputStream inputStream = null;
+		int bytesRead, chunkSize = 4096;
 		String error;
 		IRODSFile irodsFile;
-		IRODSFileOutputStream irodsFileOutputStream;
 
 		checkPaths(localPath, cloudPath);
 		irodsFileOutputStream = null;
 
 		try {
+			// acces the file from cloud
 			irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
 			irodsFileOutputStream = irodsFileFactory
 					.instanceIRODSFileOutputStream(irodsFile);
-			File localFile = new File(localPath);
-			byte[] fileContent = Files.readAllBytes(localFile.toPath());
-			fileContent = Files.readAllBytes(localFile.toPath());
-			irodsFileOutputStream.write(fileContent, 0, fileContent.length);
+
+			// access the file from the local filesystem
+			inputStream = new FileInputStream(localPath);
+
+			// save the file as a byte stream
+			byte[] saveAsFileByteStream = new byte[chunkSize];
+
+			while ((bytesRead = inputStream.read(saveAsFileByteStream, 0,
+					chunkSize)) != -1)
+				irodsFileOutputStream.write(saveAsFileByteStream, 0, bytesRead);
 		} catch (JargonException e) {
 			e.printStackTrace();
 			error = "iRODS internal error: ";
@@ -217,6 +231,8 @@ public class RodsOperations implements CloudOperations {
 			try {
 				if (irodsFileOutputStream != null)
 					irodsFileOutputStream.close();
+				if (inputStream != null)
+					inputStream.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 				error = "Error closing iRODS file:";
@@ -329,8 +345,9 @@ public class RodsOperations implements CloudOperations {
 	public String getUsername() {
 		return user;
 	}
-	
-	public void setCredentials(String user, String password, String host, int port, String zone, String resource) {
+
+	public void setCredentials(String user, String password, String host,
+			int port, String zone, String resource) {
 		setUsername(user);
 		setIrodsPassword(password);
 		setHost(host);

@@ -380,7 +380,7 @@ public class MyCloudJ_ implements PlugIn {
 			 */
 			 rodsUtilsObj.setUsername("rods");
 			 rodsUtilsObj.setIrodsPassword("rods");
-			 rodsUtilsObj.setHost("192.168.0.100");
+			 rodsUtilsObj.setHost("192.168.0.103");
 			 rodsUtilsObj.setPort(1247);
 			 rodsUtilsObj.setZone("BragadiruZone");
 			 rodsUtilsObj.setRes("test1-resc");
