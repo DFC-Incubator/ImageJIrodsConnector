@@ -136,10 +136,132 @@ MyCloudJ_ class just calls methods for drawing the file selection window and aft
 <p><u>Server setup:</u> My mentors opened the port 1247 on the remote VM and I successfully tested my work. The main problem that I encountered was that the default resource specified at login didn't exist on the iRODS server and I got some errors while uploading files. Solved this problem by not specfing a default resource. The iRODS community helped me to solve the<a href="https://groups.google.com/forum/#!topic/irod-chat/dOIOrhMnbSw"> problem.</a></p>
 
 
+<h3>
+<a id="week-3" class="anchor" href="#week-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Week 3 and 4</h3>
 
+<p><u>Deliverable 3:</u> Plugin with upload and download file functionality from iRODS</p>
+A file transfer is initialized by following the next steps:
+<p style="text-align:center"><img src="images/start_button.png"></p>
+<li>one of the two radio buttons is selected: upload/download;</li>
+<li>the source path of the file is choosen. Depending on the upload/download radio button selected the source can be from the local filesystem/cloud filesystem respectively;</li>
+<li>the destination path of the file is chosen. Depending on the upload/download radio button selected the source can be from the cloud filesystem/local filesystem respectively;</li>
+<li>upload/download process is started using the "Start" button.</li>
+</ul>
 
+<p>The action listener assigned to the start button starts a new thread for every upload/download operation(see also the UML diagram below): <p>
 
+<pre><code>
+class BtnStartListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+    String sourcePath = tasksWindow.getSourcePath();
+    String destinationPath = tasksWindow.getDestinationPath();
 
+    if (sourcePath.equals("") || destinationPath.equals("")) {
+        tasksWindow.getLogger().writeLog("Error: Select the files/folder to upload/download\n\n");
+        return;
+    }
+
+    if (tasksWindow.getUploadRadioButton().isSelected()) {
+        UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogger());
+        uploadThread.prepareForUpload(sourcePath, destinationPath);
+        uploadThread.start();
+    } else if (tasksWindow.getDownloadRadioButton().isSelected()) {
+        DownloadThread downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogger());
+        downloadThread.prepareForDownload(sourcePath, destinationPath);
+        downloadThread.start();
+    }
+}
+</code></pre>
+
+<h4>File Download</h4>
+The DownloadThread class constructor receives as parameters two object:
+<ul>
+<li>a CloudOperations object: this is an object which implements the download backend with the iRODS server in the downloadFile method.</li>
+<li>a Logger object which implements synchronized methods for logging. The result of the download thread will be written to this logger using the synchronized method writeLog. We needed to implement the writeLog as a synchronized method because there might be multiple threads trying to write logs at the same time. </li>
+</ul>
+
+The RodsOperations class implements the CloudOperations interface. The downloadFile method uses Jargon API methods for file transfer operations where the flow is pretty similar with the one from the standard Java IO. We first access the cloud file by creating an IRODSFile. Once we accessed the file, we get an input stream as a IRODSFileInputStream then we can read the bytes from the cloud file as a byte stream. We can write this byte stream to a local file using standard Java IO operations. It's worth mentioning that we can download any file type as long as we're working at a byte level:
+
+<pre><code>
+@Override
+public void downloadFile(String cloudPath, String localPath)
+                         throws CloudException {
+    FileOutputStream fos = null;
+    IRODSFileInputStream irodsFileInputStream = null;
+    int bytesRead, chunkSize = 4096;
+    String error = "";
+    String fileName;
+
+    checkPaths(localPath, cloudPath);
+
+    // extract the name of the file from full path
+    fileName = GeneralUtility.getLastComponentFromPath(cloudPath,
+                RODS_DELIMITER);
+    localPath += (GeneralUtility.getSystemSeparator() + fileName);
+
+    try {
+        // access the file on cloud
+        IRODSFile irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
+        irodsFileInputStream = irodsFileFactory
+                        .instanceIRODSFileInputStream(irodsFile);
+
+         // access the file on the local filesystem
+         fos = new FileOutputStream(localPath);
+
+         // save the file as a byte stream
+         byte[] saveAsFileByteStream = new byte[chunkSize];
+         transferSize = irodsFile.length();
+			
+         while ((bytesRead = irodsFileInputStream.read(saveAsFileByteStream,
+                       0, chunkSize)) != -1)
+             fos.write(saveAsFileByteStream, 0, bytesRead);
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+        error = "File System Error: ";
+        throw (new CloudException(error.concat(e.getMessage())));
+    } catch (IOException e) {
+        e.printStackTrace();
+        error = "File System Error: ";
+        throw (new CloudException(error.concat(e.getMessage())));
+    } catch (JargonException e) {
+        e.printStackTrace();
+        error = "File was not found on iRODS server: ";
+        throw (new CloudException(error.concat(e.getMessage())));
+    } finally {
+        try {
+            if (fos != null)
+                fos.close();
+            if (irodsFileInputStream != null)
+                irodsFileInputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                error = "File System Error: ";
+                throw (new CloudException(error.concat(e.getMessage())));
+            }
+    }
+}
+</code></pre>
+
+<h4>File Upload</h4>
+<p>
+The UploadThread class constructor receives as parameters two object:
+<ul>
+<li>a CloudOperations object: this is an object which implements the download backend with the iRODS server in the uploadFile method;</li>
+<li>a Logger object;</li>
+<li>a CloudFileTree object. If the upload is successful we update the file browsing tree with the newly uploaded folder. This is done automatically without the user having to push the "Expand" button. This is done by calling the synchronized updateTrees method inside CloudFileTree class. This file browsing tree update is done only if the currently selected node path is included in the newly uploaded file path, otherwise we might confuse the user with information that he is not interested in at the moment. </li>
+</ul>
+The code for uploading is pretty similar with the one for download with the modification that we use an irodsFileOutputStream instead of an irodsFileInputStream.
+</p>
+
+<center>
+<figure>
+<img src="images/upload_download.png">
+<figcaption>UML emphasizing the upload/download functionality</figcaption>
+</figure>
+</center>
+
+<p><b>Problem:</b> Compared with iDrop, the upload/download speeds are much lower. I will investigate the problem in the coming weeks. <p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/dorugucea91/CloudPlugin">CloudPlugin</a> is maintained by <a href="https://github.com/dorugucea91">dorugucea91</a>.</span>
