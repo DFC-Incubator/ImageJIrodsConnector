@@ -15,6 +15,7 @@ import org.irods.jargon.core.connection.IRODSProtocolManager;
 import org.irods.jargon.core.connection.IRODSSession;
 import org.irods.jargon.core.connection.IRODSSimpleProtocolManager;
 import org.irods.jargon.core.exception.JargonException;
+import org.irods.jargon.core.pub.DataTransferOperations;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactory;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
 import org.irods.jargon.core.pub.io.IRODSFile;
@@ -28,6 +29,7 @@ import cloud_interfaces.CloudOperations;
 
 public class RodsOperations implements CloudOperations {
 	private IRODSFileFactory irodsFileFactory;
+	private DataTransferOperations dataTransferOperations;
 	private IRODSSession session;
 	private String user;
 	private String password;
@@ -64,7 +66,8 @@ public class RodsOperations implements CloudOperations {
 			accessObjectFactory = IRODSAccessObjectFactoryImpl
 					.instance(session);
 			irodsFileFactory = accessObjectFactory.getIRODSFileFactory(account);
-
+			dataTransferOperations = accessObjectFactory.getDataTransferOperations(account);
+			
 			buildHomePath();
 			userIsLogged = true;
 		} catch (JargonException e) {
@@ -100,57 +103,32 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void downloadFile(String cloudPath, String localPath)
 			throws CloudException {
-		FileOutputStream fos = null;
-		IRODSFileInputStream irodsFileInputStream = null;
-		int bytesRead, chunkSize = 4096;
 		String error = "";
-		String fileName;
-
+		long fileSizeKB;
+		
 		checkPaths(localPath, cloudPath);
-
-		// extract the name of the file from full path
-		fileName = GeneralUtility.getLastComponentFromPath(cloudPath,
-				RODS_DELIMITER);
-		localPath += (GeneralUtility.getSystemSeparator() + fileName);
-
+		
 		try {
+			// access the local filesystem
+			File localFile = new File(localPath);
+			
 			// access the file on cloud
 			IRODSFile irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
-			irodsFileInputStream = irodsFileFactory
-					.instanceIRODSFileInputStream(irodsFile);
-
-			// access the file on the local filesystem
-			fos = new FileOutputStream(localPath);
-
-			// save the file as a byte stream
-			byte[] saveAsFileByteStream = new byte[chunkSize];
-
-			while ((bytesRead = irodsFileInputStream.read(saveAsFileByteStream,
-					0, chunkSize)) != -1)
-				fos.write(saveAsFileByteStream, 0, bytesRead);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			error = "File System Error: ";
-			throw (new CloudException(error.concat(e.getMessage())));
-		} catch (IOException e) {
-			e.printStackTrace();
-			error = "File System Error: ";
-			throw (new CloudException(error.concat(e.getMessage())));
+			
+			fileSizeKB = irodsFile.length() / 1024;
+			System.out.println("File Size: " + fileSizeKB + " KB");
+			
+			long start = System.nanoTime();
+			dataTransferOperations.getOperation(irodsFile, localFile, null, null);
+			long end = System.nanoTime();
+			
+			long elapsedTime = end - start;
+			double seconds = (double)elapsedTime / 1000000000.0;
+			System.out.println("Elapsed time: " + seconds + " seconds");
+			System.out.println("Speed: " + fileSizeKB/seconds + " KB/s");
 		} catch (JargonException e) {
 			e.printStackTrace();
-			error = "File was not found on iRODS server: ";
 			throw (new CloudException(error.concat(e.getMessage())));
-		} finally {
-			try {
-				if (fos != null)
-					fos.close();
-				if (irodsFileInputStream != null)
-					irodsFileInputStream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-				error = "Error closing streams: ";
-				throw (new CloudException(error.concat(e.getMessage())));
-			}
 		}
 	}
 
