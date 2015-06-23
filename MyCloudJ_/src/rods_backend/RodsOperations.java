@@ -3,8 +3,6 @@ package rods_backend;
 import general.GeneralUtility;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +16,6 @@ import org.irods.jargon.core.pub.IRODSAccessObjectFactory;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
 import org.irods.jargon.core.pub.io.IRODSFile;
 import org.irods.jargon.core.pub.io.IRODSFileFactory;
-import org.irods.jargon.core.pub.io.IRODSFileOutputStream;
 
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
@@ -169,35 +166,6 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void uploadFolder(String localPath, String cloudPath)
 			throws CloudException {
-		String error;
-		String folderName;
-		File inputFolder;
-
-		checkPaths(localPath, cloudPath);
-
-		folderName = GeneralUtility.getLastComponentFromPath(localPath,
-				GeneralUtility.getSystemSeparator());
-		inputFolder = new File(localPath);
-
-		if (inputFolder.isDirectory()) {
-			try {
-				IRODSFile irodsFile = irodsFileFactory
-						.instanceIRODSFile(cloudPath + RODS_DELIMITER
-								+ folderName);
-				irodsFile.mkdir();
-			} catch (JargonException e) {
-				e.printStackTrace();
-				error = "iRODS error creating folder:";
-				throw (new CloudException(error.concat(error)));
-			}
-
-			String[] files = inputFolder.list();
-			for (int i = 0; i < files.length; i++)
-				uploadFolder(localPath + GeneralUtility.getSystemSeparator()
-						+ files[i], cloudPath + RODS_DELIMITER + folderName);
-		} else if (inputFolder.isFile()) {
-			uploadFile(localPath, cloudPath + RODS_DELIMITER + folderName);
-		}
 	}
 
 	@Override
