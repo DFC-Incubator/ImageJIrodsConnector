@@ -32,11 +32,6 @@ public class UploadThread extends Thread {
 		if (file.isFile()) {
 			this.isFileUpload = true;
 			uploadType = isFileUpload ? "file" : "folder";
-			String fileName = GeneralUtility.getLastComponentFromPath(
-					sourcePath, "/");
-
-			// Append the filename at the end of the destination path
-			destinationPath += ("/" + fileName);
 		}
 		this.sourcePath = sourcePath;
 		this.destPath = destinationPath;
@@ -47,10 +42,7 @@ public class UploadThread extends Thread {
 
 	public void run() {
 		try {
-			if (isFileUpload)
 				cloudHandler.uploadFile(sourcePath, destPath);
-			else
-				cloudHandler.uploadFolder(sourcePath, destPath);
 		} catch (CloudException e) {
 			logger.writeLog("Error uploading " + uploadType + " " + sourcePath
 					+ ". " + e.getCloudError() + "\n\n");
