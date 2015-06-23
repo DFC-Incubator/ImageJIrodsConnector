@@ -135,39 +135,6 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void downloadFolder(String cloudPath, String localPath)
 			throws CloudException {
-		String error;
-		IRODSFile irodsFile;
-
-		checkPaths(localPath, cloudPath);
-		irodsFile = null;
-
-		// build the path for the local folder
-		String folderName = GeneralUtility.getLastComponentFromPath(cloudPath,
-				RODS_DELIMITER);
-		localPath += (GeneralUtility.getSystemSeparator() + folderName);
-
-		// creates the directory on disk
-		boolean newFolder = new File(localPath).mkdirs();
-		if (!newFolder) {
-			error = "Local file system error while creating local folder "
-					+ localPath;
-			throw (new CloudException(error));
-		}
-
-		try {
-			irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
-			File[] files = irodsFile.listFiles();
-			for (int i = 0; i < files.length; i++) {
-				if (files[i].isDirectory())
-					downloadFolder(files[i].getPath(), localPath);
-				else if (files[i].isFile())
-					downloadFile(files[i].getPath(), localPath);
-			}
-		} catch (JargonException e) {
-			e.printStackTrace();
-			error = "Error accesing the cloud file " + cloudPath;
-			throw (new CloudException(error.concat(e.getMessage())));
-		}
 	}
 
 	@Override
