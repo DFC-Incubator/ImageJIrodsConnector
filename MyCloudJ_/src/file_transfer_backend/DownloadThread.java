@@ -27,7 +27,7 @@ public class DownloadThread extends Thread {
 		synchronized (transfers) {
 			if (transfers.size() == MAX_DOWNLOADS_QUEUE)
 				throw (new FileTransferException(
-						"Maximum number of pending transfers reached\n"));
+						"Maximum number of pending downloads reached\n"));
 
 			logger.writeLog("Downloading of " + task.getSourcePath() + " to "
 					+ task.getDestinationPath() + " is in progress...\n\n");

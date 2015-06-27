@@ -58,6 +58,9 @@ public class MyCloudJ_ implements PlugIn {
 
 	// thread used for downloading tasks
 	DownloadThread downloadThread;
+	
+	// thread used for downloading tasks
+	UploadThread uploadThread;
 
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
@@ -210,10 +213,7 @@ public class MyCloudJ_ implements PlugIn {
 			}
 
 			cloudHandler = new DropboxOperations();
-			// start the thread for downloading
-			downloadThread = new DownloadThread(cloudHandler,
-					tasksWindow.getLogger());
-			downloadThread.start();
+			initializeTransferThreads(cloudHandler, tasksWindow);
 			loginWindow.setBorder(title1);
 			rodsLoginForm.setVisible(false);
 			dropboxLoginForm.setVisible(true);
@@ -255,10 +255,7 @@ public class MyCloudJ_ implements PlugIn {
 			}
 
 			cloudHandler = new RodsOperations();
-			// start the thread for downloading
-			downloadThread = new DownloadThread(cloudHandler,
-					tasksWindow.getLogger());
-			downloadThread.start();
+			initializeTransferThreads(cloudHandler, tasksWindow);
 			loginWindow.setBorder(title2);
 			rodsLoginForm.setVisible(true);
 			dropboxLoginForm.setVisible(false);
@@ -285,11 +282,23 @@ public class MyCloudJ_ implements PlugIn {
 			e1.printStackTrace();
 		}
 	}
-
+	
+	public void initializeTransferThreads(CloudOperations cloudHandler, TasksWindow tasksWindow) {
+		// start the thread for downloading
+		downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogger());
+		downloadThread.start();
+		
+		// start the thread for uploading
+		uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogger());
+		uploadThread.start();
+	}
+	
 	public void terminateTransferThreads() {
 		downloadThread.terminate();
+		uploadThread.terminate();
 		try {
 			downloadThread.join();
+			uploadThread.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -305,10 +314,7 @@ public class MyCloudJ_ implements PlugIn {
 					dropboxLoginForm.setEnabledAccessCodeField(true);
 					dropboxLoginForm.getBtnConnect().setEnabled(true);
 
-					// start the thread for downloading
-					downloadThread = new DownloadThread(cloudHandler,
-							tasksWindow.getLogger());
-					downloadThread.start();
+					initializeTransferThreads(cloudHandler, tasksWindow);
 				} catch (CloudException e4) {
 					JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
 							"MyCLoudJ - Access Error",
@@ -432,10 +438,7 @@ public class MyCloudJ_ implements PlugIn {
 						"Login error", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
-			// start the thread for downloading
-			downloadThread = new DownloadThread(cloudHandler,
-					tasksWindow.getLogger());
-			downloadThread.start();
+			initializeTransferThreads(cloudHandler, tasksWindow);
 
 			rodsLoginForm.setStatus("Connected to iRODS");
 			tasksWindow.enable();
@@ -602,21 +605,20 @@ public class MyCloudJ_ implements PlugIn {
 				tasksWindow.getLogger().writeLog("Error: Select the files/folder to upload/download\n\n");
 				return;
 			}
-
-			if (tasksWindow.getUploadRadioButton().isSelected()) {
-				UploadThread uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogger());
-				uploadThread.prepareForUpload(sourcePath, destinationPath);
-				uploadThread.start();
-			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
-				try {
+			
+			try {
+				if (tasksWindow.getUploadRadioButton().isSelected()) {
 					TransferTask task = new TransferTask(sourcePath, destinationPath);
-					downloadThread.addTask(task);
-				} catch (FileTransferException e1) {
-					JOptionPane.showMessageDialog(mainFrame, e1.getError(),
-							"Limit reached", JOptionPane.WARNING_MESSAGE);
-					e1.printStackTrace();
+					uploadThread.addTask(task);
+				} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
+						TransferTask task = new TransferTask(sourcePath, destinationPath);
+						downloadThread.addTask(task);
 				}
+			} catch (FileTransferException e1) {
+				JOptionPane.showMessageDialog(mainFrame, e1.getError(),
+						"Limit reached", JOptionPane.WARNING_MESSAGE);
+				e1.printStackTrace();
 			}
-		}
+		} 
 	}
 }
