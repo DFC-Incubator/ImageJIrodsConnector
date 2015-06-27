@@ -103,7 +103,6 @@ public class TasksWindow {
 	public void resetSelectionPaths() {
 		sourcePath.setText("");
 		destinationPath.setText("");
-		logger.reset();
 	}
 
 	public void setTitle(TitledBorder title) {
