@@ -22,6 +22,8 @@ import cloud_interfaces.CloudOperations;
 import rods_backend.RodsOperations;
 import dropbox_backend.DropboxOperations;
 import file_transfer_backend.DownloadThread;
+import file_transfer_backend.FileTransferException;
+import file_transfer_backend.TransferTask;
 import file_transfer_backend.UploadThread;
 
 /**
@@ -53,6 +55,9 @@ public class MyCloudJ_ implements PlugIn {
 	private String cloudHomeDirectoryPath;
 
 	private final String LOCAL_HOME_DIRECTORY_PATH = ".";
+
+	// thread used for downloading tasks
+	DownloadThread downloadThread;
 
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
@@ -111,8 +116,7 @@ public class MyCloudJ_ implements PlugIn {
 
 		// left panel of the mainFrame
 		loginWindow = new JPanel();
-		loginWindow.setLayout(new BoxLayout(loginWindow,
-				BoxLayout.PAGE_AXIS));
+		loginWindow.setLayout(new BoxLayout(loginWindow, BoxLayout.PAGE_AXIS));
 		loginWindow.setBorder(title1);
 
 		// right panel of the mainFrame
@@ -120,8 +124,8 @@ public class MyCloudJ_ implements PlugIn {
 		tasksWindow.draw();
 		tasksWindow.setTitle(title3);
 		tasksWindow.resetAndDisable();
-		
-		//Radio buttons for selecting the service to connect.
+
+		// Radio buttons for selecting the service to connect.
 		dbxLoginRadioButton = new JRadioButton("Connect to Dropbox");
 		dbxLoginRadioButton.setSelected(true);
 		irodsLoginRadioButton = new JRadioButton("Connect to iRODS");
@@ -132,19 +136,19 @@ public class MyCloudJ_ implements PlugIn {
 		JPanel lPanel0 = new JPanel(new FlowLayout());
 		lPanel0.add(dbxLoginRadioButton);
 		lPanel0.add(irodsLoginRadioButton);
-		loginWindow.add(lPanel0); 
-		
+		loginWindow.add(lPanel0);
+
 		// add the dropbox login form to the mainFrame
 		dropboxLoginForm = new DropboxLoginForm();
 		dropboxLoginForm.draw();
 		loginWindow.add(new JPanel(new FlowLayout()));
 		loginWindow.add(dropboxLoginForm.getlPanelDbSpecific());
-		
+
 		// add the iRODS login form to the mainFrame
 		rodsLoginForm = new RodsLoginForm();
 		rodsLoginForm.draw();
 		loginWindow.add(rodsLoginForm.getlPanelRodsSpecific());
-		
+
 		mainFrame.add(loginWindow);
 		mainFrame.add(tasksWindow.getPanel());
 		mainFrame.setVisible(true);
@@ -197,6 +201,7 @@ public class MyCloudJ_ implements PlugIn {
 					disableJTreeGUI();
 					tasksWindow.resetAndDisable();
 					freeCloudResources();
+					terminateTransferThreads();
 					// cancel the switch to Dropboxs
 				} else {
 					irodsLoginRadioButton.setSelected(true);
@@ -205,6 +210,10 @@ public class MyCloudJ_ implements PlugIn {
 			}
 
 			cloudHandler = new DropboxOperations();
+			// start the thread for downloading
+			downloadThread = new DownloadThread(cloudHandler,
+					tasksWindow.getLogger());
+			downloadThread.start();
 			loginWindow.setBorder(title1);
 			rodsLoginForm.setVisible(false);
 			dropboxLoginForm.setVisible(true);
@@ -237,6 +246,7 @@ public class MyCloudJ_ implements PlugIn {
 					disableJTreeGUI();
 					tasksWindow.resetAndDisable();
 					freeCloudResources();
+					terminateTransferThreads();
 					// cancel the switch to iRODS
 				} else {
 					dbxLoginRadioButton.setSelected(true);
@@ -245,6 +255,10 @@ public class MyCloudJ_ implements PlugIn {
 			}
 
 			cloudHandler = new RodsOperations();
+			// start the thread for downloading
+			downloadThread = new DownloadThread(cloudHandler,
+					tasksWindow.getLogger());
+			downloadThread.start();
 			loginWindow.setBorder(title2);
 			rodsLoginForm.setVisible(true);
 			dropboxLoginForm.setVisible(false);
@@ -272,6 +286,15 @@ public class MyCloudJ_ implements PlugIn {
 		}
 	}
 
+	public void terminateTransferThreads() {
+		downloadThread.terminate();
+		try {
+			downloadThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
 	class BtnDbxAccessListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -281,6 +304,11 @@ public class MyCloudJ_ implements PlugIn {
 					cloudHandler.login();
 					dropboxLoginForm.setEnabledAccessCodeField(true);
 					dropboxLoginForm.getBtnConnect().setEnabled(true);
+
+					// start the thread for downloading
+					downloadThread = new DownloadThread(cloudHandler,
+							tasksWindow.getLogger());
+					downloadThread.start();
 				} catch (CloudException e4) {
 					JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
 							"MyCLoudJ - Access Error",
@@ -340,7 +368,7 @@ public class MyCloudJ_ implements PlugIn {
 					 * user is connected.
 					 */
 					dropboxLoginForm.setEnabledAccessCodeField(false);
-					
+
 					// All the components of right window are enabled after
 					// successful connection with user's dropbox account
 					tasksWindow.enable();
@@ -378,17 +406,17 @@ public class MyCloudJ_ implements PlugIn {
 			 * TESTING -temporary solution for not entering the credentials for
 			 * every run
 			 */
-			 rodsUtilsObj.setUsername("rods");
-			 rodsUtilsObj.setIrodsPassword("rods");
-			 rodsUtilsObj.setHost("irods-dev.incf.org");
-			 rodsUtilsObj.setPort(1247);
-			 rodsUtilsObj.setZone("BragadiruZone");
-			 rodsUtilsObj.setRes("");
+			rodsUtilsObj.setUsername("rods");
+			rodsUtilsObj.setIrodsPassword("rods");
+			rodsUtilsObj.setHost("irods-dev.incf.org");
+			rodsUtilsObj.setPort(1247);
+			rodsUtilsObj.setZone("BragadiruZone");
+			rodsUtilsObj.setRes("");
 
 			try {
-				//checkLoginCredentials();
-				//rodsUtilsObj.setCredentials(user, password, host, port, zone,
-					//	resource);
+				// checkLoginCredentials();
+				// rodsUtilsObj.setCredentials(user, password, host, port, zone,
+				// resource);
 
 				rodsUtilsObj.login();
 				userIsConnected = true;
@@ -404,6 +432,11 @@ public class MyCloudJ_ implements PlugIn {
 						"Login error", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
+			// start the thread for downloading
+			downloadThread = new DownloadThread(cloudHandler,
+					tasksWindow.getLogger());
+			downloadThread.start();
+
 			rodsLoginForm.setStatus("Connected to iRODS");
 			tasksWindow.enable();
 		}
@@ -432,7 +465,8 @@ public class MyCloudJ_ implements PlugIn {
 				try {
 					port = Integer.parseInt(portString);
 				} catch (NumberFormatException e) {
-					messages = messages.concat("- the iRODS port value is wrong\n");
+					messages = messages
+							.concat("- the iRODS port value is wrong\n");
 				}
 			if (user.length() == 0)
 				messages = messages.concat("- iRods user cannot be empty\n");
@@ -441,7 +475,8 @@ public class MyCloudJ_ implements PlugIn {
 
 			if (messages.length() > 0)
 				throw (new CloudException(
-						messages = "The login failed because:\n\n".concat(messages)));
+						messages = "The login failed because:\n\n"
+								.concat(messages)));
 		}
 	}
 
@@ -573,9 +608,14 @@ public class MyCloudJ_ implements PlugIn {
 				uploadThread.prepareForUpload(sourcePath, destinationPath);
 				uploadThread.start();
 			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
-				DownloadThread downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogger());
-				downloadThread.prepareForDownload(sourcePath, destinationPath);
-				downloadThread.start();
+				try {
+					TransferTask task = new TransferTask(sourcePath, destinationPath);
+					downloadThread.addTask(task);
+				} catch (FileTransferException e1) {
+					JOptionPane.showMessageDialog(mainFrame, e1.getError(),
+							"Limit reached", JOptionPane.WARNING_MESSAGE);
+					e1.printStackTrace();
+				}
 			}
 		}
 	}
