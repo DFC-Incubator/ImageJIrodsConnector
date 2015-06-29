@@ -126,7 +126,7 @@ public class MyCloudJ_ implements PlugIn {
 		tasksWindow = new TasksWindow();
 		tasksWindow.draw();
 		tasksWindow.setTitle(title3);
-		tasksWindow.resetAndDisable();
+		tasksWindow.reset();
 
 		// Radio buttons for selecting the service to connect.
 		dbxLoginRadioButton = new JRadioButton("Connect to Dropbox");
@@ -157,19 +157,6 @@ public class MyCloudJ_ implements PlugIn {
 		mainFrame.setVisible(true);
 	}
 
-	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
-			String localHomeDirectoryPath) throws CloudException {
-
-		// build file browsing trees for cloud
-		cloudFileTree = new CloudFileTree(cloudHomeDirectoryPath, cloudHandler);
-		// build file browsing trees for local files
-		localFileTree = new LocalFileTree(localHomeDirectoryPath);
-	}
-	
-	private void disableRodsGUI() {
-		rodsLoginForm.resetAndEnable();
-	}
-
 	private void assignActionListeners() {
 		tasksWindow.getBtnFileChooser1().addActionListener(
 				new BtnFileChooser1Listener());
@@ -192,7 +179,65 @@ public class MyCloudJ_ implements PlugIn {
 				new BtnDownloadRadioListener());
 		tasksWindow.getBtnStart().addActionListener(new BtnStartListener());
 	}
+	
+	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
+			String localHomeDirectoryPath) throws CloudException {
 
+		// build file browsing trees for cloud
+		cloudFileTree = new CloudFileTree(cloudHomeDirectoryPath, cloudHandler);
+		// build file browsing trees for local files
+		localFileTree = new LocalFileTree(localHomeDirectoryPath);
+	}
+	
+	public void initializeTransferThreads(CloudOperations cloudHandler, TasksWindow tasksWindow) {
+		// start the thread for downloading
+		downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogger());
+		downloadThread.start();
+		
+		// start the thread for uploading
+		uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogger());
+		uploadThread.start();
+	}
+	
+	public void genericCloudDisconnect() {
+		// free resources
+		terminateTransferThreads();
+		freeCloudResources();
+		
+		// reset right panel components
+		disableJTreeGUI();
+		tasksWindow.reset();
+		
+		userIsConnected = false;
+	}
+	
+	public void terminateTransferThreads() {
+		downloadThread.terminate();
+		uploadThread.terminate();
+		try {
+			downloadThread.join();
+			uploadThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void freeCloudResources() {
+		try {
+			cloudHandler.disconnect();
+		} catch (CloudException e1) {
+			JOptionPane.showMessageDialog(mainFrame, "Error",
+					e1.getCloudError(), JOptionPane.ERROR_MESSAGE);
+			e1.printStackTrace();
+		}
+	}
+	
+	private void disableJTreeGUI() {
+		JFrame enclosingFrame = cloudFileTree.getEnclosingFrame();
+		if (enclosingFrame != null)
+			enclosingFrame.dispose();
+	}
+	
 	// A lot of Action Listeners designed as inside classes
 	class BtnDbxLoginRadioListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -202,16 +247,9 @@ public class MyCloudJ_ implements PlugIn {
 				int option = JOptionPane.showConfirmDialog(null, message,
 						"Confirm", JOptionPane.OK_CANCEL_OPTION);
 
-				// switch to Dropbox
-				if (option == JOptionPane.OK_OPTION) {
-					userIsConnected = false;
-
-					disableRodsGUI();
-					disableJTreeGUI();
-					tasksWindow.resetAndDisable();
-					freeCloudResources();
-					terminateTransferThreads();
-					rodsLoginForm.setConnected(false);
+				if (option == JOptionPane.OK_OPTION) { // switch to Dropbox
+					genericCloudDisconnect();
+					rodsLoginForm.reset();
 				} else { // cancel the switch to Dropbox
 					irodsLoginRadioButton.setSelected(true);
 					return;
@@ -226,7 +264,7 @@ public class MyCloudJ_ implements PlugIn {
 			tasksWindow.setTitle(title3);
 		}
 	}
-
+	
 	class BtnRodsLoginRadioListener implements ActionListener {
 		/**
 		 * ActionListener for the "Connect to iRODS" button - initialize the
@@ -240,15 +278,10 @@ public class MyCloudJ_ implements PlugIn {
 				int option = JOptionPane.showConfirmDialog(null, message,
 						"Confirm", JOptionPane.OK_CANCEL_OPTION);
 
-				// switch to iRODS
-				if (option == JOptionPane.OK_OPTION) {
-					userIsConnected = false;
-
-					disableDbxGUI();
-					disableJTreeGUI();
-					tasksWindow.resetAndDisable();
-					freeCloudResources();
-					terminateTransferThreads();
+				if (option == JOptionPane.OK_OPTION) { // switch to iRODS
+					// reset left panel components
+					genericCloudDisconnect();
+					dropboxLoginForm.reset();
 				} else { // cancel the switch to iRODS
 					dbxLoginRadioButton.setSelected(true);
 					return;
@@ -261,47 +294,6 @@ public class MyCloudJ_ implements PlugIn {
 			rodsLoginForm.setVisible(true);
 			dropboxLoginForm.setVisible(false);
 			tasksWindow.setTitle(title4);
-		}
-
-		private void disableDbxGUI() {
-			dropboxLoginForm.disable();
-		}
-	}
-
-	private void disableJTreeGUI() {
-		JFrame enclosingFrame = cloudFileTree.getEnclosingFrame();
-		if (enclosingFrame != null)
-			enclosingFrame.dispose();
-	}
-
-	private void freeCloudResources() {
-		try {
-			cloudHandler.disconnect();
-		} catch (CloudException e1) {
-			JOptionPane.showMessageDialog(mainFrame, "Error",
-					e1.getCloudError(), JOptionPane.ERROR_MESSAGE);
-			e1.printStackTrace();
-		}
-	}
-	
-	public void initializeTransferThreads(CloudOperations cloudHandler, TasksWindow tasksWindow) {
-		// start the thread for downloading
-		downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogger());
-		downloadThread.start();
-		
-		// start the thread for uploading
-		uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogger());
-		uploadThread.start();
-	}
-	
-	public void terminateTransferThreads() {
-		downloadThread.terminate();
-		uploadThread.terminate();
-		try {
-			downloadThread.join();
-			uploadThread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -400,18 +392,6 @@ public class MyCloudJ_ implements PlugIn {
 			}
 		}
 	}
-	
-	class BtnDisConnectRodsListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			disableRodsGUI();
-			disableJTreeGUI();
-			tasksWindow.resetAndDisable();
-			freeCloudResources();
-			terminateTransferThreads();
-			rodsLoginForm.setConnected(false);
-		}
-	}
 
 	class BtnConnectRodsListener implements ActionListener {
 		private String host, zone, resource, user, password;
@@ -493,6 +473,14 @@ public class MyCloudJ_ implements PlugIn {
 				throw (new CloudException(
 						messages = "The login failed because:\n\n"
 								.concat(messages)));
+		}
+	}
+	
+	class BtnDisConnectRodsListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			genericCloudDisconnect();
+			rodsLoginForm.reset();
 		}
 	}
 

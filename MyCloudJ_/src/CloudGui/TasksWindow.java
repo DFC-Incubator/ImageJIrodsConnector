@@ -91,7 +91,7 @@ public class TasksWindow {
 		panel.add(rPanel5);
 	}
 
-	public void resetAndDisable() {
+	public void reset() {
 		GuiUtils.enableComponentsFromContainer(panel, false);
 		resetSelectionPaths();
 	}

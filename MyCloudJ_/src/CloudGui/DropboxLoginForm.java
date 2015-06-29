@@ -153,7 +153,7 @@ public class DropboxLoginForm {
 		lPanelDbSpecific.setVisible(value);
 	}
 	
-	public void disable() {
+	public void reset() {
 		dbxAccessCodeTextField.setText("");
 		dbxAccessCodeTextField.setEnabled(false);
 		getBtnConnect().setEnabled(false);

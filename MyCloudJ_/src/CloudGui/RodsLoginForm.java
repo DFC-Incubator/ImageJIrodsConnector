@@ -134,10 +134,13 @@ public class RodsLoginForm {
 		getLoginRodsButton().setEnabled(false);
 	}
 	
-	public void resetAndEnable() {
-		rodsLblConnectionStatus.setText("Not Connected!");
+	public void reset() {
+		rodsLblConnectionStatus.setText("Not Connected");
 		GuiUtils.enableTextFieldsFromContainer(lPanelRodsSpecific, true);
 		getLoginRodsButton().setEnabled(true);
+		loginRodsButton.setVisible(true);
+		disconnectButton.setVisible(false);
+		rodsLblConnectionStatus.setText("Not connected");
 	}
 	
 	public void setVisible(boolean value) {
