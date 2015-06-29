@@ -23,6 +23,8 @@ import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
 
 public class CloudFileTree {
+	private static final String CLOUD_DELIMITER = "/";
+	
 	/**
 	 * @downloadTree: stores the complete metadata(path of folders) of cloud
 	 *                account. Used to display when user browses to select the
@@ -233,10 +235,10 @@ public class CloudFileTree {
 		for (int i = 0; i < componentNo; i++) {
 			componentPath = parentPath.getPathComponent(i).toString();
 
-			// do not add osDelimiter to the last component of the path
-			if ((componentPath.endsWith("/") == false)
+			// do not add cloud delimiter to the last component of the path
+			if ((componentPath.endsWith(CLOUD_DELIMITER) == false)
 					&& (i < (componentNo - 1)))
-				componentPath = componentPath.concat("/");
+				componentPath = componentPath.concat(CLOUD_DELIMITER);
 
 			selectedNodePath = selectedNodePath.concat(componentPath);
 		}
