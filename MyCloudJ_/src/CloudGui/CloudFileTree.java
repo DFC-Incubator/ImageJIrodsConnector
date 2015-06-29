@@ -233,7 +233,7 @@ public class CloudFileTree {
 		for (int i = 0; i < componentNo; i++) {
 			componentPath = parentPath.getPathComponent(i).toString();
 
-			// do not add "/" to the last component of the path
+			// do not add osDelimiter to the last component of the path
 			if ((componentPath.endsWith("/") == false)
 					&& (i < (componentNo - 1)))
 				componentPath = componentPath.concat("/");

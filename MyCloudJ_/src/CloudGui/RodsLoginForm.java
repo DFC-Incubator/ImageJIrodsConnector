@@ -23,6 +23,7 @@ public class RodsLoginForm {
 	private JTextField rodsZone;
 	private JTextField rodsRes;
 	private JButton loginRodsButton;
+	private JButton disconnectButton;
 	private JLabel rodsLblConnectionStatus;
 	
 	
@@ -95,8 +96,12 @@ public class RodsLoginForm {
 		lPanel11.add(rodsRes);
 		
 		// button for connectiing to iRODS
-		setLoginRodsButton(new JButton("Access iRODS!"));
+		JLabel buttonsLabel;
+		setLoginRodsButton(new JButton("Access iRODS"));
+		disconnectButton = new JButton("Disconnect iRODS");
+		disconnectButton.setVisible(false);
 		lPanel12.add(getLoginRodsButton());
+		lPanel12.add(disconnectButton);
 		
 		// connection status
 		rodsLblConnectionStatus = new JLabel("Not Connected!");
@@ -182,5 +187,26 @@ public class RodsLoginForm {
 
 	public String getRodsRes() {
 		return rodsRes.getText();
+	}
+
+	public JButton getDisconnectButton() {
+		return disconnectButton;
+	}
+
+	public void setDisconnectButton(JButton disconnectButton) {
+		this.disconnectButton = disconnectButton;
+	}
+	
+	public void setConnected(boolean value) {
+		if (value) {
+			loginRodsButton.setVisible(false);
+			disconnectButton.setVisible(true);
+			rodsLblConnectionStatus.setText("Connected to iRODS");
+		}
+		else {
+			loginRodsButton.setVisible(true);
+			disconnectButton.setVisible(false);
+			rodsLblConnectionStatus.setText("Not connected");
+		}
 	}
 }

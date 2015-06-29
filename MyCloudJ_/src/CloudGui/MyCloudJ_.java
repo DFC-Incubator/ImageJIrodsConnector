@@ -165,6 +165,10 @@ public class MyCloudJ_ implements PlugIn {
 		// build file browsing trees for local files
 		localFileTree = new LocalFileTree(localHomeDirectoryPath);
 	}
+	
+	private void disableRodsGUI() {
+		rodsLoginForm.resetAndEnable();
+	}
 
 	private void assignActionListeners() {
 		tasksWindow.getBtnFileChooser1().addActionListener(
@@ -174,6 +178,8 @@ public class MyCloudJ_ implements PlugIn {
 				.addActionListener(new BtnRodsLoginRadioListener());
 		rodsLoginForm.getLoginRodsButton().addActionListener(
 				new BtnConnectRodsListener());
+		rodsLoginForm.getDisconnectButton().addActionListener(
+				new BtnDisConnectRodsListener());
 		dropboxLoginForm.getBtnConnect().addActionListener(
 				new BtnDbxConnectListener());
 		dropboxLoginForm.getAccessDbxButton().addActionListener(
@@ -205,8 +211,8 @@ public class MyCloudJ_ implements PlugIn {
 					tasksWindow.resetAndDisable();
 					freeCloudResources();
 					terminateTransferThreads();
-					// cancel the switch to Dropboxs
-				} else {
+					rodsLoginForm.setConnected(false);
+				} else { // cancel the switch to Dropbox
 					irodsLoginRadioButton.setSelected(true);
 					return;
 				}
@@ -218,10 +224,6 @@ public class MyCloudJ_ implements PlugIn {
 			rodsLoginForm.setVisible(false);
 			dropboxLoginForm.setVisible(true);
 			tasksWindow.setTitle(title3);
-		}
-
-		private void disableRodsGUI() {
-			rodsLoginForm.resetAndEnable();
 		}
 	}
 
@@ -247,8 +249,7 @@ public class MyCloudJ_ implements PlugIn {
 					tasksWindow.resetAndDisable();
 					freeCloudResources();
 					terminateTransferThreads();
-					// cancel the switch to iRODS
-				} else {
+				} else { // cancel the switch to iRODS
 					dbxLoginRadioButton.setSelected(true);
 					return;
 				}
@@ -399,6 +400,18 @@ public class MyCloudJ_ implements PlugIn {
 			}
 		}
 	}
+	
+	class BtnDisConnectRodsListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			disableRodsGUI();
+			disableJTreeGUI();
+			tasksWindow.resetAndDisable();
+			freeCloudResources();
+			terminateTransferThreads();
+			rodsLoginForm.setConnected(false);
+		}
+	}
 
 	class BtnConnectRodsListener implements ActionListener {
 		private String host, zone, resource, user, password;
@@ -412,17 +425,17 @@ public class MyCloudJ_ implements PlugIn {
 			 * TESTING -temporary solution for not entering the credentials for
 			 * every run
 			 */
-			rodsUtilsObj.setUsername("rods");
-			rodsUtilsObj.setIrodsPassword("rods");
-			rodsUtilsObj.setHost("irods-dev.incf.org");
-			rodsUtilsObj.setPort(1247);
-			rodsUtilsObj.setZone("BragadiruZone");
-			rodsUtilsObj.setRes("");
+//					rodsUtilsObj.setUsername("rods");
+//					rodsUtilsObj.setIrodsPassword("rods");
+//					rodsUtilsObj.setHost("irods-dev.incf.org");
+//					rodsUtilsObj.setPort(1247);
+//					rodsUtilsObj.setZone("BragadiruZone");
+//					rodsUtilsObj.setRes("");
 
 			try {
-				// checkLoginCredentials();
-				// rodsUtilsObj.setCredentials(user, password, host, port, zone,
-				// resource);
+				 checkLoginCredentials();
+				 rodsUtilsObj.setCredentials(user, password, host, port, zone,
+						 resource);
 
 				rodsUtilsObj.login();
 				userIsConnected = true;
@@ -439,8 +452,8 @@ public class MyCloudJ_ implements PlugIn {
 				return;
 			}
 			initializeTransferThreads(cloudHandler, tasksWindow);
-
-			rodsLoginForm.setStatus("Connected to iRODS");
+			
+			rodsLoginForm.setConnected(true);
 			tasksWindow.enable();
 		}
 
@@ -502,7 +515,7 @@ public class MyCloudJ_ implements PlugIn {
 		public void actionPerformed(ActionEvent arg0) {
 			// upload file to cloud
 			if (tasksWindow.getUploadRadioButton().isSelected()) {
-				localFileTree.openSelectionGUI(false);
+				localFileTree.openSelectionGUI(false, localFileTree.getSelectedFilePath());
 				tasksWindow.setSourcePath(localFileTree.getSelectedFilePath());
 			}
 			// download file from cloud
@@ -532,7 +545,7 @@ public class MyCloudJ_ implements PlugIn {
 						new BtnCancelListener());
 				// download file from cloud
 			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
-				localFileTree.openSelectionGUI(true);
+				localFileTree.openSelectionGUI(true, localFileTree.getSelectedFilePath());
 				tasksWindow.setDestinationPath(localFileTree
 						.getSelectedFilePath());
 				tasksWindow.disableDestinationPath();
