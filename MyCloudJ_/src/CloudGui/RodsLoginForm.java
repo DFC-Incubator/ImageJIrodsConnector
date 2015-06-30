@@ -104,7 +104,7 @@ public class RodsLoginForm {
 		lPanel12.add(disconnectButton);
 		
 		// connection status
-		rodsLblConnectionStatus = new JLabel("Not Connected!");
+		rodsLblConnectionStatus = new JLabel("Not Connected");
 		lPanel13.add(rodsLblConnectionStatus);
 
 		lPanel6.setLayout(new FlowLayout(FlowLayout.CENTER));

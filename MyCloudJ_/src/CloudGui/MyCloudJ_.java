@@ -169,6 +169,8 @@ public class MyCloudJ_ implements PlugIn {
 				new BtnDisConnectRodsListener());
 		dropboxLoginForm.getBtnConnect().addActionListener(
 				new BtnDbxConnectListener());
+		dropboxLoginForm.getDisconnectButton().addActionListener(
+				new BtnDisConnectDbxListener());
 		dropboxLoginForm.getAccessDbxButton().addActionListener(
 				new BtnDbxAccessListener());
 		tasksWindow.getBtnFileChooser2().addActionListener(
@@ -361,12 +363,8 @@ public class MyCloudJ_ implements PlugIn {
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildFileSelectionTrees(cloudHomeDirectoryPath,
 							LOCAL_HOME_DIRECTORY_PATH);
-					/*
-					 * Disable the access code textfield and enable the the
-					 * right panel(which contains the tasks section) after the
-					 * user is connected.
-					 */
-					dropboxLoginForm.setEnabledAccessCodeField(false);
+					
+					dropboxLoginForm.setConnected();
 
 					// All the components of right window are enabled after
 					// successful connection with user's dropbox account
@@ -390,6 +388,14 @@ public class MyCloudJ_ implements PlugIn {
 						"MyCLoudJ - Access Error", JOptionPane.ERROR_MESSAGE);
 				e1.printStackTrace();
 			}
+		}
+	}
+	
+	class BtnDisConnectDbxListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			genericCloudDisconnect();
+			dropboxLoginForm.reset();
 		}
 	}
 

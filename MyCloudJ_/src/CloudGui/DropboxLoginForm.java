@@ -54,7 +54,7 @@ public class DropboxLoginForm {
 	 * 
 	 * Note : Intially disabled.
 	 */
-	private JButton btnConnect;
+	private JButton connectButton, disconnectButton;
 	/**
 	 * This label will display the connection status of the plugin along with
 	 * username (if connected) Status Format : Connected as <username> or Not
@@ -89,7 +89,7 @@ public class DropboxLoginForm {
 		instructions.setEditable(false);
 		lPanel1.add(instructions);
 
-		setAccessDbxButton(new JButton("Access Dropbox  !"));
+		setAccessDbxButton(new JButton("Access Dropbox"));
 		lPanel2.add(getAccessDbxButton());
 
 		/*
@@ -105,10 +105,15 @@ public class DropboxLoginForm {
 		getDbxAccessCodeTextField().setText(null);
 		getDbxAccessCodeTextField().setEnabled(false);
 		lPanel3.add(getDbxAccessCodeTextField());
-
-		setBtnConnect(new JButton("Connect !"));
+		
+		setBtnConnect(new JButton("Connect"));
 		getBtnConnect().setEnabled(false);
+		
+		disconnectButton = new JButton("Disconnect");
+		disconnectButton.setVisible(false);
+		
 		lPanel3.add(getBtnConnect());
+		lPanel3.add(disconnectButton);
 
 		/*
 		 * Add JLabel for user status -> connected or not connected. This label
@@ -146,7 +151,6 @@ public class DropboxLoginForm {
 		getlPanelDbSpecific().setLayout(new BoxLayout(getlPanelDbSpecific(),
 				BoxLayout.Y_AXIS));
 		lPanelDbSpecific.setPreferredSize(new Dimension(700, 360));
-		
 	}
 	
 	public void setVisible(boolean value) {
@@ -156,7 +160,9 @@ public class DropboxLoginForm {
 	public void reset() {
 		dbxAccessCodeTextField.setText("");
 		dbxAccessCodeTextField.setEnabled(false);
+		getBtnConnect().setVisible(true);
 		getBtnConnect().setEnabled(false);
+		disconnectButton.setVisible(false);
 		dbxLblConnectionStatus.setText("");
 		getUserInfo().setText("");
 	}
@@ -198,11 +204,11 @@ public class DropboxLoginForm {
 	}
 
 	public JButton getBtnConnect() {
-		return btnConnect;
+		return connectButton;
 	}
 
 	public void setBtnConnect(JButton btnConnect) {
-		this.btnConnect = btnConnect;
+		this.connectButton = btnConnect;
 	}
 
 	public JTextArea getUserInfo() {
@@ -211,5 +217,19 @@ public class DropboxLoginForm {
 
 	public void setUserInfo(String info) {
 		userInfo.setText(info);
+	}
+	
+	public void setConnected() {
+		connectButton.setVisible(false);
+		disconnectButton.setVisible(true);
+		dbxAccessCodeTextField.setEnabled(false);
+	}
+
+	public JButton getDisconnectButton() {
+		return disconnectButton;
+	}
+
+	public void setDisconnectButton(JButton disconnectButton) {
+		this.disconnectButton = disconnectButton;
 	}
 }
