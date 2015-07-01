@@ -74,7 +74,9 @@ public class DownloadThread extends Thread {
 				cloudHandler.downloadFile(sourcePath, destPath);
 				logger.writeLog("Downloading of " + sourcePath
 						+ " complete\n\n");
-				openFile(task);
+				
+				if(isFileDownload)
+					openFile(task);
 			} catch (CloudException e) {
 				logger.writeLog("Error downloading " + downloadType + " "
 						+ sourcePath + ". " + e.getCloudError() + "\n\n");

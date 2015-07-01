@@ -77,7 +77,9 @@ public class UploadThread extends Thread {
 				// start the download
 				cloudHandler.uploadFile(sourcePath, destPath);
 				logger.writeLog("Uploading of " + sourcePath + " complete \n\n");
-				openFile(task);
+				
+				if (file.isFile())
+					openFile(task);
 			} catch (CloudException e) {
 				logger.writeLog("Error uploading " + uploadType + " " + sourcePath
 						+ ". " + e.getCloudError() + "\n\n");
