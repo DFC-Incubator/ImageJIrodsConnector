@@ -3,6 +3,9 @@ package CloudGui;
 import general.GeneralUtility;
 
 import java.awt.FlowLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -24,6 +27,7 @@ import cloud_interfaces.CloudOperations;
 
 public class CloudFileTree {
 	private static final String CLOUD_DELIMITER = "/";
+	private String homeDirectoryPath;
 	
 	/**
 	 * @downloadTree: stores the complete metadata(path of folders) of cloud
@@ -104,29 +108,20 @@ public class CloudFileTree {
 
 	public CloudFileTree(String homeDirectoryPath, CloudOperations cloudHandler)
 			throws CloudException {
-		List<CloudFile> rootFiles;
 		this.cloudHandler = cloudHandler;
+		this.homeDirectoryPath = homeDirectoryPath;
 
 		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
 		downloadTreeModel = new DefaultTreeModel(downloadRoot);
 		downloadTree = new JTree(downloadTreeModel);
 
-		rootFiles = cloudHandler.listFiles(homeDirectoryPath);
-		addChildren(downloadRoot, downloadTreeModel, rootFiles);
 		getDownloadTree().getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		downloadTreeModel.reload(downloadRoot);
 
-		/*
-		 * Create the JTree for browsing(to select path for uploading the
-		 * file/folder) Only added subfolders of the Dropbox root folder i.e.
-		 * "/" Will add new nodes on demand of the user in form of "Expand"
-		 * clicks
-		 */
 		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
 		uploadTreeModel = new DefaultTreeModel(uploadRoot);
 		uploadTree = new JTree(uploadTreeModel);
-		addChildrenFolder(downloadRoot, downloadTreeModel, rootFiles);
 		getUploadTree().getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		uploadTreeModel.reload(uploadRoot);
@@ -204,22 +199,100 @@ public class CloudFileTree {
 	}
 
 	public synchronized void updateTrees(String path, boolean onlyFolders) {
-		String selectedFilePath = "";
-
-		try {
-			// update the upload tree
-			selectedFilePath = getSelectedNodePath(uploadTree);
-			if (selectedFilePath != null && path.startsWith(selectedFilePath) == true) 
-				expandTree(uploadTree, uploadTreeModel, false, selectedFilePath);
-
-			// update the download tree
-			selectedFilePath = getSelectedNodePath(downloadTree);
-			
-			if (selectedFilePath != null && path.startsWith(selectedFilePath) == true) 
-				expandTree(downloadTree, downloadTreeModel, false, selectedFilePath);
-		} catch (CloudException e) {
-			e.printStackTrace();
+		DefaultMutableTreeNode node;
+		TreePath currNodePath;
+		boolean currNodeisExpanded;
+		
+		// try to expand the upload tree
+		node = getNodeFromPath(uploadRoot, path);
+		if (node == null) 
+			System.out.println("Error expanding tree!");
+		else {
+			currNodePath = new TreePath(node.getPath());
+			currNodeisExpanded = uploadTree.isExpanded(currNodePath);
+			/* expand only if the folder/parent of the folder where 
+			 * we've done the upload is expanded.
+			 */
+			if (currNodeisExpanded || isParentExpanded(node, uploadTree))
+				try {
+					expandTree(uploadTree, uploadTreeModel, true, path);
+				} catch (CloudException e) {
+					System.out.println("Error expanding upload tree!");
+					e.printStackTrace();
+				}
 		}
+		
+		// try to expand the download tree
+		node = getNodeFromPath(downloadRoot, path);
+		if (node == null) {
+			System.out.println("Error expanding tree!");
+		}
+		else { 
+			try {
+				currNodePath = new TreePath(node.getPath());
+				currNodeisExpanded = downloadTree.isExpanded(currNodePath);
+				/* expand only if: 
+				 * - the folder where've done the upload is expanded 
+				 * - the folder where we've done the upload contains only the 
+				 * uploaded file and the parent of the folder where we've done 
+				 * the upload is expanded
+				 */
+				if (currNodeisExpanded || (isParentExpanded(node, downloadTree) &&
+					cloudHandler.listFiles(path).size() == 1))
+					expandTree(downloadTree, downloadTreeModel, false, path);
+			} catch (CloudException e) {
+				System.out.println("Error expanding download tree!");
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private boolean isParentExpanded(DefaultMutableTreeNode node, JTree tree) {
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode)tree.getModel().getRoot();
+		DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
+		TreePath parentTreePath;
+		
+		if (root.toString() == homeDirectoryPath)
+			return true;
+		
+		parentTreePath = new TreePath(parent.getPath());
+		if (tree.isExpanded(parentTreePath)) 
+			return true;
+		
+		return false;
+	}
+	
+	private DefaultMutableTreeNode getNodeFromPath (DefaultMutableTreeNode root, String path) {
+		if (path == null || path.startsWith(homeDirectoryPath) == false)
+			return null;
+		
+		if (path.equals(root.toString()) == true)
+			return root;
+		
+		path = path.substring(homeDirectoryPath.length() + 1, path.length());
+		List<String> pathComponents = new ArrayList<String>(Arrays.asList(path.split(CLOUD_DELIMITER)));
+		
+		return getNodeFromPath(root, pathComponents);
+	}
+	
+	private DefaultMutableTreeNode getNodeFromPath(DefaultMutableTreeNode node, List<String> pathComponents) {
+		boolean notFound = true;
+		if (pathComponents.size() == 0) 
+			return node;
+	
+		String searchedNodeName = pathComponents.get(0);
+		pathComponents.remove(0);
+		
+		@SuppressWarnings("unchecked")
+		Enumeration<DefaultMutableTreeNode> children = node.children();
+		while (children.hasMoreElements() && notFound) {
+			DefaultMutableTreeNode currNode = children.nextElement();
+			if (currNode.toString().equals(searchedNodeName) == true) {
+					notFound = false;
+					return getNodeFromPath(currNode, pathComponents);
+			}
+		}
+		return null;
 	}
 
 	private String getSelectedNodePath(JTree tree) {
