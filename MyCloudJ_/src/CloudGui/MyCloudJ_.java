@@ -21,10 +21,10 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 import rods_backend.RodsOperations;
 import dropbox_backend.DropboxOperations;
-import file_transfer_backend.DownloadThread;
+import file_transfer_backend.DownloadExecutor;
 import file_transfer_backend.FileTransferException;
 import file_transfer_backend.TransferTask;
-import file_transfer_backend.UploadThread;
+import file_transfer_backend.UploadExecutor;
 
 /**
  * @author Atin Mathur (mathuratin007@gmail.com) - Dropbox functionality
@@ -57,10 +57,10 @@ public class MyCloudJ_ implements PlugIn {
 	private final String LOCAL_HOME_DIRECTORY_PATH = ".";
 
 	// thread used for downloading tasks
-	DownloadThread downloadThread;
+	DownloadExecutor downloadThread;
 	
 	// thread used for downloading tasks
-	UploadThread uploadThread;
+	UploadExecutor uploadThread;
 
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
@@ -193,12 +193,10 @@ public class MyCloudJ_ implements PlugIn {
 	
 	public void initializeTransferThreads(CloudOperations cloudHandler, TasksWindow tasksWindow) {
 		// start the thread for downloading
-		downloadThread = new DownloadThread(cloudHandler, tasksWindow.getLogger());
-		downloadThread.start();
+		downloadThread = new DownloadExecutor(cloudHandler, tasksWindow.getLogger());
 		
 		// start the thread for uploading
-		uploadThread = new UploadThread(cloudHandler, cloudFileTree, tasksWindow.getLogger());
-		uploadThread.start();
+		uploadThread = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getLogger());
 	}
 	
 	public void genericCloudDisconnect() {
@@ -216,12 +214,6 @@ public class MyCloudJ_ implements PlugIn {
 	public void terminateTransferThreads() {
 		downloadThread.terminate();
 		uploadThread.terminate();
-		try {
-			downloadThread.join();
-			uploadThread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	private void freeCloudResources() {
