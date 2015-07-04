@@ -68,6 +68,27 @@ public class CloudFileTree {
 	public void createEnclosingFrameUpload() {
 		createEnclosingFrame(uploadTree);
 	}
+	
+	public CloudFileTree(String homeDirectoryPath, CloudOperations cloudHandler)
+			throws CloudException {
+		this.cloudHandler = cloudHandler;
+		this.homeDirectoryPath = homeDirectoryPath;
+
+		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
+		downloadTreeModel = new DefaultTreeModel(downloadRoot);
+		downloadTree = new JTree(downloadTreeModel);
+
+		getDownloadTree().getSelectionModel().setSelectionMode(
+				TreeSelectionModel.SINGLE_TREE_SELECTION);
+		downloadTreeModel.reload(downloadRoot);
+
+		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
+		uploadTreeModel = new DefaultTreeModel(uploadRoot);
+		uploadTree = new JTree(uploadTreeModel);
+		getUploadTree().getSelectionModel().setSelectionMode(
+				TreeSelectionModel.SINGLE_TREE_SELECTION);
+		uploadTreeModel.reload(uploadRoot);
+	}
 
 	private void createEnclosingFrame(JTree fileTree) {
 		JPanel fileTreePanel = new JPanel();
@@ -104,27 +125,6 @@ public class CloudFileTree {
 		enclosingFrame.setSize(350, 200);
 		enclosingFrame.setResizable(true);
 		enclosingFrame.pack();
-	}
-
-	public CloudFileTree(String homeDirectoryPath, CloudOperations cloudHandler)
-			throws CloudException {
-		this.cloudHandler = cloudHandler;
-		this.homeDirectoryPath = homeDirectoryPath;
-
-		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
-		downloadTreeModel = new DefaultTreeModel(downloadRoot);
-		downloadTree = new JTree(downloadTreeModel);
-
-		getDownloadTree().getSelectionModel().setSelectionMode(
-				TreeSelectionModel.SINGLE_TREE_SELECTION);
-		downloadTreeModel.reload(downloadRoot);
-
-		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
-		uploadTreeModel = new DefaultTreeModel(uploadRoot);
-		uploadTree = new JTree(uploadTreeModel);
-		getUploadTree().getSelectionModel().setSelectionMode(
-				TreeSelectionModel.SINGLE_TREE_SELECTION);
-		uploadTreeModel.reload(uploadRoot);
 	}
 
 	/*
