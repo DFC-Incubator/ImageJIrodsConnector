@@ -129,6 +129,7 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void downloadFolder(String cloudPath, String localPath)
 			throws CloudException {
+		downloadFile(cloudPath, localPath);
 	}
 
 	@Override
@@ -166,6 +167,7 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void uploadFolder(String localPath, String cloudPath)
 			throws CloudException {
+		uploadFile(localPath, cloudPath);
 	}
 
 	@Override

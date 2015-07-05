@@ -35,10 +35,14 @@ public class UploadThread implements Callable<Void> {
 			sourcePath = task.getSourcePath();
 			destPath = task.getDestinationPath();
 			File file = new File(sourcePath);
-			uploadType = file.isFile() ? "file" : "folder";
+			boolean isFileUpload = file.isFile();
+			uploadType = isFileUpload ? "file" : "folder";
 
-			// start the download
-			cloudHandler.uploadFile(sourcePath, destPath);
+			// start the upload
+			if (isFileUpload)
+				cloudHandler.uploadFile(sourcePath, destPath);
+			else
+				cloudHandler.uploadFolder(sourcePath, destPath);
 			logger.writeLog("Uploading of " + sourcePath + " complete \n\n");
 
 			if (file.isFile())

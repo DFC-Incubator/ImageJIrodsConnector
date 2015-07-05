@@ -36,7 +36,10 @@ public class DownloadThread implements Callable<Void> {
 			downloadType = isFileDownload ? "file" : "folder";
 
 			// start the download
-			cloudHandler.downloadFile(sourcePath, destPath);
+			if (isFileDownload)
+				cloudHandler.downloadFile(sourcePath, destPath);
+			else
+				cloudHandler.downloadFolder(sourcePath, destPath);
 			logger.writeLog("Downloading of " + sourcePath + " complete\n\n");
 
 			if (isFileDownload)
