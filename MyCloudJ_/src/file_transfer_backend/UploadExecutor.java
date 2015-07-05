@@ -17,22 +17,26 @@ public class UploadExecutor extends Thread {
 	private Logger logger;
 	private CloudFileTree cloudFileTree;
 	private ExecutorService executor;
-	List<FutureTask<Void>> tasks;
-
+	List<FutureTask<Void>> futureTasks;
+	List<UploadThread> uploadThreads;
+	
 	public UploadExecutor(CloudOperations cloudHandler,
 			CloudFileTree cloudFileTree, Logger logger) {
 		this.cloudHandler = cloudHandler;
 		this.logger = logger;
 		this.cloudFileTree = cloudFileTree;
-		tasks = new ArrayList<FutureTask<Void>>(MAX_UPLOADS_QUEUED);
+		futureTasks = new ArrayList<FutureTask<Void>>(MAX_UPLOADS_QUEUED);
+		uploadThreads = new ArrayList<UploadThread>(MAX_UPLOADS_QUEUED);
 		executor = Executors.newFixedThreadPool(MAX_THREADS);
-		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++)
-			tasks.add(null);
+		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++) {
+			futureTasks.add(null);
+			uploadThreads.add(null);
+		}
 	}
 
 	public void addTask(TransferTask task) throws FileTransferException {
 		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++) {
-			FutureTask<Void> futureTask = tasks.get(i);
+			FutureTask<Void> futureTask = futureTasks.get(i);
 
 			// search for an empty/finished future task
 			if (futureTask == null || futureTask.isDone()) {
@@ -40,7 +44,8 @@ public class UploadExecutor extends Thread {
 				UploadThread uploadTask = new UploadThread(task, cloudHandler,
 						cloudFileTree, logger);
 				FutureTask<Void> newFutureTask = new FutureTask<Void>(uploadTask);
-				tasks.set(i, newFutureTask);
+				futureTasks.set(i, newFutureTask);
+				uploadThreads.set(i, uploadTask);
 
 				// submit to execution the new future task
 				executor.execute(newFutureTask);
@@ -55,9 +60,14 @@ public class UploadExecutor extends Thread {
 	}
 
 	public void terminate() {
-		for (int i = 0; i < tasks.size(); i++) {
-			FutureTask<Void> futureTask = tasks.get(i);
+		for (int i = 0; i < futureTasks.size(); i++) {
+			FutureTask<Void> futureTask = futureTasks.get(i);
 			if (futureTask != null && futureTask.isDone() == false) {
+				UploadThread canceledThread = uploadThreads.get(i);
+				TransferTask canceledTask = canceledThread.getTask();
+				logger.writeLog("Canceled upload from"
+						+ canceledTask.getSourcePath() + " to "
+						+ canceledTask.getDestinationPath() + "!\n\n");
 				futureTask.cancel(true);
 			}
 		}

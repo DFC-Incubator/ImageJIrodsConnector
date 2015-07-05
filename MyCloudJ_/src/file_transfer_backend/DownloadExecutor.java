@@ -16,29 +16,35 @@ public class DownloadExecutor {
 	private Logger logger;
 	private ExecutorService executor;
 	List<FutureTask<Void>> tasks;
+	List<DownloadThread> downloadThreads;
 
 	public DownloadExecutor(CloudOperations cloudHandler, Logger logger) {
 		this.cloudHandler = cloudHandler;
 		this.logger = logger;
 		tasks = new ArrayList<FutureTask<Void>>(MAX_DOWNLOADS_QUEUED);
+		downloadThreads = new ArrayList<DownloadThread>(MAX_DOWNLOADS_QUEUED);
 		executor = Executors.newFixedThreadPool(MAX_THREADS);
-		for (int i = 0; i < MAX_DOWNLOADS_QUEUED - 1; i++)
+		for (int i = 0; i < MAX_DOWNLOADS_QUEUED - 1; i++) {
 			tasks.add(null);
+			downloadThreads.add(null);
+		}
 	}
 
 	public void addTask(TransferTask task) throws FileTransferException {
 		for (int i = 0; i < MAX_DOWNLOADS_QUEUED - 1; i++) {
 			FutureTask<Void> futureTask = tasks.get(i);
-			
+
 			// search for an empty/finished future task
 			if (futureTask == null || futureTask.isDone()) {
-				
+
 				// create a new future task
-				DownloadThread downloadTask = new DownloadThread(
-						task, cloudHandler, logger);
-				FutureTask<Void> newFutureTask = new FutureTask<Void>(downloadTask);
+				DownloadThread downloadTask = new DownloadThread(task,
+						cloudHandler, logger);
+				FutureTask<Void> newFutureTask = new FutureTask<Void>(
+						downloadTask);
 				tasks.set(i, newFutureTask);
-				
+				downloadThreads.set(i, downloadTask);
+
 				// submit to execution the new future task
 				executor.execute(newFutureTask);
 				logger.writeLog("Downloading of " + task.getSourcePath()
@@ -56,6 +62,11 @@ public class DownloadExecutor {
 		for (int i = 0; i < tasks.size(); i++) {
 			FutureTask<Void> futureTask = tasks.get(i);
 			if (futureTask != null && futureTask.isDone() == false) {
+				DownloadThread canceledThread = downloadThreads.get(i);
+				TransferTask canceledTask = canceledThread.getTask();
+				logger.writeLog("Canceled download from"
+						+ canceledTask.getSourcePath() + " to "
+						+ canceledTask.getDestinationPath() + "!\n\n");
 				futureTask.cancel(true);
 			}
 		}

@@ -14,7 +14,7 @@ public class UploadThread implements Callable<Void> {
 	private CloudOperations cloudHandler;
 	private Logger logger;
 	private CloudFileTree cloudFileTree;
-	TransferTask task;
+	private TransferTask task;
 
 	public UploadThread(TransferTask task, CloudOperations cloudHandler,
 			CloudFileTree cloudFileTree, Logger logger) {
@@ -44,9 +44,9 @@ public class UploadThread implements Callable<Void> {
 			if (file.isFile())
 				openFile(task);
 		} catch (CloudException e) {
+			e.printStackTrace();
 			logger.writeLog("Error uploading " + uploadType + " " + sourcePath
 					+ ". " + e.getCloudError() + "\n\n");
-			e.printStackTrace();
 			return null;
 		}
 
@@ -61,5 +61,13 @@ public class UploadThread implements Callable<Void> {
 		// Open in the default application
 		Opener openfile = new Opener();
 		openfile.open(task.getSourcePath());
+	}
+
+	public TransferTask getTask() {
+		return task;
+	}
+
+	public void setTask(TransferTask task) {
+		this.task = task;
 	}
 }

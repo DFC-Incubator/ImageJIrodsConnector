@@ -42,9 +42,10 @@ public class DownloadThread implements Callable<Void> {
 			if (isFileDownload)
 				openFile(task);
 		} catch (CloudException e) {
+			e.printStackTrace();
 			logger.writeLog("Error downloading " + downloadType + " "
 					+ sourcePath + ". " + e.getCloudError() + "\n\n");
-			e.printStackTrace();
+			
 		}
 
 		// TODO: in the future we'll return the file transfer status
@@ -59,5 +60,13 @@ public class DownloadThread implements Callable<Void> {
 		fileName = GeneralUtility.getSystemSeparator() + fileName;
 		Opener openfile = new Opener();
 		openfile.open(task.getDestinationPath() + fileName);
+	}
+
+	public TransferTask getTask() {
+		return task;
+	}
+
+	public void setTask(TransferTask task) {
+		this.task = task;
 	}
 }
