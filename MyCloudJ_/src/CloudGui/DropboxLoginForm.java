@@ -175,10 +175,6 @@ public class DropboxLoginForm {
 		return lPanelDbSpecific;
 	}
 	
-	public void setEnabledAccessCodeField(boolean value) {
-		dbxAccessCodeTextField.setEnabled(value);
-	}
-	
 	public String getAccesssCode() {
 		return dbxAccessCodeTextField.getText();
 	}
@@ -201,6 +197,12 @@ public class DropboxLoginForm {
 
 	public void setDbxAccessCodeTextField(JTextField dbxAccessCodeTextField) {
 		this.dbxAccessCodeTextField = dbxAccessCodeTextField;
+	}
+	
+	// allow the user to paste the access code and connect
+	public void prepareToConnect() {
+		dbxAccessCodeTextField.setEnabled(true);
+		connectButton.setEnabled(true);
 	}
 
 	public JButton getBtnConnect() {
