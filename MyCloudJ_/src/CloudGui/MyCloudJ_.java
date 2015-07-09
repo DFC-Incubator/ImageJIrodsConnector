@@ -310,7 +310,6 @@ public class MyCloudJ_ implements PlugIn {
 	}
 
 	class BtnDbxConnectListener implements ActionListener {
-		String userName, country, userQuota;
 		String dbxAccessCode;
 
 		@Override
@@ -318,38 +317,23 @@ public class MyCloudJ_ implements PlugIn {
 			DropboxOperations dbxUtility = (DropboxOperations) cloudHandler;
 
 			try {
-				// retrieve the access code from textfield
 				dbxAccessCode = dropboxLoginForm.getAccesssCode();
 
-				// if user is previously not connected and access code is not
-				// empty then connect it
 				if (!userIsConnected && !dbxAccessCode.equals("")) {
 					// connect user to dropbox
 					dbxUtility.DbxLinkUser(dbxAccessCode);
-
-					// user status changed to 1(i.e., connected)
 					userIsConnected = true;
+					dropboxLoginForm.setConnected();
 
-					/*
-					 * Retrieve username, country and quota from dropbox account
-					 * info API and print it in the text area for the user
-					 */
-					userName = dbxUtility.getUserName();
-					country = dbxUtility.getCountry();
-					userQuota = dbxUtility.getUserQuota();
-					dropboxLoginForm.setStatus("Connected as " + userName);
-					dropboxLoginForm.setUserInfo("Username: " + userName
-							+ "\nCountry: " + country + "\nQuota: " + userQuota
-							+ " GB");
-
+					// display user info in a text area
+					displayUserInfo(dbxUtility);
+					
+					// prepare the file browsing trees
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildFileSelectionTrees(cloudHomeDirectoryPath,
 							LOCAL_HOME_DIRECTORY_PATH);
 					
-					dropboxLoginForm.setConnected();
-
-					// all the components of right window are enabled after
-					// successful connection with user's dropbox account
+					// enable the right panel
 					tasksWindow.enable();
 				}
 				else if (!userIsConnected && dbxAccessCode.equals(""))
@@ -363,6 +347,17 @@ public class MyCloudJ_ implements PlugIn {
 				e1.printStackTrace();
 			}
 		}
+	}
+	
+	public void displayUserInfo(DropboxOperations dbxUtility) {
+		String userName, country, userQuota;
+		userName = dbxUtility.getUserName();
+		country = dbxUtility.getCountry();
+		userQuota = dbxUtility.getUserQuota();
+		dropboxLoginForm.setStatus("Connected as " + userName);
+		dropboxLoginForm.setUserInfo("Username: " + userName
+				+ "\nCountry: " + country + "\nQuota: " + userQuota
+				+ " GB");
 	}
 	
 	class BtnDisConnectDbxListener implements ActionListener {
