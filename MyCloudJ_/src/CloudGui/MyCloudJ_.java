@@ -295,25 +295,16 @@ public class MyCloudJ_ implements PlugIn {
 	class BtnDbxAccessListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (!userIsConnected) {
-				try {
-					cloudHandler.login();
-					dropboxLoginForm.prepareToConnect();
+			try {
+				cloudHandler.login();
+				dropboxLoginForm.prepareToConnect();
 					
-					initializeTransferThreads(cloudHandler, tasksWindow);
-				} catch (CloudException e4) {
-					JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
-							"MyCLoudJ - Access Error",
-							JOptionPane.ERROR_MESSAGE);
-					e4.printStackTrace();
-				}
-			}
-			// If userStatus=1 (is already connected), no need to use connect
-			// connect button, warning for user
-			else {
-				JOptionPane.showMessageDialog(mainFrame, "Already connected !",
-						"MyCLoudJ - Already Connected",
-						JOptionPane.WARNING_MESSAGE);
+				initializeTransferThreads(cloudHandler, tasksWindow);
+			} catch (CloudException e4) {
+				JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
+						"MyCLoudJ - Access Error",
+						JOptionPane.ERROR_MESSAGE);
+				e4.printStackTrace();
 			}
 		}
 	}
