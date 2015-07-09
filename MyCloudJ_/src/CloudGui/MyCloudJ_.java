@@ -298,8 +298,6 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				cloudHandler.login();
 				dropboxLoginForm.prepareToConnect();
-					
-				initializeTransferThreads(cloudHandler, tasksWindow);
 			} catch (CloudException e4) {
 				JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
 						"MyCLoudJ - Access Error",
@@ -327,6 +325,9 @@ public class MyCloudJ_ implements PlugIn {
 
 					// display user info in a text area
 					displayUserInfo(dbxUtility);
+					
+					// start transfer threads
+					initializeTransferThreads(cloudHandler, tasksWindow);
 					
 					// prepare the file browsing trees
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
