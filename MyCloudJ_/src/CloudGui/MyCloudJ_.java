@@ -348,18 +348,10 @@ public class MyCloudJ_ implements PlugIn {
 					
 					dropboxLoginForm.setConnected();
 
-					// All the components of right window are enabled after
+					// all the components of right window are enabled after
 					// successful connection with user's dropbox account
 					tasksWindow.enable();
 				}
-				// If user is already connected userStatus=1, warning for user
-				else if (userIsConnected == true)
-					JOptionPane.showMessageDialog(mainFrame,
-							"Already connected !",
-							"MyCLoudJ - Already Connected",
-							JOptionPane.WARNING_MESSAGE);
-				// If user is not connected but there is no access code,
-				// information for user
 				else if (!userIsConnected && dbxAccessCode.equals(""))
 					JOptionPane.showMessageDialog(mainFrame,
 							"Enter Access Code !",
