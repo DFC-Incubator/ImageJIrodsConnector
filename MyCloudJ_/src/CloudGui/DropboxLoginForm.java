@@ -158,6 +158,7 @@ public class DropboxLoginForm {
 	}
 	
 	public void reset() {
+		accessDbxButton.setEnabled(true);
 		dbxAccessCodeTextField.setText("");
 		dbxAccessCodeTextField.setEnabled(false);
 		getBtnConnect().setVisible(true);
@@ -225,6 +226,7 @@ public class DropboxLoginForm {
 		connectButton.setVisible(false);
 		disconnectButton.setVisible(true);
 		dbxAccessCodeTextField.setEnabled(false);
+		accessDbxButton.setEnabled(false);
 	}
 
 	public JButton getDisconnectButton() {
