@@ -100,7 +100,7 @@ public class RodsOperations implements CloudOperations {
 		String error = "";
 		long fileSizeKB;
 		
-		checkPaths(localPath, cloudPath);
+		GeneralUtility.checkPaths(localPath, cloudPath, RODS_DELIMITER);
 		
 		try {
 			// access the local filesystem
@@ -138,7 +138,7 @@ public class RodsOperations implements CloudOperations {
 		String error = "";
 		long fileSizeKB;
 		
-		checkPaths(localPath, cloudPath);
+		GeneralUtility.checkPaths(localPath, cloudPath, RODS_DELIMITER);
 		
 		try {
 			// access the local filesystem
@@ -176,7 +176,7 @@ public class RodsOperations implements CloudOperations {
 		List<CloudFile> fileList;
 		IRODSFile irodsFile;
 
-		checkCloudPath(cloudDirectoryPath);
+		GeneralUtility.checkCloudPath(cloudDirectoryPath, RODS_DELIMITER);
 		fileList = new ArrayList<CloudFile>();
 
 		// add "/" at the end of the path, otherwise Jargon API complains
@@ -205,36 +205,13 @@ public class RodsOperations implements CloudOperations {
 
 	@Override
 	public boolean isFile(String filePath) throws CloudException {
-		checkCloudPath(filePath);
+		GeneralUtility.checkCloudPath(filePath, RODS_DELIMITER);
 
 		IRODSFile irodsFile = accessFile(filePath);
 		if (irodsFile.isFile())
 			return true;
 
 		return false;
-	}
-
-	private void checkCloudPath(String path) throws CloudException {
-		String error;
-
-		if (path == null || path.contains(RODS_DELIMITER) == false) {
-			error = "Invalid Cloud Path";
-			throw (new CloudException(error));
-		}
-	}
-
-	private void checkPaths(String localPath, String cloudPath)
-			throws CloudException {
-		String error;
-
-		checkCloudPath(cloudPath);
-		try {
-			GeneralUtility.checkLocalPath(localPath);
-		} catch (Exception e1) {
-			e1.printStackTrace();
-			error = "Invalid local path: ";
-			throw (new CloudException(error.concat(e1.getMessage())));
-		}
 	}
 
 	public String getUsername() {

@@ -29,11 +29,11 @@ public class DropboxLoginForm {
 	 */
 	private String displayInstructions = "";
 	private String heading = "  Instructions : \n \n";
-	private String step1 = "  1. Click the \"Access Dropbox !\" button below. It will open the Dropbox app URL in the default browser.\n \n";
+	private String step1 = "  1. Click the \"Access Dropbox\" button below. It will open the Dropbox app URL in the default browser.\n \n";
 	private String step2 = "  2. Next, Sign-in to the Dropbox account and allow the MyCloudJ App.\n \n";
 	private String step3 = "  3. On clicking the \"Allow\" button, Dropbox will generate an access code.\n \n";
 	private String step4 = "  4. Copy the \"access code\" and paste it in the text field below.\n \n";
-	private String step5 = "  5. Click the \"Connect !\" button. You can now access Dropbox.\n \n";
+	private String step5 = "  5. Click the \"Connect\" button. You can now access Dropbox.\n \n";
 	private String note1 = "  Note: Enter the correct access code!";
 	
 	/**

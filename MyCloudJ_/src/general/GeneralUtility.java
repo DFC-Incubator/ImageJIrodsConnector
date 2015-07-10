@@ -90,7 +90,7 @@ public class GeneralUtility {
 		int lastOccurence; 
 		
 		if (path == null || path.equals(delimiter) == true)
-			return path;
+			return "";
 		
 		lastOccurence = path.lastIndexOf(delimiter);
 		if (lastOccurence == -1)
@@ -117,6 +117,29 @@ public class GeneralUtility {
 	public static void checkLocalPath(String localPath) throws Exception {
 		if (localPath == null || localPath.contains(getSystemSeparator()) == false)
 			throw new Exception();
+	}
+	
+	public static void checkCloudPath(String path, String delimiter) throws CloudException {
+		String error;
+
+		if (path == null || path.contains(delimiter) == false) {
+			error = "Invalid Cloud Path";
+			throw (new CloudException(error));
+		}
+	}
+
+	public static void checkPaths(String localPath, String cloudPath, String delimiter)
+			throws CloudException {
+		String error;
+
+		checkCloudPath(cloudPath, delimiter);
+		try {
+			checkLocalPath(localPath);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			error = "Invalid local path: ";
+			throw (new CloudException(error.concat(e1.getMessage())));
+		}
 	}
 
 	public void setOS(String oS) {
