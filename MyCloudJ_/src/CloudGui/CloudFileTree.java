@@ -205,9 +205,7 @@ public class CloudFileTree {
 		
 		// try to expand the upload tree
 		node = getNodeFromPath(uploadRoot, path);
-		if (node == null) 
-			System.out.println("Error expanding tree!");
-		else {
+		if (node != null)  {
 			currNodePath = new TreePath(node.getPath());
 			currNodeisExpanded = uploadTree.isExpanded(currNodePath);
 			/* expand only if the folder/parent of the folder where 
@@ -224,10 +222,7 @@ public class CloudFileTree {
 		
 		// try to expand the download tree
 		node = getNodeFromPath(downloadRoot, path);
-		if (node == null) {
-			System.out.println("Error expanding tree!");
-		}
-		else { 
+		if (node != null) {
 			try {
 				currNodePath = new TreePath(node.getPath());
 				currNodeisExpanded = downloadTree.isExpanded(currNodePath);
