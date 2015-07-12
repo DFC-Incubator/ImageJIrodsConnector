@@ -14,6 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
@@ -98,9 +99,13 @@ public class MyCloudJ_ implements PlugIn {
 	private TitledBorder title2, title4;
 
 	public void run(String arg) {
-		System.out.println(javax.swing.SwingUtilities.isEventDispatchThread());
-		drawGUI();
-		assignActionListeners();
+		SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+				System.out.println(javax.swing.SwingUtilities.isEventDispatchThread());
+				drawGUI();
+				assignActionListeners();
+		    }
+		});
 	}
 
 	private void drawGUI() {
