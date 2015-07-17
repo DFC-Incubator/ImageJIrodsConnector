@@ -2,14 +2,13 @@ package file_transfer_backend;
 
 import general.GeneralUtility;
 import ij.io.Opener;
-
-import java.util.concurrent.Callable;
+import javax.swing.SwingWorker;
 
 import CloudGui.Logger;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 
-public class DownloadThread implements Callable<Void> {
+public class DownloadThread extends SwingWorker<Void, Void> {
 	private CloudOperations cloudHandler;
 	private Logger logger;
 	private TransferTask task;
@@ -22,7 +21,7 @@ public class DownloadThread implements Callable<Void> {
 	}
 
 	@Override
-	public Void call() throws CloudException {
+	public Void doInBackground() throws CloudException {
 		String sourcePath = "";
 		String destPath = "";
 		boolean isFileDownload = false;

@@ -3,14 +3,14 @@ package file_transfer_backend;
 import ij.io.Opener;
 
 import java.io.File;
-import java.util.concurrent.Callable;
+import javax.swing.SwingWorker;
 
 import CloudGui.CloudFileTree;
 import CloudGui.Logger;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 
-public class UploadThread implements Callable<Void> {
+public class UploadThread extends SwingWorker<Void, Void> {
 	private CloudOperations cloudHandler;
 	private Logger logger;
 	private CloudFileTree cloudFileTree;
@@ -25,7 +25,7 @@ public class UploadThread implements Callable<Void> {
 	}
 
 	@Override
-	public Void call() throws CloudException {
+	public Void doInBackground() throws CloudException {
 		String sourcePath = "";
 		String destPath = "";
 		String uploadType = ""; // file/folder
