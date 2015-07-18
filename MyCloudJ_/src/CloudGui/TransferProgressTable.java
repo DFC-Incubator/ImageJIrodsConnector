@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 public class TransferProgressTable {
@@ -19,11 +22,18 @@ public class TransferProgressTable {
 
 	public void draw() {
 		progressTable = new JTable();
-		
+	
 		progressTableModel = new UpdatableTableModel();
 		progressTable.setModel(progressTableModel);
 		progressTable.getColumn("Progress").setCellRenderer(
 				new ProgressCellRender(progressTableModel.getRows()));
+		
+		// center alignment for cells
+		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+		centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+		progressTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+		progressTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+		progressTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
 
 		// TODO: temp solution
 		frame = new JFrame();
@@ -60,13 +70,14 @@ public class TransferProgressTable {
 		List<RowData> rows;
 		
 		public ProgressCellRender(List<RowData> rows) {
-			this.rows = rows;
+			this.rows = rows;			
 		}
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table,
 				Object value, boolean isSelected, boolean hasFocus, int row,
 				int column) {
+			
 			int progress = 0;
 			if (value instanceof Float) {
 				progress = Math.round(((Float) value) * 100f);
