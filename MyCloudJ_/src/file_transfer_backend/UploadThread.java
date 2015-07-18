@@ -1,6 +1,5 @@
 package file_transfer_backend;
 
-import file_transfer_backend.DownloadThread.PropertyChange;
 import ij.io.Opener;
 
 import java.beans.PropertyChangeEvent;
@@ -24,7 +23,8 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 	private TransferTask task;
 	private UpdatableTableModel model;
 	private int transferId;
-
+	private String currFile;
+	
 	public UploadThread(TransferTask task, CloudOperations cloudHandler,
 			CloudFileTree cloudFileTree, Logger logger, UpdatableTableModel model, int transferId) {
 		this.cloudHandler = cloudHandler;
@@ -42,7 +42,7 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			  if (evt.getPropertyName().equals("progress")) {
-	            	model.updateStatus(transferId, (int) evt.getNewValue());
+	            	model.updateStatus(transferId, (int) evt.getNewValue(), currFile);
 	            }
 		}
 	}
@@ -51,6 +51,7 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 	public void statusCallback(CloudTransferStatus transferStatus) {
 		int fraction = transferStatus.getFraction();
 		setProgress(fraction);
+		currFile = transferStatus.getCurrFile();
 	}
 
 	@Override
@@ -71,7 +72,7 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 			if (isFileUpload)
 				cloudHandler.uploadFile(sourcePath, destPath, this);
 			else
-				cloudHandler.uploadFolder(sourcePath, destPath);
+				cloudHandler.uploadFolder(sourcePath, destPath, this);
 			logger.writeLog("Uploading of " + sourcePath + " complete \n\n");
 
 			if (file.isFile())

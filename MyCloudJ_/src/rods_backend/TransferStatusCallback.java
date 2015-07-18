@@ -1,5 +1,7 @@
 package rods_backend;
 
+import general.GeneralUtility;
+
 import org.irods.jargon.core.exception.JargonException;
 import org.irods.jargon.core.transfer.TransferStatus;
 import org.irods.jargon.core.transfer.TransferStatusCallbackListener;
@@ -21,21 +23,23 @@ public class TransferStatusCallback implements TransferStatusCallbackListener {
 			TransferStatus transferStatus) throws JargonException {
 		CloudTransferStatus cloudTransferStatus = new CloudTransferStatus();
 		int fraction;
-		
+
 		long bytesTransferred = transferStatus.getBytesTransfered();
 		long totalBytes = transferStatus.getTotalSize();
 		fraction = Math
 				.round((long) ((float) bytesTransferred / totalBytes * 100));
-		
+
 		if (transferStatus.isIntraFileStatusReport()) {
 			cloudTransferStatus.setFraction(fraction);
 			cloudCallback.statusCallback(cloudTransferStatus);
-		}
-		else if (fraction == 0) {
+		} else if (fraction == 0) {
+			String source = GeneralUtility.getLastComponentFromPath(
+					transferStatus.getSourceFileAbsolutePath(), "/");
+			cloudTransferStatus.setCurrFile(source);
 			cloudTransferStatus.setFraction(1);
 			cloudCallback.statusCallback(cloudTransferStatus);
 		}
-		
+
 		return FileStatusCallbackResponse.CONTINUE;
 	}
 

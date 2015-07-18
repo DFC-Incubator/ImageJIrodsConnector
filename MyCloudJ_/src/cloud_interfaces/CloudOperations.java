@@ -16,7 +16,7 @@ public interface CloudOperations {
 	public void uploadFile(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException;
 
-	public void uploadFolder(String localPath, String cloudPath)
+	public void uploadFolder(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException;
 
 	public boolean isFile(String name) throws CloudException;

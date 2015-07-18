@@ -91,6 +91,7 @@ public class TransferProgressTable {
 		private boolean isDownload;
 		private String source;
 		private String destination;
+		private String currentFile;
 		private float progress;
 
 		public RowData(String source, String destination, boolean isDownload) {
@@ -131,6 +132,14 @@ public class TransferProgressTable {
 		public void setDownload(boolean isDownload) {
 			this.isDownload = isDownload;
 		}
+
+		public String getCurrentFile() {
+			return currentFile;
+		}
+
+		public void setCurrentFile(String currentFile) {
+			this.currentFile = currentFile;
+		}
 	}
 
 	public class UpdatableTableModel extends AbstractTableModel {
@@ -148,7 +157,7 @@ public class TransferProgressTable {
 
 		@Override
 		public int getColumnCount() {
-			return 3;
+			return 4;
 		}
 
 		@Override
@@ -162,6 +171,9 @@ public class TransferProgressTable {
 				name = "Dest Path";
 				break;
 			case 2:
+				name = "Current File";
+				break;
+			case 3:
 				name = "Progress";
 				break;
 			}
@@ -180,6 +192,9 @@ public class TransferProgressTable {
 				value = rowData.getDestination();
 				break;
 			case 2:
+				value = rowData.getCurrentFile();
+				break;
+			case 3:
 				value = rowData.getProgress();
 				break;
 			}
@@ -189,11 +204,15 @@ public class TransferProgressTable {
 		@Override
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 			RowData rowData = rows.get(rowIndex);
-			String progBarString = rowData.isDownload() ? "Downloading: "
-					: "Uploading: ";
-
+			if (aValue == null)
+				return;
+			
 			switch (columnIndex) {
 			case 2:
+				String currFile = (String) aValue;
+				rowData.setCurrentFile(currFile);
+				break;
+			case 3:
 				int progress = (int) aValue;
 				rowData.setProgress((float) progress / 100f);
 				break;
@@ -207,11 +226,13 @@ public class TransferProgressTable {
 			return rows.size() - 1;
 		}
 
-		public void updateStatus(int rowId, int progress) {
+		public void updateStatus(int rowId, int progress, String currFile) {
 			RowData rowData = rows.get(rowId);
 			if (rowData != null) {
-				setValueAt(progress, rowId, 2);
+				setValueAt(currFile, rowId, 2);
 				fireTableCellUpdated(rowId, 2);
+				setValueAt(progress, rowId, 3);
+				fireTableCellUpdated(rowId, 3);
 			}
 		}
 

@@ -21,6 +21,7 @@ public class DownloadThread extends SwingWorker<Void, Void> implements CloudTran
 	private TransferTask task;
 	private UpdatableTableModel model;
 	private int transferId;
+	private String currFile;
 
 	public DownloadThread(TransferTask task, CloudOperations cloudHandler,
 			Logger logger, UpdatableTableModel model, int transferId) {
@@ -34,11 +35,10 @@ public class DownloadThread extends SwingWorker<Void, Void> implements CloudTran
 	}
 	
 	class PropertyChange implements PropertyChangeListener {
-
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			  if (evt.getPropertyName().equals("progress")) {
-	            	model.updateStatus(transferId, (int) evt.getNewValue());
+	            	model.updateStatus(transferId, (int) evt.getNewValue(), currFile);
 	            }
 		}
 	}
@@ -47,6 +47,7 @@ public class DownloadThread extends SwingWorker<Void, Void> implements CloudTran
 	public void statusCallback(CloudTransferStatus transferStatus) {
 		int fraction = transferStatus.getFraction();
 		setProgress(fraction);
+		currFile = transferStatus.getCurrFile();
 	}
 	
 	@Override

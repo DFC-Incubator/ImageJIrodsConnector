@@ -171,9 +171,9 @@ public class RodsOperations implements CloudOperations {
 	}
 
 	@Override
-	public void uploadFolder(String localPath, String cloudPath)
+	public void uploadFolder(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException {
-		uploadFile(localPath, cloudPath, null);
+		uploadFile(localPath, cloudPath, callback);
 	}
 
 	@Override
