@@ -3,6 +3,7 @@ package dropbox_backend;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
+import cloud_interfaces.CloudTransferCallback;
 
 import com.dropbox.core.*;
 
@@ -174,7 +175,7 @@ public class DropboxOperations implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFile(String cloudPath, String localPath)
+	public void downloadFile(String cloudPath, String localPath, CloudTransferCallback callback)
 			throws CloudException {
 		OutputStream outputStream = null;
 		String fileName;
@@ -250,7 +251,7 @@ public class DropboxOperations implements CloudOperations {
 			if (child.isFolder())
 				downloadFolder(child.path, localPath);
 			else if (child.isFile())
-				downloadFile(child.path, localPath);
+				downloadFile(child.path, localPath, null);
 		}
 	}
 

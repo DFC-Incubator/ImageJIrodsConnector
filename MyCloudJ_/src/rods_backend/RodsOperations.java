@@ -20,6 +20,7 @@ import org.irods.jargon.core.pub.io.IRODSFileFactory;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
+import cloud_interfaces.CloudTransferCallback;
 
 public class RodsOperations implements CloudOperations {
 	private IRODSFileFactory irodsFileFactory;
@@ -95,7 +96,7 @@ public class RodsOperations implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFile(String cloudPath, String localPath)
+	public void downloadFile(String cloudPath, String localPath, CloudTransferCallback callback)
 			throws CloudException {
 		String error = "";
 		long fileSizeKB;
@@ -113,7 +114,10 @@ public class RodsOperations implements CloudOperations {
 			System.out.println("File Size: " + fileSizeKB + " KB");
 			
 			long start = System.nanoTime();
-			dataTransferOperations.getOperation(irodsFile, localFile, null, null);
+			TransferStatusCallback tsc = new TransferStatusCallback();
+			tsc.setCloudCallback(callback);
+			
+			dataTransferOperations.getOperation(irodsFile, localFile, tsc, null);
 			long end = System.nanoTime();
 			
 			long elapsedTime = end - start;
@@ -127,13 +131,13 @@ public class RodsOperations implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFolder(String cloudPath, String localPath)
+	public void downloadFolder(String cloudPath, String localPath, CloudTransferCallback callback)
 			throws CloudException {
-		downloadFile(cloudPath, localPath);
+		downloadFile(cloudPath, localPath, callback);
 	}
 
 	@Override
-	public void uploadFile(String localPath, String cloudPath)
+	public void uploadFile(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException {
 		String error = "";
 		long fileSizeKB;
@@ -151,7 +155,9 @@ public class RodsOperations implements CloudOperations {
 			System.out.println("File Size: " + fileSizeKB + " KB");
 			
 			long start = System.nanoTime();
-			dataTransferOperations.putOperation(localFile, irodsFile, null, null);
+			TransferStatusCallback tsc = new TransferStatusCallback();
+			tsc.setCloudCallback(callback);
+			dataTransferOperations.putOperation(localFile, irodsFile, tsc, null);
 			long end = System.nanoTime();
 			
 			long elapsedTime = end - start;
@@ -167,7 +173,7 @@ public class RodsOperations implements CloudOperations {
 	@Override
 	public void uploadFolder(String localPath, String cloudPath)
 			throws CloudException {
-		uploadFile(localPath, cloudPath);
+		uploadFile(localPath, cloudPath, null);
 	}
 
 	@Override

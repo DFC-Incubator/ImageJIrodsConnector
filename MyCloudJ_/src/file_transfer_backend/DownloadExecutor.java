@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import CloudGui.Logger;
+import CloudGui.TransferProgressTable.UpdatableTableModel;
 import cloud_interfaces.CloudOperations;
 
 public class DownloadExecutor {
@@ -15,17 +16,22 @@ public class DownloadExecutor {
 	private Logger logger;
 	private ExecutorService executor;
 	List<DownloadThread> tasks;
+	private UpdatableTableModel model;
 
-	public DownloadExecutor(CloudOperations cloudHandler, Logger logger) {
+	public DownloadExecutor(CloudOperations cloudHandler, Logger logger,
+			UpdatableTableModel model) {
 		this.cloudHandler = cloudHandler;
 		this.logger = logger;
 		executor = Executors.newFixedThreadPool(MAX_THREADS);
 		tasks = new ArrayList<DownloadThread>(MAX_DOWNLOADS_QUEUED);
 		for (int i = 0; i < MAX_DOWNLOADS_QUEUED; i++)
 			tasks.add(null);
+		this.model = model;
 	}
 
 	public void addTask(TransferTask task) throws FileTransferException {
+		int progressBarId;
+
 		for (int i = 0; i < MAX_DOWNLOADS_QUEUED - 1; i++) {
 			DownloadThread futureTask = tasks.get(i);
 
@@ -33,8 +39,10 @@ public class DownloadExecutor {
 			if (futureTask == null || futureTask.isDone()) {
 
 				// create a new future task
+				progressBarId = this.model.addFile(task.getSourcePath(),
+						task.getDestinationPath(), true);
 				DownloadThread downloadTask = new DownloadThread(task,
-						cloudHandler, logger);
+						cloudHandler, logger, model, progressBarId);
 				tasks.set(i, downloadTask);
 
 				// submit to execution the new future task

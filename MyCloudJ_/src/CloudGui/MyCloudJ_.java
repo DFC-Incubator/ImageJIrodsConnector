@@ -81,6 +81,9 @@ public class MyCloudJ_ implements PlugIn {
 	 * for Dbx Login - irodsLoginRadioButton: draw screen for RODS login
 	 */
 	private JRadioButton dbxLoginRadioButton, irodsLoginRadioButton;
+	
+	// table with file transfer progress bars
+	private TransferProgressTable progressTable;
 
 	// ------------------------------------------------------------------------
 	// fields specific to Dbx functionality and GUI
@@ -198,11 +201,15 @@ public class MyCloudJ_ implements PlugIn {
 	}
 	
 	public void initializeTransferThreads(CloudOperations cloudHandler, TasksWindow tasksWindow) {
+		// draw the table with progress bars
+		progressTable = new TransferProgressTable();
+		progressTable.draw();
+		
 		// start the thread for downloading
-		downloadThread = new DownloadExecutor(cloudHandler, tasksWindow.getLogger());
+		downloadThread = new DownloadExecutor(cloudHandler, tasksWindow.getLogger(), progressTable.getProgressTableModel());
 		
 		// start the thread for uploading
-		uploadThread = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getLogger());
+		uploadThread = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getLogger(), progressTable.getProgressTableModel());
 	}
 	
 	public void genericCloudDisconnect() {
@@ -218,6 +225,9 @@ public class MyCloudJ_ implements PlugIn {
 	}
 	
 	public void terminateTransferThreads() {
+		// first, destroy the table with the progress bars
+		progressTable.destroy();
+		
 		downloadThread.terminate();
 		uploadThread.terminate();
 	}
@@ -257,7 +267,6 @@ public class MyCloudJ_ implements PlugIn {
 			}
 
 			cloudHandler = new DropboxOperations();
-			initializeTransferThreads(cloudHandler, tasksWindow);
 			loginWindow.setBorder(title1);
 			rodsLoginForm.setVisible(false);
 			dropboxLoginForm.setVisible(true);
@@ -289,7 +298,6 @@ public class MyCloudJ_ implements PlugIn {
 			}
 
 			cloudHandler = new RodsOperations();
-			initializeTransferThreads(cloudHandler, tasksWindow);
 			loginWindow.setBorder(title2);
 			rodsLoginForm.setVisible(true);
 			dropboxLoginForm.setVisible(false);

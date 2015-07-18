@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 
 import CloudGui.CloudFileTree;
 import CloudGui.Logger;
+import CloudGui.TransferProgressTable.UpdatableTableModel;
 import cloud_interfaces.CloudOperations;
 
 public class UploadExecutor extends Thread {
@@ -17,9 +18,10 @@ public class UploadExecutor extends Thread {
 	private CloudFileTree cloudFileTree;
 	private ExecutorService executor;
 	List<UploadThread> futureTasks;
+	private UpdatableTableModel model;
 	
 	public UploadExecutor(CloudOperations cloudHandler,
-			CloudFileTree cloudFileTree, Logger logger) {
+			CloudFileTree cloudFileTree, Logger logger, UpdatableTableModel model) {
 		this.cloudHandler = cloudHandler;
 		this.logger = logger;
 		this.cloudFileTree = cloudFileTree;
@@ -27,17 +29,22 @@ public class UploadExecutor extends Thread {
 		futureTasks = new ArrayList<UploadThread>(MAX_UPLOADS_QUEUED);
 		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++)
 			futureTasks.add(null);
+		this.model = model;
 	}
 
 	public void addTask(TransferTask task) throws FileTransferException {
+		int progressBarId;
+		
 		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++) {
 			UploadThread futureTask = futureTasks.get(i);
 
 			// search for an empty/finished future task
 			if (futureTask == null || futureTask.isDone()) {
 				// create a new future task
+				progressBarId = this.model.addFile(task.getSourcePath(),
+						task.getDestinationPath(), false);
 				UploadThread uploadTask = new UploadThread(task, cloudHandler,
-						cloudFileTree, logger);
+						cloudFileTree, logger, model, progressBarId);
 				futureTasks.set(i, uploadTask);
 
 				// submit to execution the new future task

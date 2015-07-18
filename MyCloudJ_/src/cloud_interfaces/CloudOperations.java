@@ -7,13 +7,13 @@ public interface CloudOperations {
 	
 	public void disconnect() throws CloudException;
 
-	public void downloadFile(String cloudPath, String localPath)
+	public void downloadFile(String cloudPath, String localPath, CloudTransferCallback callback)
 			throws CloudException;
 
-	public void downloadFolder(String cloudPath, String localPath)
+	public void downloadFolder(String cloudPath, String localPath, CloudTransferCallback callback)
 			throws CloudException;
 
-	public void uploadFile(String localPath, String cloudPath)
+	public void uploadFile(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException;
 
 	public void uploadFolder(String localPath, String cloudPath)
