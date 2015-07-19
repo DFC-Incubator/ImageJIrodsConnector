@@ -292,6 +292,24 @@ file transfers. The getOperation receives the transferControlBlock callback as p
 </center>
 </p>
 
+<h3>
+<a id="week-5" class="anchor" href="#week-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Week 5 and 6</h3>
+<p><u>Deliverable 5:</u> Plugin with Dropbox functionality integration</p>
+<p> The process of integrating the Dropbox functionality went smoothly because of the object oriented design until now. All I had to do was to group the Dropbox methods in a class which implements the CloudOperations interface: 
+<ul>
+<li>login</li>
+<li>disconnect</li>
+<li>downloadFile</li>
+<li>downloadFolder</li>
+<li>uploadFile</li>
+<li>uploadFolder</li>
+<li>isFile</li>
+<li>listFiles</li>
+<li>getHomeDirectory</li>
+</ul>
+</p>
+
+<p>Having more time for improvements and optimizations, I also modified the GUI by using the multi-threaded philosophy from Java Swing. Until now all the GUI components were displayed by the initial thread which started the application. Also, the GUI components were updated by this thread or by helper threads that I started using the Callable interface. However, this is a wrong utilization of Java Swing because it can introduce subtle bugs. The correct utilization is to use an event dispatch thread, where all event-handling code is executed and Worker threads, also known as background threads, where time-consuming background tasks are executed. More details can be found <a href="https://docs.oracle.com/javase/tutorial/uiswing/concurrency/">here. </a><p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/dorugucea91/CloudPlugin">CloudPlugin</a> is maintained by <a href="https://github.com/dorugucea91">dorugucea91</a>.</span>
