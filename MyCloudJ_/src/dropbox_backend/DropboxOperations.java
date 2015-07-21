@@ -4,6 +4,7 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
 import cloud_interfaces.CloudTransferCallback;
+import cloud_interfaces.CloudTransferStatus;
 
 import com.dropbox.core.*;
 
@@ -102,8 +103,9 @@ public class DropboxOperations implements CloudOperations {
 	}
 
 	@Override
-	public void uploadFile(String localPath, String cloudPath)
+	public void uploadFile(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException {
+		CloudTransferStatus cloudTransferStatus = new CloudTransferStatus();
 		File inputFile = new File(localPath);
 		InputStream inputStream = null;
 		String error, fileName;
@@ -117,8 +119,21 @@ public class DropboxOperations implements CloudOperations {
 
 		try {
 			inputStream = new FileInputStream(inputFile);
+			
+			/*
+			 *  Future Sync: Dropbox API doesn't offer a callback for file
+			 *  transfer status. 
+			 *  Temporary solution: Call the upper callback once at the start
+			 *  of the file transfer and once at completion of file transfer.
+			 */
+			cloudTransferStatus.setFraction(1);
+			cloudTransferStatus.setCurrFile(fileName);
+			callback.statusCallback(cloudTransferStatus);
 			client.uploadFile(cloudPath, DbxWriteMode.add(),
 					inputFile.length(), inputStream);
+			cloudTransferStatus.setFraction(100);
+			callback.statusCallback(cloudTransferStatus);
+			
 		} catch (DbxException e) {
 			error = "Error uploading on Dropbox: " + e.getMessage();
 			throw (new CloudException(error));
@@ -141,7 +156,7 @@ public class DropboxOperations implements CloudOperations {
 	}
 
 	@Override
-	public void uploadFolder(String localPath, String cloudPath)
+	public void uploadFolder(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException {
 		String error;
 		File inputFolder;
@@ -167,16 +182,17 @@ public class DropboxOperations implements CloudOperations {
 			// List of files inside the folder
 			String[] files = inputFolder.list();
 			for (String file : files) {
-				uploadFolder(localPath.concat(OS_DELIMITER).concat(file), cloudPath);
+				uploadFolder(localPath.concat(OS_DELIMITER).concat(file), cloudPath, callback);
 			}
 		} else if (inputFolder.isFile()) {
-			uploadFile(localPath, cloudPath);
+			uploadFile(localPath, cloudPath, callback);
 		}
 	}
 
 	@Override
 	public void downloadFile(String cloudPath, String localPath, CloudTransferCallback callback)
 			throws CloudException {
+		CloudTransferStatus cloudTransferStatus = new CloudTransferStatus();
 		OutputStream outputStream = null;
 		String fileName;
 		String error;
@@ -191,7 +207,19 @@ public class DropboxOperations implements CloudOperations {
 		try {
 			File localFile = new File(localPath);
 			outputStream = new FileOutputStream(localFile);
+			
+			/*
+			 *  Future Sync: Dropbox API doesn't offer a callback for file
+			 *  transfer status. 
+			 *  Temporary solution: Call the upper callback once at the start
+			 *  of the file transfer and once at completion of file transfer.
+			 */
+			cloudTransferStatus.setFraction(1);
+			cloudTransferStatus.setCurrFile(fileName);
+			callback.statusCallback(cloudTransferStatus);
 			client.getFile(cloudPath, null, outputStream);
+			cloudTransferStatus.setFraction(100);
+			callback.statusCallback(cloudTransferStatus);
 		} catch (DbxException e) {
 			error = "Error downloading on Dropbox: " + e.getMessage();
 			throw (new CloudException(error));
@@ -214,7 +242,7 @@ public class DropboxOperations implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFolder(String cloudPath, String localPath)
+	public void downloadFolder(String cloudPath, String localPath, CloudTransferCallback callback)
 			throws CloudException {
 		String error;
 		String folderName;
@@ -249,9 +277,9 @@ public class DropboxOperations implements CloudOperations {
 		while (iterChildren.hasNext()) {
 			child = iterChildren.next();
 			if (child.isFolder())
-				downloadFolder(child.path, localPath);
+				downloadFolder(child.path, localPath, callback);
 			else if (child.isFile())
-				downloadFile(child.path, localPath, null);
+				downloadFile(child.path, localPath, callback);
 		}
 	}
 

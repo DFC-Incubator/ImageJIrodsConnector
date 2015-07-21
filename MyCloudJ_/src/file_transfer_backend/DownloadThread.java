@@ -46,8 +46,8 @@ public class DownloadThread extends SwingWorker<Void, Void> implements CloudTran
 	@Override
 	public void statusCallback(CloudTransferStatus transferStatus) {
 		int fraction = transferStatus.getFraction();
-		setProgress(fraction);
 		currFile = transferStatus.getCurrFile();
+		firePropertyChange("progress", 0, fraction);
 	}
 	
 	@Override
