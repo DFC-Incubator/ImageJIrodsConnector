@@ -1,4 +1,4 @@
-package file_transfer_backend;
+package file_transfer;
 
 public class FileTransferException extends Exception {
 	private String error;

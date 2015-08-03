@@ -1,4 +1,4 @@
-package file_transfer_backend;
+package file_transfer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +9,13 @@ import CloudGui.Logger;
 import CloudGui.TransferProgressTable.UpdatableTableModel;
 import cloud_interfaces.CloudOperations;
 
-public class DownloadExecutor {
+public class DownloadExecutor implements ExecutorOperations {
 	private static final int MAX_DOWNLOADS_QUEUED = 10;
 	private static final int MAX_THREADS = 1;
 	private CloudOperations cloudHandler;
 	private Logger logger;
 	private ExecutorService executor;
-	List<DownloadThread> tasks;
+	List<DownloadThread> transfers;
 	private UpdatableTableModel model;
 
 	public DownloadExecutor(CloudOperations cloudHandler, Logger logger,
@@ -23,27 +23,28 @@ public class DownloadExecutor {
 		this.cloudHandler = cloudHandler;
 		this.logger = logger;
 		executor = Executors.newFixedThreadPool(MAX_THREADS);
-		tasks = new ArrayList<DownloadThread>(MAX_DOWNLOADS_QUEUED);
+		transfers = new ArrayList<DownloadThread>(MAX_DOWNLOADS_QUEUED);
 		for (int i = 0; i < MAX_DOWNLOADS_QUEUED; i++)
-			tasks.add(null);
+			transfers.add(null);
 		this.model = model;
 	}
-
+	
+	@Override
 	public void addTask(TransferTask task) throws FileTransferException {
-		int progressBarId;
+		int transferId;
 
 		for (int i = 0; i < MAX_DOWNLOADS_QUEUED - 1; i++) {
-			DownloadThread futureTask = tasks.get(i);
+			DownloadThread futureTask = transfers.get(i);
 
 			// search for an empty/finished future task
 			if (futureTask == null || futureTask.isDone()) {
 
 				// create a new future task
-				progressBarId = this.model.addFile(task.getSourcePath(),
+				transferId = this.model.addTransfer(task.getSourcePath(),
 						task.getDestinationPath(), true);
 				DownloadThread downloadTask = new DownloadThread(task,
-						cloudHandler, logger, model, progressBarId);
-				tasks.set(i, downloadTask);
+						cloudHandler, logger, model, transferId);
+				transfers.set(i, downloadTask);
 
 				// submit to execution the new future task
 				executor.execute(downloadTask);
@@ -57,10 +58,25 @@ public class DownloadExecutor {
 		throw (new FileTransferException(
 				"Maximum number of pending downloads reached\n"));
 	}
+	
+	@Override
+	public boolean terminateTransfer(int transferId) {
+		for (int i = 0; i < MAX_DOWNLOADS_QUEUED - 1; i++) {
+			DownloadThread futureTask = transfers.get(i);
+			if (futureTask.getTransferId() == transferId) {
+				logger.writeLog("Canceled download from"
+						+ futureTask.getTask().getSourcePath() + " to "
+						+ futureTask.getTask().getDestinationPath() + "!\n\n");
+				return futureTask.cancel(true);
+			}
+		}
+		return false;
+	}
 
-	public void terminate() {
-		for (int i = 0; i < tasks.size(); i++) {
-			DownloadThread futureTask = tasks.get(i);
+	@Override
+	public void terminateAllTransfers() {
+		for (int i = 0; i < transfers.size(); i++) {
+			DownloadThread futureTask = transfers.get(i);
 			if (futureTask != null && futureTask.isDone() == false) {
 				logger.writeLog("Canceled download from"
 						+ futureTask.getTask().getSourcePath() + " to "

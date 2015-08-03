@@ -22,10 +22,11 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 import rods_backend.RodsOperations;
 import dropbox_backend.DropboxOperations;
-import file_transfer_backend.DownloadExecutor;
-import file_transfer_backend.FileTransferException;
-import file_transfer_backend.TransferTask;
-import file_transfer_backend.UploadExecutor;
+import file_transfer.DownloadExecutor;
+import file_transfer.ExecutorOperations;
+import file_transfer.FileTransferException;
+import file_transfer.TransferTask;
+import file_transfer.UploadExecutor;
 
 /**
  * @author Atin Mathur (mathuratin007@gmail.com) - Dropbox functionality
@@ -58,10 +59,10 @@ public class MyCloudJ_ implements PlugIn {
 	private final String LOCAL_HOME_DIRECTORY_PATH = ".";
 
 	// thread used for downloading tasks
-	DownloadExecutor downloadThread;
+	ExecutorOperations downloadExecutor;
 	
 	// thread used for downloading tasks
-	UploadExecutor uploadThread;
+	ExecutorOperations uploadExecutor;
 
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
@@ -206,10 +207,13 @@ public class MyCloudJ_ implements PlugIn {
 		progressTable.draw();
 		
 		// start the thread for downloading
-		downloadThread = new DownloadExecutor(cloudHandler, tasksWindow.getLogger(), progressTable.getProgressTableModel());
-		
+		downloadExecutor = new DownloadExecutor(cloudHandler, tasksWindow.getLogger(), progressTable.getProgressTableModel());
+
 		// start the thread for uploading
-		uploadThread = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getLogger(), progressTable.getProgressTableModel());
+		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getLogger(), progressTable.getProgressTableModel());
+		
+		progressTable.setDownloadOperations(downloadExecutor);
+		progressTable.setUploadOperations(uploadExecutor);
 	}
 	
 	public void genericCloudDisconnect() {
@@ -228,8 +232,8 @@ public class MyCloudJ_ implements PlugIn {
 		// first, destroy the table with the progress bars
 		progressTable.destroy();
 		
-		downloadThread.terminate();
-		uploadThread.terminate();
+		downloadExecutor.terminateAllTransfers();
+		uploadExecutor.terminateAllTransfers();
 	}
 	
 	private void freeCloudResources() {
@@ -599,10 +603,10 @@ public class MyCloudJ_ implements PlugIn {
 			try {
 				if (tasksWindow.getUploadRadioButton().isSelected()) {
 					TransferTask task = new TransferTask(sourcePath, destinationPath);
-					uploadThread.addTask(task);
+					uploadExecutor.addTask(task);
 				} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
 						TransferTask task = new TransferTask(sourcePath, destinationPath);
-						downloadThread.addTask(task);
+						downloadExecutor.addTask(task);
 				}
 			} catch (FileTransferException e1) {
 				JOptionPane.showMessageDialog(mainFrame, e1.getError(),

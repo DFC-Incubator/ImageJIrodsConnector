@@ -1,4 +1,4 @@
-package file_transfer_backend;
+package file_transfer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +10,14 @@ import CloudGui.Logger;
 import CloudGui.TransferProgressTable.UpdatableTableModel;
 import cloud_interfaces.CloudOperations;
 
-public class UploadExecutor extends Thread {
+public class UploadExecutor  implements ExecutorOperations {
 	private static final int MAX_UPLOADS_QUEUED = 10;
 	private static final int MAX_THREADS = 1;
 	private CloudOperations cloudHandler;
 	private Logger logger;
 	private CloudFileTree cloudFileTree;
 	private ExecutorService executor;
-	List<UploadThread> futureTasks;
+	List<UploadThread> transfers;
 	private UpdatableTableModel model;
 	
 	public UploadExecutor(CloudOperations cloudHandler,
@@ -26,26 +26,27 @@ public class UploadExecutor extends Thread {
 		this.logger = logger;
 		this.cloudFileTree = cloudFileTree;
 		executor = Executors.newFixedThreadPool(MAX_THREADS);
-		futureTasks = new ArrayList<UploadThread>(MAX_UPLOADS_QUEUED);
+		transfers = new ArrayList<UploadThread>(MAX_UPLOADS_QUEUED);
 		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++)
-			futureTasks.add(null);
+			transfers.add(null);
 		this.model = model;
 	}
 
+	@Override
 	public void addTask(TransferTask task) throws FileTransferException {
-		int progressBarId;
+		int transferId;
 		
 		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++) {
-			UploadThread futureTask = futureTasks.get(i);
+			UploadThread futureTask = transfers.get(i);
 
 			// search for an empty/finished future task
 			if (futureTask == null || futureTask.isDone()) {
 				// create a new future task
-				progressBarId = this.model.addFile(task.getSourcePath(),
+				transferId = this.model.addTransfer(task.getSourcePath(),
 						task.getDestinationPath(), false);
 				UploadThread uploadTask = new UploadThread(task, cloudHandler,
-						cloudFileTree, logger, model, progressBarId);
-				futureTasks.set(i, uploadTask);
+						cloudFileTree, logger, model, transferId);
+				transfers.set(i, uploadTask);
 
 				// submit to execution the new future task
 				executor.execute(uploadTask);
@@ -58,10 +59,25 @@ public class UploadExecutor extends Thread {
 		throw (new FileTransferException(
 				"Maximum number of pending uploads reached\n"));
 	}
-
-	public void terminate() {
-		for (int i = 0; i < futureTasks.size(); i++) {
-			UploadThread futureTask = futureTasks.get(i);
+	
+	@Override
+	public boolean terminateTransfer(int transferId) {
+		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++) {
+			UploadThread futureTask = transfers.get(i);
+			if (futureTask.getTransferId() == transferId) {
+				logger.writeLog("Canceled download from"
+						+ futureTask.getTask().getSourcePath() + " to "
+						+ futureTask.getTask().getDestinationPath() + "!\n\n");
+				return futureTask.cancel(true);
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public void terminateAllTransfers() {
+		for (int i = 0; i < transfers.size(); i++) {
+			UploadThread futureTask = transfers.get(i);
 			if (futureTask != null && futureTask.isDone() == false) {
 				logger.writeLog("Canceled upload from"
 						+ futureTask.getTask().getSourcePath() + " to "

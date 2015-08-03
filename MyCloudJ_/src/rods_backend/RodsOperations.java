@@ -11,11 +11,14 @@ import org.irods.jargon.core.connection.IRODSProtocolManager;
 import org.irods.jargon.core.connection.IRODSSession;
 import org.irods.jargon.core.connection.IRODSSimpleProtocolManager;
 import org.irods.jargon.core.exception.JargonException;
+import org.irods.jargon.core.packinstr.TransferOptions.ForceOption;
 import org.irods.jargon.core.pub.DataTransferOperations;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactory;
 import org.irods.jargon.core.pub.IRODSAccessObjectFactoryImpl;
+import org.irods.jargon.core.pub.IRODSFileSystem;
 import org.irods.jargon.core.pub.io.IRODSFile;
 import org.irods.jargon.core.pub.io.IRODSFileFactory;
+import org.irods.jargon.core.transfer.TransferControlBlock;
 
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
@@ -113,11 +116,18 @@ public class RodsOperations implements CloudOperations {
 			fileSizeKB = irodsFile.length() / 1024;
 			System.out.println("File Size: " + fileSizeKB + " KB");
 			
+			// set the callbacks
 			long start = System.nanoTime();
 			TransferStatusCallback tsc = new TransferStatusCallback();
 			tsc.setCloudCallback(callback);
 			
-			dataTransferOperations.getOperation(irodsFile, localFile, tsc, null);
+			// set the transfer options: just overwrite, for now
+			TransferControlBlock tcb = IRODSFileSystem.instance()
+					.getIRODSAccessObjectFactory()
+					.buildDefaultTransferControlBlockBasedOnJargonProperties();
+			tcb.getTransferOptions().setForceOption(ForceOption.USE_FORCE);
+			
+			dataTransferOperations.getOperation(irodsFile, localFile, tsc, tcb);
 			long end = System.nanoTime();
 			
 			long elapsedTime = end - start;
@@ -157,6 +167,13 @@ public class RodsOperations implements CloudOperations {
 			long start = System.nanoTime();
 			TransferStatusCallback tsc = new TransferStatusCallback();
 			tsc.setCloudCallback(callback);
+			
+			// set the transfer options: just overwrite, for now
+			TransferControlBlock tcb = IRODSFileSystem.instance()
+					.getIRODSAccessObjectFactory()
+					.buildDefaultTransferControlBlockBasedOnJargonProperties();
+			tcb.getTransferOptions().setForceOption(ForceOption.USE_FORCE);			
+			
 			dataTransferOperations.putOperation(localFile, irodsFile, tsc, null);
 			long end = System.nanoTime();
 			
