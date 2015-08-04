@@ -2,22 +2,29 @@ package CloudGui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -208,16 +215,103 @@ public class TransferProgressTable {
 			button.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					int transferId = table.getSelectedRow();
-					List<RowData> rows = model.getRows();
+					final int transferId = table.getSelectedRow();
+					final List<RowData> rows = model.getRows();
 					try {
 						// user clicks the Details button => display transfer
 						// details
 						if (rows.get(transferId).isCanceled
 								|| rows.get(transferId).progress == 1) {
-							int option = JOptionPane.showConfirmDialog(null,
-									"Details", "Details",
-									JOptionPane.OK_CANCEL_OPTION);
+
+							SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
+								@Override
+								public Object doInBackground() {
+									RowData row = rows.get(transferId);
+
+									JPanel details = new JPanel(new GridLayout(
+											6, 6));
+									details.add(new JLabel("Source Path"));
+									JTextField sourceField = new JTextField(row
+											.getSource());
+									sourceField.setEditable(false);
+									details.setAlignmentX(Component.LEFT_ALIGNMENT);
+									details.add(sourceField);
+
+									details.add(new JLabel("Destination Path"));
+									JTextField destField = new JTextField(row
+											.getDestination());
+									destField.setEditable(false);
+									details.add(destField);
+
+									details.add(new JLabel("Status:"));
+									String statusText;
+									if (row.isCanceled)
+										statusText = "Canceled ";
+									else
+										statusText = "Successful ";
+
+									if (row.isDownload)
+										statusText += "Download";
+									else
+										statusText += "Upload";
+								
+									int currProgress = Math.round(((Float) row.getProgress()) * 100f);
+									if (currProgress == 0) 
+										statusText += " (while queued)";
+
+									JTextField statusField = new JTextField(
+											statusText);
+									statusField.setEditable(false);
+									details.add(statusField);
+
+									SimpleDateFormat dateFormat = new SimpleDateFormat(
+											"HH:mm:ss yyyy-mm-dd ");
+									details.add(new JLabel(
+											"Transfer queued date"));
+									Date queueDate = row.getQueuedDate();
+									String queuedDateString = "N/A";
+									if (queueDate != null)
+										queuedDateString = dateFormat
+												.format(queueDate);
+									JTextField queuedDateTextField = new JTextField(
+											queuedDateString);
+									queuedDateTextField.setEditable(false);
+									details.add(queuedDateTextField);
+
+									details.add(new JLabel(
+											"Transfer start date"));
+									Date startDate = row.getStartTransferDate();
+									String startDateString = "N/A";
+									if (startDate != null)
+										startDateString = dateFormat
+												.format(startDate);
+									JTextField startDateTextField = new JTextField(
+											startDateString);
+									startDateTextField.setEditable(false);
+									details.add(startDateTextField);
+
+									details.add(new JLabel("Transfer end date"));
+									Date endDate = row.getEndTransferDate();
+									String endDateString = "N/A";
+									if (endDate != null)
+										endDateString = dateFormat
+												.format(endDate);
+									JTextField endDateTextField = new JTextField(
+											endDateString);
+									endDateTextField.setEditable(false);
+									details.add(endDateTextField);
+
+									// TODO
+									JPanel error = new JPanel();
+
+									final JComponent[] inputs = new JComponent[] { details };
+									JOptionPane.showMessageDialog(null,
+											inputs, "Transfer Details",
+											JOptionPane.PLAIN_MESSAGE);
+									return null;
+								}
+							};
+							sw.execute();
 							// user clicks the "Cancel" button during download
 						} else if (rows.get(transferId).isDownload) {
 							downloadOperations.terminateTransfer(transferId);
@@ -271,6 +365,9 @@ public class TransferProgressTable {
 		private String currentFile;
 		private float progress;
 		private String actionBtnLabel;
+		private Date queuedDate;
+		private Date startTransferDate;
+		private Date endTransferDate;
 
 		public RowData(String source, String destination, boolean isDownload) {
 			this.source = source;
@@ -334,6 +431,30 @@ public class TransferProgressTable {
 
 		public void setCanceled(boolean isCanceled) {
 			this.isCanceled = isCanceled;
+		}
+
+		public Date getStartTransferDate() {
+			return startTransferDate;
+		}
+
+		public void setStartTransferDate(Date startTransferDate) {
+			this.startTransferDate = startTransferDate;
+		}
+
+		public Date getEndTransferDate() {
+			return endTransferDate;
+		}
+
+		public void setEndTransferDate(Date endTransferDate) {
+			this.endTransferDate = endTransferDate;
+		}
+
+		public Date getQueuedDate() {
+			return queuedDate;
+		}
+
+		public void setQueuedDate(Date queuedDate) {
+			this.queuedDate = queuedDate;
 		}
 	}
 
@@ -437,6 +558,7 @@ public class TransferProgressTable {
 
 		public int addTransfer(String source, String dest, boolean isDownload) {
 			RowData rowData = new RowData(source, dest, isDownload);
+			rowData.setQueuedDate(new Date());
 			rows.add(rowData);
 			fireTableRowsInserted(rows.size() - 1, rows.size() - 1);
 			return rows.size() - 1;
@@ -447,20 +569,25 @@ public class TransferProgressTable {
 			RowData rowData = rows.get(rowId);
 			if (rowData == null)
 				return;
-			
+
 			// user canceled a file transfer
 			if (cancel) {
-				System.out.println("Called cancel from update status " + rowId);
-				
 				/*
 				 * trigger the above trick
 				 */
+				rowData.setEndTransferDate(new Date());
 				setValueAt((int) (rowData.getProgress() * 100), rowId, 3);
 				fireTableCellUpdated(rowId, 3);
 				fireTableCellUpdated(rowId, 4);
-			}
-			else {
+			} else {
+				// canceling will trigger the else branch after the if branch
+				// in a subsequent call to updateTransferStatus => TODO investigate
 				if (progress > rowData.getProgress() * 100) {
+					if (progress == 1) 
+						rowData.setStartTransferDate(new Date());
+					else if (progress == 100) 
+						rowData.setEndTransferDate(new Date());
+	
 					setValueAt(currFile, rowId, 2);
 					fireTableCellUpdated(rowId, 2);
 					setValueAt(progress, rowId, 3);

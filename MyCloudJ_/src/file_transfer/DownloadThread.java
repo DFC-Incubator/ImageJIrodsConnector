@@ -37,16 +37,13 @@ public class DownloadThread extends SwingWorker<Void, Void> implements CloudTran
 	class PropertyChange implements PropertyChangeListener {
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
-			  if (evt.getPropertyName().equals("progress")) {
-				  System.out.println("!!!!!!!!!!!!!!!!" + evt.getNewValue());
+			  if (evt.getPropertyName().equals("progress"))
 	            	model.updateTransferStatus(getTransferId(), (int) evt.getNewValue(), currFile, false);
-	            }
 		}
 	}
 	
 	@Override
 	public void statusCallback(CloudTransferStatus transferStatus) {
-		System.out.println("???????????????");
 		int fraction = transferStatus.getFraction();
 		currFile = transferStatus.getCurrFile();
 		firePropertyChange("progress", 0, fraction);
