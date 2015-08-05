@@ -60,7 +60,7 @@ public class MyCloudJ_ implements PlugIn {
 
 	// thread used for downloading tasks
 	ExecutorOperations downloadExecutor;
-	
+
 	// thread used for downloading tasks
 	ExecutorOperations uploadExecutor;
 
@@ -82,7 +82,7 @@ public class MyCloudJ_ implements PlugIn {
 	 * for Dbx Login - irodsLoginRadioButton: draw screen for RODS login
 	 */
 	private JRadioButton dbxLoginRadioButton, irodsLoginRadioButton;
-	
+
 	// table with file transfer progress bars
 	private TransferProgressTable progressTable;
 
@@ -104,11 +104,12 @@ public class MyCloudJ_ implements PlugIn {
 
 	public void run(String arg) {
 		SwingUtilities.invokeLater(new Runnable() {
-		    public void run() {
-				System.out.println(javax.swing.SwingUtilities.isEventDispatchThread());
+			public void run() {
+				System.out.println(javax.swing.SwingUtilities
+						.isEventDispatchThread());
 				drawGUI();
 				assignActionListeners();
-		    }
+			}
 		});
 	}
 
@@ -191,7 +192,7 @@ public class MyCloudJ_ implements PlugIn {
 				new BtnDownloadRadioListener());
 		tasksWindow.getBtnStart().addActionListener(new BtnStartListener());
 	}
-	
+
 	private void buildFileSelectionTrees(String cloudHomeDirectoryPath,
 			String localHomeDirectoryPath) throws CloudException {
 
@@ -200,42 +201,45 @@ public class MyCloudJ_ implements PlugIn {
 		// build file browsing trees for local files
 		localFileTree = new LocalFileTree(localHomeDirectoryPath);
 	}
-	
-	public void initializeTransferThreads(CloudOperations cloudHandler, TasksWindow tasksWindow) {
+
+	public void initializeTransferThreads(CloudOperations cloudHandler,
+			TasksWindow tasksWindow) {
 		// draw the table with progress bars
 		progressTable = new TransferProgressTable();
 		progressTable.draw();
-		
+
 		// start the thread for downloading
-		downloadExecutor = new DownloadExecutor(cloudHandler, tasksWindow.getLogger(), progressTable.getProgressTableModel());
+		downloadExecutor = new DownloadExecutor(cloudHandler,
+				progressTable.getProgressTableModel());
 
 		// start the thread for uploading
-		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getLogger(), progressTable.getProgressTableModel());
-		
+		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree,
+				progressTable.getProgressTableModel());
+
 		progressTable.setDownloadOperations(downloadExecutor);
 		progressTable.setUploadOperations(uploadExecutor);
 	}
-	
+
 	public void genericCloudDisconnect() {
 		// free resources
 		terminateTransferThreads();
 		freeCloudResources();
-		
+
 		// reset right panel components
 		disableJTreeGUI();
 		tasksWindow.reset();
-		
+
 		userIsConnected = false;
 	}
-	
+
 	public void terminateTransferThreads() {
 		// first, destroy the table with the progress bars
 		progressTable.destroy();
-		
+
 		downloadExecutor.terminateAllTransfers();
 		uploadExecutor.terminateAllTransfers();
 	}
-	
+
 	private void freeCloudResources() {
 		try {
 			cloudHandler.disconnect();
@@ -245,13 +249,13 @@ public class MyCloudJ_ implements PlugIn {
 			e1.printStackTrace();
 		}
 	}
-	
+
 	private void disableJTreeGUI() {
 		JFrame enclosingFrame = cloudFileTree.getEnclosingFrame();
 		if (enclosingFrame != null)
 			enclosingFrame.dispose();
 	}
-	
+
 	// A lot of Action Listeners designed as inside classes
 	class BtnDbxLoginRadioListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -277,7 +281,7 @@ public class MyCloudJ_ implements PlugIn {
 			tasksWindow.setTitle(title3);
 		}
 	}
-	
+
 	class BtnRodsLoginRadioListener implements ActionListener {
 		/**
 		 * ActionListener for the "Connect to iRODS" button - initialize the
@@ -317,8 +321,7 @@ public class MyCloudJ_ implements PlugIn {
 				dropboxLoginForm.prepareToConnect();
 			} catch (CloudException e4) {
 				JOptionPane.showMessageDialog(mainFrame, e4.getMessage(),
-						"MyCLoudJ - Access Error",
-						JOptionPane.ERROR_MESSAGE);
+						"MyCLoudJ - Access Error", JOptionPane.ERROR_MESSAGE);
 				e4.printStackTrace();
 			}
 		}
@@ -342,19 +345,18 @@ public class MyCloudJ_ implements PlugIn {
 
 					// display user info in a text area
 					displayUserInfo(dbxUtility);
-					
+
 					// start transfer threads
 					initializeTransferThreads(cloudHandler, tasksWindow);
-					
+
 					// prepare the file browsing trees
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildFileSelectionTrees(cloudHomeDirectoryPath,
 							LOCAL_HOME_DIRECTORY_PATH);
-					
+
 					// enable the right panel
 					tasksWindow.enable();
-				}
-				else if (!userIsConnected && dbxAccessCode.equals(""))
+				} else if (!userIsConnected && dbxAccessCode.equals(""))
 					JOptionPane.showMessageDialog(mainFrame,
 							"Enter Access Code !",
 							"MyCLoudJ - Enter Access code",
@@ -366,18 +368,17 @@ public class MyCloudJ_ implements PlugIn {
 			}
 		}
 	}
-	
+
 	public void displayUserInfo(DropboxOperations dbxUtility) {
 		String userName, country, userQuota;
 		userName = dbxUtility.getUserName();
 		country = dbxUtility.getCountry();
 		userQuota = dbxUtility.getUserQuota();
 		dropboxLoginForm.setStatus("Connected as " + userName);
-		dropboxLoginForm.setUserInfo("Username: " + userName
-				+ "\nCountry: " + country + "\nQuota: " + userQuota
-				+ " GB");
+		dropboxLoginForm.setUserInfo("Username: " + userName + "\nCountry: "
+				+ country + "\nQuota: " + userQuota + " GB");
 	}
-	
+
 	class BtnDisConnectDbxListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -398,17 +399,17 @@ public class MyCloudJ_ implements PlugIn {
 			 * TESTING -temporary solution for not entering the credentials for
 			 * every run
 			 */
-					rodsUtilsObj.setUsername("rods");
-					rodsUtilsObj.setIrodsPassword("rods");
-					rodsUtilsObj.setHost("irods-dev.incf.org");
-					rodsUtilsObj.setPort(1247);
-					rodsUtilsObj.setZone("BragadiruZone");
-					rodsUtilsObj.setRes("");
+			rodsUtilsObj.setUsername("rods");
+			rodsUtilsObj.setIrodsPassword("rods");
+			rodsUtilsObj.setHost("irods-dev.incf.org");
+			rodsUtilsObj.setPort(1247);
+			rodsUtilsObj.setZone("BragadiruZone");
+			rodsUtilsObj.setRes("");
 
 			try {
-//				 checkLoginCredentials();
-//				 rodsUtilsObj.setCredentials(user, password, host, port, zone,
-//				 		 resource);
+				// checkLoginCredentials();
+				// rodsUtilsObj.setCredentials(user, password, host, port, zone,
+				// resource);
 
 				rodsUtilsObj.login();
 				userIsConnected = true;
@@ -425,7 +426,7 @@ public class MyCloudJ_ implements PlugIn {
 				return;
 			}
 			initializeTransferThreads(cloudHandler, tasksWindow);
-			
+
 			rodsLoginForm.setConnected(true);
 			tasksWindow.enable();
 		}
@@ -468,7 +469,7 @@ public class MyCloudJ_ implements PlugIn {
 								.concat(messages)));
 		}
 	}
-	
+
 	class BtnDisConnectRodsListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -496,7 +497,8 @@ public class MyCloudJ_ implements PlugIn {
 		public void actionPerformed(ActionEvent arg0) {
 			// upload file to cloud
 			if (tasksWindow.getUploadRadioButton().isSelected()) {
-				localFileTree.openSelectionGUI(false, localFileTree.getSelectedFilePath());
+				localFileTree.openSelectionGUI(false,
+						localFileTree.getSelectedFilePath());
 				tasksWindow.setSourcePath(localFileTree.getSelectedFilePath());
 			}
 			// download file from cloud
@@ -526,7 +528,8 @@ public class MyCloudJ_ implements PlugIn {
 						new BtnCancelListener());
 				// download file from cloud
 			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
-				localFileTree.openSelectionGUI(true, localFileTree.getSelectedFilePath());
+				localFileTree.openSelectionGUI(true,
+						localFileTree.getSelectedFilePath());
 				tasksWindow.setDestinationPath(localFileTree
 						.getSelectedFilePath());
 				tasksWindow.disableDestinationPath();
@@ -596,23 +599,27 @@ public class MyCloudJ_ implements PlugIn {
 			String destinationPath = tasksWindow.getDestinationPath();
 
 			if (sourcePath.equals("") || destinationPath.equals("")) {
-				tasksWindow.getLogger().writeLog("Error: Select the files/folder to upload/download\n\n");
+				JOptionPane.showMessageDialog(mainFrame,
+						"Select the files/folder to upload/download", "Error",
+						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
+
 			try {
 				if (tasksWindow.getUploadRadioButton().isSelected()) {
-					TransferTask task = new TransferTask(sourcePath, destinationPath);
+					TransferTask task = new TransferTask(sourcePath,
+							destinationPath);
 					uploadExecutor.addTask(task);
 				} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
-						TransferTask task = new TransferTask(sourcePath, destinationPath);
-						downloadExecutor.addTask(task);
+					TransferTask task = new TransferTask(sourcePath,
+							destinationPath);
+					downloadExecutor.addTask(task);
 				}
 			} catch (FileTransferException e1) {
 				JOptionPane.showMessageDialog(mainFrame, e1.getError(),
 						"Limit reached", JOptionPane.WARNING_MESSAGE);
 				e1.printStackTrace();
 			}
-		} 
+		}
 	}
 }

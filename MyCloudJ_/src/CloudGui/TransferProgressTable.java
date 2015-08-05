@@ -222,7 +222,8 @@ public class TransferProgressTable {
 						// details
 						if (rows.get(transferId).isCanceled
 								|| rows.get(transferId).progress == 1) {
-
+							
+							// TODO: check if we should really use a swing worker
 							SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
 								@Override
 								public Object doInBackground() {

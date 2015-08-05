@@ -9,7 +9,6 @@ import java.io.File;
 import javax.swing.SwingWorker;
 
 import CloudGui.CloudFileTree;
-import CloudGui.Logger;
 import CloudGui.TransferProgressTable.UpdatableTableModel;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
@@ -18,7 +17,6 @@ import cloud_interfaces.CloudTransferStatus;
 
 public class UploadThread extends SwingWorker<Void, Void> implements CloudTransferCallback {
 	private CloudOperations cloudHandler;
-	private Logger logger;
 	private CloudFileTree cloudFileTree;
 	private TransferTask task;
 	private UpdatableTableModel model;
@@ -26,9 +24,8 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 	private String currFile;
 	
 	public UploadThread(TransferTask task, CloudOperations cloudHandler,
-			CloudFileTree cloudFileTree, Logger logger, UpdatableTableModel model, int transferId) {
+			CloudFileTree cloudFileTree, UpdatableTableModel model, int transferId) {
 		this.cloudHandler = cloudHandler;
-		this.logger = logger;
 		this.cloudFileTree = cloudFileTree;
 		this.task = task;
 		this.model = model;
@@ -73,14 +70,12 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 				cloudHandler.uploadFile(sourcePath, destPath, this);
 			else
 				cloudHandler.uploadFolder(sourcePath, destPath, this);
-			logger.writeLog("Uploading of " + sourcePath + " complete \n\n");
-
+			
+			// TODO: open file from the progress table
 			//if (file.isFile())
 				//openFile(task);
 		} catch (CloudException e) {
 			e.printStackTrace();
-			logger.writeLog("Error uploading " + uploadType + " " + sourcePath
-					+ ". " + e.getCloudError() + "\n\n");
 			return null;
 		}
 

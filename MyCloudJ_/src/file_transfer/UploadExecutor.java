@@ -14,16 +14,14 @@ public class UploadExecutor  implements ExecutorOperations {
 	private static final int MAX_UPLOADS_QUEUED = 10;
 	private static final int MAX_THREADS = 1;
 	private CloudOperations cloudHandler;
-	private Logger logger;
 	private CloudFileTree cloudFileTree;
 	private ExecutorService executor;
 	List<UploadThread> transfers;
 	private UpdatableTableModel model;
 	
 	public UploadExecutor(CloudOperations cloudHandler,
-			CloudFileTree cloudFileTree, Logger logger, UpdatableTableModel model) {
+			CloudFileTree cloudFileTree, UpdatableTableModel model) {
 		this.cloudHandler = cloudHandler;
-		this.logger = logger;
 		this.cloudFileTree = cloudFileTree;
 		executor = Executors.newFixedThreadPool(MAX_THREADS);
 		transfers = new ArrayList<UploadThread>(MAX_UPLOADS_QUEUED);
@@ -45,13 +43,11 @@ public class UploadExecutor  implements ExecutorOperations {
 				transferId = this.model.addTransfer(task.getSourcePath(),
 						task.getDestinationPath(), false);
 				UploadThread uploadTask = new UploadThread(task, cloudHandler,
-						cloudFileTree, logger, model, transferId);
+						cloudFileTree, model, transferId);
 				transfers.set(i, uploadTask);
 
 				// submit to execution the new future task
 				executor.execute(uploadTask);
-				logger.writeLog("Uploading of" + task.getSourcePath() + " to "
-						+ task.getDestinationPath() + " is in progress...\n\n");
 				return;
 			}
 		}
@@ -65,9 +61,6 @@ public class UploadExecutor  implements ExecutorOperations {
 		for (int i = 0; i < MAX_UPLOADS_QUEUED - 1; i++) {
 			UploadThread futureTask = transfers.get(i);
 			if (futureTask.getTransferId() == transferId) {
-				logger.writeLog("Canceled download from"
-						+ futureTask.getTask().getSourcePath() + " to "
-						+ futureTask.getTask().getDestinationPath() + "!\n\n");
 				return futureTask.cancel(true);
 			}
 		}
@@ -79,9 +72,6 @@ public class UploadExecutor  implements ExecutorOperations {
 		for (int i = 0; i < transfers.size(); i++) {
 			UploadThread futureTask = transfers.get(i);
 			if (futureTask != null && futureTask.isDone() == false) {
-				logger.writeLog("Canceled upload from"
-						+ futureTask.getTask().getSourcePath() + " to "
-						+ futureTask.getTask().getDestinationPath() + "!\n\n");
 				futureTask.cancel(true);
 			}
 		}
