@@ -166,7 +166,7 @@ public class DropboxLoginForm {
 		getBtnConnect().setVisible(true);
 		getBtnConnect().setEnabled(false);
 		disconnectButton.setVisible(false);
-		dbxLblConnectionStatus.setText("");
+		dbxLblConnectionStatus.setText("Not Connected!");
 		getUserInfo().setText("");
 	}
 	
