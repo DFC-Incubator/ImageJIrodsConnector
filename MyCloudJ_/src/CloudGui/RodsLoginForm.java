@@ -1,5 +1,6 @@
 package CloudGui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 
@@ -39,6 +40,7 @@ public class RodsLoginForm {
 		JPanel lPanel12 = new JPanel(new FlowLayout());
 		JPanel lPanel13 = new JPanel(new FlowLayout());
 		JPanel lPanel14 = new JPanel(new FlowLayout());
+		JPanel lPanel15 = new JPanel(new FlowLayout());
 
 		int maxCharsTextField = 25;
 		int maxColumnsTextField = 19;
@@ -104,14 +106,17 @@ public class RodsLoginForm {
 		setLoginRodsButton(new JButton("Access iRODS"));
 		disconnectButton = new JButton("Disconnect iRODS");
 		disconnectButton.setVisible(false);
-		lPanel12.add(getLoginRodsButton());
-		lPanel12.add(disconnectButton);
+		lPanel13.add(getLoginRodsButton());
+		lPanel13.add(disconnectButton);
 		
 		// connection status
-		rodsLblConnectionStatus = new JLabel("Not Connected");
-		lPanel13.add(rodsLblConnectionStatus);
+		rodsLblConnectionStatus = new JLabel();
+		resetConnectionStatus();
+		lPanel14.add(rodsLblConnectionStatus);
 		
-		lPanel14.setPreferredSize(new Dimension(1, 25));
+		lPanel15.setPreferredSize(new Dimension(1, 60));
+		
+		lPanel12.setPreferredSize(new Dimension(1, 30));
 
 		lPanel6.setLayout(new FlowLayout(FlowLayout.CENTER));
 		lPanel7.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -119,7 +124,7 @@ public class RodsLoginForm {
 		lPanel9.setLayout(new FlowLayout(FlowLayout.CENTER));
 		lPanel10.setLayout(new FlowLayout(FlowLayout.CENTER));
 		lPanel11.setLayout(new FlowLayout(FlowLayout.CENTER));
-		lPanel12.setLayout(new FlowLayout(FlowLayout.CENTER));
+		lPanel13.setLayout(new FlowLayout(FlowLayout.CENTER));
 		
 		getlPanelRodsSpecific().add(lPanel5);
 		getlPanelRodsSpecific().add(lPanel6);
@@ -128,9 +133,10 @@ public class RodsLoginForm {
 		getlPanelRodsSpecific().add(lPanel9);
 		getlPanelRodsSpecific().add(lPanel10);
 		getlPanelRodsSpecific().add(lPanel11);
-		getlPanelRodsSpecific().add(lPanel14);
 		getlPanelRodsSpecific().add(lPanel12);
 		getlPanelRodsSpecific().add(lPanel13);
+		getlPanelRodsSpecific().add(lPanel14);
+		getlPanelRodsSpecific().add(lPanel15);
 		
 		getlPanelRodsSpecific().setLayout(new BoxLayout(getlPanelRodsSpecific(),
 				BoxLayout.Y_AXIS));
@@ -149,16 +155,16 @@ public class RodsLoginForm {
 		getLoginRodsButton().setEnabled(true);
 		loginRodsButton.setVisible(true);
 		disconnectButton.setVisible(false);
-		rodsLblConnectionStatus.setText("Not connected");
+		resetConnectionStatus();
 	}
 	
 	public void setVisible(boolean value) {
 		lPanelRodsSpecific.setVisible(value);
 	}
 	
-	public void setStatus(String status) {
-		rodsLblConnectionStatus.setText(status);
-	}
+	//public void setStatus(String status) {
+	//	rodsLblConnectionStatus.setText(status);
+	//}
 
 	public JPanel getlPanelRodsSpecific() {
 		return lPanelRodsSpecific;
@@ -214,11 +220,22 @@ public class RodsLoginForm {
 			loginRodsButton.setVisible(false);
 			disconnectButton.setVisible(true);
 			rodsLblConnectionStatus.setText("Connected to iRODS");
+			rodsLblConnectionStatus.setForeground(Color.BLUE);
 		}
 		else {
 			loginRodsButton.setVisible(true);
 			disconnectButton.setVisible(false);
-			rodsLblConnectionStatus.setText("Not connected");
+			resetConnectionStatus();
 		}
+	}
+	
+	public void resetConnectionStatus() {
+		rodsLblConnectionStatus.setText("Not Connected");
+		rodsLblConnectionStatus.setForeground(Color.BLUE);
+	}
+	
+	public void setErrorStatus(String status) {
+		rodsLblConnectionStatus.setText(status);
+		rodsLblConnectionStatus.setForeground(Color.RED);
 	}
 }

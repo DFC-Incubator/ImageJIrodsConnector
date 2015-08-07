@@ -351,8 +351,7 @@ public class MyCloudJ_ implements PlugIn {
 							"MyCLoudJ - Enter Access code",
 							JOptionPane.WARNING_MESSAGE);
 			} catch (CloudException e1) {
-				JOptionPane.showMessageDialog(mainFrame, e1.getCloudError(),
-						"MyCLoudJ - Access Error", JOptionPane.ERROR_MESSAGE);
+				dropboxLoginForm.setErrorStatus(e1.getCloudError());
 				e1.printStackTrace();
 			}
 		}
@@ -363,7 +362,7 @@ public class MyCloudJ_ implements PlugIn {
 		userName = dbxUtility.getUserName();
 		country = dbxUtility.getCountry();
 		userQuota = dbxUtility.getUserQuota();
-		dropboxLoginForm.setStatus("Connected as " + userName);
+		dropboxLoginForm.setConnected("Connected as " + userName);
 		dropboxLoginForm.setUserInfo("Username: " + userName + "\nCountry: "
 				+ country + "\nQuota: " + userQuota + " GB");
 	}
@@ -408,7 +407,7 @@ public class MyCloudJ_ implements PlugIn {
 				buildFileSelectionTrees(cloudHomeDirectoryPath,
 						LOCAL_HOME_DIRECTORY_PATH);
 			} catch (CloudException e1) {
-				rodsLoginForm.setStatus("Error connecting to iRODS!");
+				rodsLoginForm.setErrorStatus("Error connecting to iRODS!");
 				e1.printStackTrace();
 				JOptionPane.showMessageDialog(mainFrame, e1.getCloudError(),
 						"Login error", JOptionPane.WARNING_MESSAGE);

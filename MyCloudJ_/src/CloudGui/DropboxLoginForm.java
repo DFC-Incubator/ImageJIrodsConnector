@@ -1,6 +1,9 @@
 package CloudGui;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.util.Arrays;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -126,7 +129,8 @@ public class DropboxLoginForm {
 		 * 
 		 * Note : Intial status "Not Connected !"
 		 */
-		dbxLblConnectionStatus = new JLabel("Not Connected!");
+		dbxLblConnectionStatus = new JLabel();
+		resetConnectionStatus();
 		lPanel5.add(dbxLblConnectionStatus);
 
 		userInfo = new JTextArea("\n\n");
@@ -166,12 +170,13 @@ public class DropboxLoginForm {
 		getBtnConnect().setVisible(true);
 		getBtnConnect().setEnabled(false);
 		disconnectButton.setVisible(false);
-		dbxLblConnectionStatus.setText("Not Connected!");
+		resetConnectionStatus();
 		getUserInfo().setText("");
 	}
 	
-	public void setStatus(String status) {
-		dbxLblConnectionStatus.setText(status);
+	public void setConnected(String value) {
+		dbxLblConnectionStatus.setText(value);
+		dbxLblConnectionStatus.setForeground(Color.BLUE);
 	}
 	
 	public JPanel getlPanelDbSpecific() {
@@ -237,5 +242,15 @@ public class DropboxLoginForm {
 
 	public void setDisconnectButton(JButton disconnectButton) {
 		this.disconnectButton = disconnectButton;
+	}
+	
+	public void resetConnectionStatus() {
+		dbxLblConnectionStatus.setText("Not Connected");
+		dbxLblConnectionStatus.setForeground(Color.BLUE);
+	}
+	
+	public void setErrorStatus(String s) {
+		dbxLblConnectionStatus.setText("<html>" + s.replaceAll("(?<=\\G.{77})", "<br>") + "</html>");
+		dbxLblConnectionStatus.setForeground(Color.RED);
 	}
 }

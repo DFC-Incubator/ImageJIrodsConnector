@@ -1,7 +1,9 @@
 package CloudGui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 
 import javax.swing.BoxLayout;
@@ -11,8 +13,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
 import file_transfer.ExecutorOperations;
@@ -22,6 +25,7 @@ public class TasksWindow {
 	private JPanel panel;
 	private JRadioButton uploadRadioButton, downloadRadioButton;
 	private JTextField sourcePath;
+	JLabel lblSrc, targetLbl;
 	private JTextField destinationPath;
 	// button to open file chooser for the source file
 	private JButton btnFileChooser1;
@@ -62,7 +66,7 @@ public class TasksWindow {
 		rPanel1.add(downloadRadioButton);
 
 		// source path components
-		JLabel lblSrc = new JLabel("Source: ");
+		lblSrc = new JLabel("Source: ");
 		sourcePath = new JTextField("", 25);
 		sourcePath.setEditable(false);
 		btnFileChooser1 = new JButton("Browse");
@@ -71,7 +75,7 @@ public class TasksWindow {
 		rPanel2.add(btnFileChooser1);
 
 		// destination path components
-		JLabel targetLbl = new JLabel("Target: ");
+		targetLbl = new JLabel("Target: ");
 		destinationPath = new JTextField("", 25);
 		destinationPath.setEditable(false);
 		btnFileChooser2 = new JButton("Browse");
@@ -87,6 +91,7 @@ public class TasksWindow {
 
 		// area for displaying the status of the upload/download
 		JLabel lblTableTitle = new JLabel("Transfer Statistics");
+		lblTableTitle.setForeground(Color.BLUE);
 		rPanel6.add(lblTableTitle);
 		
 		// draw the table with progress bars
@@ -108,10 +113,17 @@ public class TasksWindow {
 	public void reset() {
 		GuiUtils.enableComponentsFromContainer(panel, false);
 		resetSelectionPaths();
+		progressTable.getProgressTable().getTableHeader().setForeground(Color.BLACK);
+		UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+		progressTable.getProgressTable().getTableHeader().setFont(defaults.getFont("TextField.font"));
 	}
 
 	public void enable() {
 		GuiUtils.enableComponentsFromContainer(panel, true);
+		lblSrc.setForeground(Color.BLUE);
+		targetLbl.setForeground(Color.BLUE);
+		progressTable.getProgressTable().getTableHeader().setForeground(Color.BLACK);
+		progressTable.getProgressTable().getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));;
 	}
 
 	public void resetSelectionPaths() {
