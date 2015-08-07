@@ -46,7 +46,9 @@ public class TransferProgressTable {
 				if (colIndex == 0 || colIndex == 1 || colIndex == 2) {
 					String toolTip = null;
 					try {
-						toolTip = getValueAt(rowIndex, colIndex).toString();
+						Object value = getValueAt(rowIndex, colIndex);
+						if (value != null) 
+							toolTip = value.toString();
 					} catch (RuntimeException e1) {
 						e1.printStackTrace();
 					}
