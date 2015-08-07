@@ -83,9 +83,6 @@ public class MyCloudJ_ implements PlugIn {
 	 */
 	private JRadioButton dbxLoginRadioButton, irodsLoginRadioButton;
 
-	// table with file transfer progress bars
-	private TransferProgressTable progressTable;
-
 	// ------------------------------------------------------------------------
 	// fields specific to Dbx functionality and GUI
 	// ------------------------------------------------------------------------
@@ -118,7 +115,7 @@ public class MyCloudJ_ implements PlugIn {
 		mainFrame = new JFrame();
 		mainFrame.setLayout(new FlowLayout());
 		mainFrame.setTitle("CloudConnect - MyCloudJ");
-		mainFrame.setSize(1200, 450);
+		mainFrame.setSize(1300, 500);
 		mainFrame.setResizable(false);
 		mainFrame.setLocationRelativeTo(null); // center the mainFrame
 
@@ -204,20 +201,15 @@ public class MyCloudJ_ implements PlugIn {
 
 	public void initializeTransferThreads(CloudOperations cloudHandler,
 			TasksWindow tasksWindow) {
-		// draw the table with progress bars
-		progressTable = new TransferProgressTable();
-		progressTable.draw();
-
 		// start the thread for downloading
-		downloadExecutor = new DownloadExecutor(cloudHandler,
-				progressTable.getProgressTableModel());
+		downloadExecutor = new DownloadExecutor(cloudHandler, tasksWindow.getProgressTableModel());
 
 		// start the thread for uploading
-		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree,
-				progressTable.getProgressTableModel());
-
-		progressTable.setDownloadOperations(downloadExecutor);
-		progressTable.setUploadOperations(uploadExecutor);
+		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getProgressTableModel());
+		
+		// TODO: solve this ugly dependancy between tasksWindow and executors
+		tasksWindow.setDownloadExecutor(downloadExecutor);
+		tasksWindow.setUploadExecutor(uploadExecutor);
 	}
 
 	public void genericCloudDisconnect() {
@@ -233,9 +225,6 @@ public class MyCloudJ_ implements PlugIn {
 	}
 
 	public void terminateTransferThreads() {
-		// first, destroy the table with the progress bars
-		progressTable.destroy();
-
 		downloadExecutor.terminateAllTransfers();
 		uploadExecutor.terminateAllTransfers();
 	}

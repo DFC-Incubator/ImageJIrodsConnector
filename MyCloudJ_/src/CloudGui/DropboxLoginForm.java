@@ -29,12 +29,11 @@ public class DropboxLoginForm {
 	 */
 	private String displayInstructions = "";
 	private String heading = "  Instructions : \n \n";
-	private String step1 = "  1. Click the \"Access Dropbox\" button below. It will open the Dropbox app URL in the default browser.\n \n";
-	private String step2 = "  2. Next, Sign-in to the Dropbox account and allow the MyCloudJ App.\n \n";
-	private String step3 = "  3. On clicking the \"Allow\" button, Dropbox will generate an access code.\n \n";
-	private String step4 = "  4. Copy the \"access code\" and paste it in the text field below.\n \n";
-	private String step5 = "  5. Click the \"Connect\" button. You can now access Dropbox.\n \n";
-	private String note1 = "  Note: Enter the correct access code!";
+	private String step1 = "  1. Click the \"Access Dropbox\" button below.\n \n";
+	private String step2 = "  2. It will open the Dropbox app URL in the default browser.\n \n";
+	private String step3 = "  3. Next, Sign-in to the Dropbox account and allow the MyCloudJ App.\n \n";
+	private String step4 = "  4. On clicking the \"Allow\" button, Dropbox will generate an access code.\n \n";
+	private String step5 = "  5. Copy the \"access code\" and click the \"Connect\" button .\n \n";
 	
 	/**
 	 * This is used to open the Application Url in the default browser.
@@ -76,6 +75,7 @@ public class DropboxLoginForm {
 		JPanel lPanel3 = new JPanel(new FlowLayout());
 		JPanel lPanel4 = new JPanel(new FlowLayout());
 		JPanel lPanel5 = new JPanel(new FlowLayout());
+		JPanel lPanel6 = new JPanel(new FlowLayout());
 
 		/*
 		 * Add JTextArea : This text area is used to display instructions for
@@ -83,14 +83,15 @@ public class DropboxLoginForm {
 		 * 
 		 * Added onto panel1
 		 */
-		displayInstructions = heading + step1 + step2 + step3 + step4 + step5
-				+ note1;
+		displayInstructions = heading + step1 + step2 + step3 + step4 + step5; 
 		JTextArea instructions = new JTextArea(displayInstructions);
 		instructions.setEditable(false);
 		lPanel1.add(instructions);
-
+		
+		lPanel2.setPreferredSize(new Dimension(20, 20));
+		
 		setAccessDbxButton(new JButton("Access Dropbox"));
-		lPanel2.add(getAccessDbxButton());
+		lPanel3.add(getAccessDbxButton());
 
 		/*
 		 * Add JLabel : "Access Code".
@@ -99,12 +100,12 @@ public class DropboxLoginForm {
 		 */
 		JLabel lbl1;
 		lbl1 = new JLabel("Dropbox Access Code: ");
-		lPanel3.add(lbl1);
+		lPanel4.add(lbl1);
 
 		setDbxAccessCodeTextField(new JTextField(25));
 		getDbxAccessCodeTextField().setText(null);
 		getDbxAccessCodeTextField().setEnabled(false);
-		lPanel3.add(getDbxAccessCodeTextField());
+		lPanel4.add(getDbxAccessCodeTextField());
 		
 		setBtnConnect(new JButton("Connect"));
 		getBtnConnect().setEnabled(false);
@@ -112,8 +113,8 @@ public class DropboxLoginForm {
 		disconnectButton = new JButton("Disconnect");
 		disconnectButton.setVisible(false);
 		
-		lPanel3.add(getBtnConnect());
-		lPanel3.add(disconnectButton);
+		lPanel4.add(getBtnConnect());
+		lPanel4.add(disconnectButton);
 
 		/*
 		 * Add JLabel for user status -> connected or not connected. This label
@@ -126,11 +127,11 @@ public class DropboxLoginForm {
 		 * Note : Intial status "Not Connected !"
 		 */
 		dbxLblConnectionStatus = new JLabel("Not Connected!");
-		lPanel4.add(dbxLblConnectionStatus);
+		lPanel5.add(dbxLblConnectionStatus);
 
 		userInfo = new JTextArea("\n\n");
 		getUserInfo().setEditable(false);
-		lPanel5.add(getUserInfo());
+		lPanel6.add(getUserInfo());
 
 		/*
 		 * Event Handling for btnConnect. This handles the complete set set of
@@ -148,9 +149,10 @@ public class DropboxLoginForm {
 		getlPanelDbSpecific().add(lPanel3);
 		getlPanelDbSpecific().add(lPanel4);
 		getlPanelDbSpecific().add(lPanel5);
+		getlPanelDbSpecific().add(lPanel6);
 		getlPanelDbSpecific().setLayout(new BoxLayout(getlPanelDbSpecific(),
 				BoxLayout.Y_AXIS));
-		lPanelDbSpecific.setPreferredSize(new Dimension(700, 360));
+		lPanelDbSpecific.setPreferredSize(new Dimension(600, 410));
 	}
 	
 	public void setVisible(boolean value) {

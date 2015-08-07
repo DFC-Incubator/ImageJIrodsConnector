@@ -2,6 +2,7 @@ package CloudGui;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -10,8 +11,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+
+import file_transfer.ExecutorOperations;
+import CloudGui.TransferProgressTable.UpdatableTableModel;
 
 public class TasksWindow {
 	private JPanel panel;
@@ -26,6 +31,10 @@ public class TasksWindow {
 	private JButton btnStart;
 	// msgs will be used for displaying task related information to user
 	private Logger logger;
+	// table with file transfer progress bars
+	private TransferProgressTable progressTable;
+	
+	JPanel rPanel7;
 
 	public void draw() {
 		// main panel is composed of five little panels
@@ -36,7 +45,9 @@ public class TasksWindow {
 		JPanel rPanel3 = new JPanel(new FlowLayout());
 		JPanel rPanel4 = new JPanel(new FlowLayout());
 		JPanel rPanel5 = new JPanel(new FlowLayout());
-
+		JPanel rPanel6 = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		rPanel7 = new JPanel(new GridLayout(1,1));
+		
 		// set a title for the main panel
 		JLabel lblTasks = new JLabel("Tasks: ");
 		rPanel1.add(lblTasks);
@@ -71,24 +82,27 @@ public class TasksWindow {
 		// button for starting the upload/download
 		btnStart = new JButton("Start");
 		rPanel4.add(btnStart);
+		
+		rPanel5.setPreferredSize(new Dimension(1, 10));
 
 		// area for displaying the status of the upload/download
-		JLabel lblMsg = new JLabel("Messages: ");
-		logger = new Logger();
-		logger.getLogger().setLineWrap(true);
-		logger.getLogger().setWrapStyleWord(true);
-		JScrollPane msgsScrollPane = new JScrollPane(logger.getLogger());
-		msgsScrollPane
-				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		msgsScrollPane.setPreferredSize(new Dimension(340, 220));
-		rPanel5.add(lblMsg);
-		rPanel5.add(msgsScrollPane);
-
+		JLabel lblTableTitle = new JLabel("Transfer Statistics");
+		rPanel6.add(lblTableTitle);
+		
+		// draw the table with progress bars
+		rPanel7.setPreferredSize(new Dimension(650, 280));
+		progressTable = new TransferProgressTable();
+		progressTable.draw();
+		rPanel7.add(new JScrollPane(progressTable.getProgressTable()));
+		
+		// add all the components in the main panel
 		panel.add(rPanel1);
 		panel.add(rPanel2);
 		panel.add(rPanel3);
 		panel.add(rPanel4);
 		panel.add(rPanel5);
+		panel.add(rPanel6);
+		panel.add(rPanel7);
 	}
 
 	public void reset() {
@@ -179,5 +193,17 @@ public class TasksWindow {
 
 	public void disableDestinationPath() {
 		destinationPath.setEditable(false);
+	}
+
+	public UpdatableTableModel getProgressTableModel() {
+		return progressTable.getProgressTableModel();
+	}
+	
+	public void setDownloadExecutor(ExecutorOperations downloadExecutor) {
+		progressTable.setDownloadOperations(downloadExecutor);
+	}
+	
+	public void setUploadExecutor(ExecutorOperations uploadExecutor) {
+		progressTable.setUploadOperations(uploadExecutor);
 	}
 }

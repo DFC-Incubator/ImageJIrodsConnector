@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import CloudGui.CloudFileTree;
-import CloudGui.Logger;
 import CloudGui.TransferProgressTable.UpdatableTableModel;
 import cloud_interfaces.CloudOperations;
 
@@ -69,11 +68,15 @@ public class UploadExecutor  implements ExecutorOperations {
 	
 	@Override
 	public void terminateAllTransfers() {
+		// terminate all the running transfers
 		for (int i = 0; i < transfers.size(); i++) {
 			UploadThread futureTask = transfers.get(i);
 			if (futureTask != null && futureTask.isDone() == false) {
 				futureTask.cancel(true);
 			}
 		}
+		
+		// update the GUI
+		model.cancelAllTransfers();
 	}
 }

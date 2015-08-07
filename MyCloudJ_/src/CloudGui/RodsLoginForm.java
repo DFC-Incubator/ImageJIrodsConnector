@@ -29,6 +29,7 @@ public class RodsLoginForm {
 	
 	public void draw() {
 		setlPanelRodsSpecific(new JPanel(new FlowLayout()));
+		JPanel lPanel5 = new JPanel(new FlowLayout());
 		JPanel lPanel6 = new JPanel(new FlowLayout());
 		JPanel lPanel7 = new JPanel(new FlowLayout());
 		JPanel lPanel8 = new JPanel(new FlowLayout());
@@ -37,9 +38,12 @@ public class RodsLoginForm {
 		JPanel lPanel11 = new JPanel(new FlowLayout());
 		JPanel lPanel12 = new JPanel(new FlowLayout());
 		JPanel lPanel13 = new JPanel(new FlowLayout());
+		JPanel lPanel14 = new JPanel(new FlowLayout());
 
 		int maxCharsTextField = 25;
 		int maxColumnsTextField = 19;
+		
+		lPanel5.setPreferredSize(new Dimension(1, 25));
 		
 		// user
 		JLabel labelRodsUser;
@@ -106,6 +110,8 @@ public class RodsLoginForm {
 		// connection status
 		rodsLblConnectionStatus = new JLabel("Not Connected");
 		lPanel13.add(rodsLblConnectionStatus);
+		
+		lPanel14.setPreferredSize(new Dimension(1, 25));
 
 		lPanel6.setLayout(new FlowLayout(FlowLayout.CENTER));
 		lPanel7.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -114,19 +120,22 @@ public class RodsLoginForm {
 		lPanel10.setLayout(new FlowLayout(FlowLayout.CENTER));
 		lPanel11.setLayout(new FlowLayout(FlowLayout.CENTER));
 		lPanel12.setLayout(new FlowLayout(FlowLayout.CENTER));
-
+		
+		getlPanelRodsSpecific().add(lPanel5);
 		getlPanelRodsSpecific().add(lPanel6);
 		getlPanelRodsSpecific().add(lPanel7);
 		getlPanelRodsSpecific().add(lPanel8);
 		getlPanelRodsSpecific().add(lPanel9);
 		getlPanelRodsSpecific().add(lPanel10);
 		getlPanelRodsSpecific().add(lPanel11);
+		getlPanelRodsSpecific().add(lPanel14);
 		getlPanelRodsSpecific().add(lPanel12);
 		getlPanelRodsSpecific().add(lPanel13);
+		
 		getlPanelRodsSpecific().setLayout(new BoxLayout(getlPanelRodsSpecific(),
 				BoxLayout.Y_AXIS));
 		getlPanelRodsSpecific().setVisible(false);
-		getlPanelRodsSpecific().setPreferredSize(new Dimension(700, 320));
+		getlPanelRodsSpecific().setPreferredSize(new Dimension(600, 410));
 	}
 	
 	public void disable() {

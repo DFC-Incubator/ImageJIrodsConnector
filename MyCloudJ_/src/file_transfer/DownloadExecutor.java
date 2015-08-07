@@ -66,11 +66,15 @@ public class DownloadExecutor implements ExecutorOperations {
 
 	@Override
 	public void terminateAllTransfers() {
+		// terminate all the running transfers
 		for (int i = 0; i < transfers.size(); i++) {
 			DownloadThread futureTask = transfers.get(i);
 			if (futureTask != null && futureTask.isDone() == false) {
 				futureTask.cancel(true);
 			}
 		}
+		
+		// update the GUI
+		model.cancelAllTransfers();
 	}
 }
