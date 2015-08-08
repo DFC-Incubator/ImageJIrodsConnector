@@ -76,6 +76,9 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 				//openFile(task);
 		} catch (CloudException e) {
 			e.printStackTrace();
+			//TODO: UploadThread should't know about RowData
+			model.getRows().get(transferId).setError(e.getCloudError());
+			model.updateTransferStatus(transferId, 0, "", true);
 			return null;
 		}
 

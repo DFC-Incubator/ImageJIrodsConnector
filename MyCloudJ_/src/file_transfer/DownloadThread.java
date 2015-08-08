@@ -72,7 +72,9 @@ public class DownloadThread extends SwingWorker<Void, Void> implements
 			//	openFile(task);
 		} catch (CloudException e) {
 			e.printStackTrace();
-			//TODO: transfer this error to progress table statistics
+			//TODO: DownloadThread should't know about RowData
+			model.getRows().get(transferId).setError(e.getCloudError());
+			model.updateTransferStatus(transferId, 0, "", true);
 		}
 
 		return null;

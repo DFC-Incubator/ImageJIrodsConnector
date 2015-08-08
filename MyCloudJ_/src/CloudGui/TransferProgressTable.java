@@ -374,7 +374,7 @@ public class TransferProgressTable {
 	}
 
 	// data per table row
-	class RowData {
+	public class RowData {
 		private boolean isCanceled;
 		private int transferType;
 		private String source;
