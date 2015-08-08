@@ -1,18 +1,14 @@
 package file_transfer;
 
 import javax.swing.SwingWorker;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 
 import CloudGui.CloudFileTree;
 import CloudGui.TransferProgressTable.UpdatableTableModel;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
-import cloud_interfaces.CloudTransferCallback;
 
 public class DeleteThread extends SwingWorker<Void, Void> {
 	private CloudOperations cloudHandler;
-	private CloudFileTree cloudFileTree;
 	private TransferTask task;
 	private UpdatableTableModel model;
 	private int transferId;
@@ -20,7 +16,6 @@ public class DeleteThread extends SwingWorker<Void, Void> {
 	public DeleteThread(TransferTask task, CloudOperations cloudHandler,
 			CloudFileTree cloudFileTree, UpdatableTableModel model, int transferId) {
 		this.cloudHandler = cloudHandler;
-		this.cloudFileTree = cloudFileTree;
 		this.task = task;
 		this.model = model;
 		this.transferId = transferId;

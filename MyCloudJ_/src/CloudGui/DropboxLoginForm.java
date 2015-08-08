@@ -2,8 +2,6 @@ package CloudGui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.util.Arrays;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
