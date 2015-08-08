@@ -80,6 +80,7 @@ public class UploadThread extends SwingWorker<Void, Void> implements CloudTransf
 		}
 
 		// update the file browsing tree with the new node
+		System.out.println("Update dest Path: " + destPath);
 		cloudFileTree.updateTrees(destPath, true);
 
 		// TODO: in the future we'll return the file transfer status

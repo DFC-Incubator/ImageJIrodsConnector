@@ -201,14 +201,12 @@ public class CloudFileTree {
 		// parent node of the currently selected node
 		DefaultMutableTreeNode parentNode = null;
 
-		TreePath parentPath = tree.getSelectionPath();
-		if (parentPath == null)
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
+		parentNode = getNodeFromPath(root, selectedFilePath);
+		if (parentNode == null)
 			return;
-		parentNode = (DefaultMutableTreeNode) (parentPath
-				.getLastPathComponent());
-
 		List<CloudFile> cloudFiles = cloudHandler.listFiles(selectedFilePath);
-
+		
 		if (onlyFolders)
 			addChildrenFolder(parentNode, treeModel, cloudFiles);
 		else
