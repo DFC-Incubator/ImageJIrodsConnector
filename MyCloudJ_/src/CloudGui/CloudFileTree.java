@@ -525,12 +525,16 @@ public class CloudFileTree {
 		@Override
 		public void updateGUI() {
 			DefaultMutableTreeNode downloadNode = getNodeFromPath(downloadRoot, selectedNodePath);
-			if (downloadNode != null)
+			if (downloadNode != null) {
 				downloadTreeModel.removeNodeFromParent(downloadNode);
+				getEnclosingFrame().pack();
+			}
 			
 			DefaultMutableTreeNode uploadNode = getNodeFromPath(uploadRoot, selectedNodePath);
-			if (uploadNode != null)
+			if (uploadNode != null) {
 				uploadTreeModel.removeNodeFromParent(uploadNode);
+				getEnclosingFrame().pack();
+			}
 		}
 	}
 }
