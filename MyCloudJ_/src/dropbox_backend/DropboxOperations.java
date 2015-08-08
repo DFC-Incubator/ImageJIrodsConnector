@@ -1,5 +1,6 @@
 package dropbox_backend;
 
+import cloud_interfaces.CloudCapabilities;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
@@ -48,6 +49,11 @@ public class DropboxOperations implements CloudOperations {
 
 		GeneralUtility.openDefaultBrowser(authorizeUrl);
 	}
+	
+	@Override
+	public CloudCapabilities getCloudCapabilities() {
+		return new DropboxCapabilities();
+	}
 
 	// Function to accept the access code and link the account of the user
 	public void DbxLinkUser(String authCode) throws CloudException {
@@ -76,7 +82,7 @@ public class DropboxOperations implements CloudOperations {
 		}
 
 	}
-
+	
 	@Override
 	public void disconnect() throws CloudException {
 		// TODO: close resources
@@ -314,6 +320,12 @@ public class DropboxOperations implements CloudOperations {
 		}
 
 		return fileList;
+	}
+	
+	@Override
+	public boolean deleteFile(String cloudPath) throws CloudException {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	private String formatPathForDbx(String path) {

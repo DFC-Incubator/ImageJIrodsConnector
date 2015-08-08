@@ -22,6 +22,7 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 import rods_backend.RodsOperations;
 import dropbox_backend.DropboxOperations;
+import file_transfer.DeleteExecutor;
 import file_transfer.DownloadExecutor;
 import file_transfer.ExecutorOperations;
 import file_transfer.FileTransferException;
@@ -63,6 +64,9 @@ public class MyCloudJ_ implements PlugIn {
 
 	// thread used for downloading tasks
 	ExecutorOperations uploadExecutor;
+	
+	// thread used for delete tasks
+	ExecutorOperations deleteExecutor;
 
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
@@ -207,9 +211,13 @@ public class MyCloudJ_ implements PlugIn {
 		// start the thread for uploading
 		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getProgressTableModel());
 		
+		deleteExecutor = new DeleteExecutor(cloudHandler, cloudFileTree, tasksWindow.getProgressTableModel());
+		
 		// TODO: solve this ugly dependancy between tasksWindow and executors
 		tasksWindow.setDownloadExecutor(downloadExecutor);
 		tasksWindow.setUploadExecutor(uploadExecutor);
+		tasksWindow.setDeleteExecutor(deleteExecutor);
+		cloudFileTree.setDeleteExecutor(deleteExecutor);
 	}
 
 	public void genericCloudDisconnect() {
@@ -227,6 +235,7 @@ public class MyCloudJ_ implements PlugIn {
 	public void terminateTransferThreads() {
 		downloadExecutor.terminateAllTransfers();
 		uploadExecutor.terminateAllTransfers();
+		deleteExecutor.terminateAllTransfers();
 	}
 
 	private void freeCloudResources() {
@@ -335,13 +344,13 @@ public class MyCloudJ_ implements PlugIn {
 					// display user info in a text area
 					displayUserInfo(dbxUtility);
 
-					// start transfer threads
-					initializeTransferThreads(cloudHandler, tasksWindow);
-
 					// prepare the file browsing trees
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildFileSelectionTrees(cloudHomeDirectoryPath,
 							LOCAL_HOME_DIRECTORY_PATH);
+					
+					// start transfer threads
+					initializeTransferThreads(cloudHandler, tasksWindow);
 
 					// enable the right panel
 					tasksWindow.enable();
@@ -402,7 +411,7 @@ public class MyCloudJ_ implements PlugIn {
 				rodsUtilsObj.login();
 				userIsConnected = true;
 				disableRodsLoginForm();
-
+				
 				cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 				buildFileSelectionTrees(cloudHomeDirectoryPath,
 						LOCAL_HOME_DIRECTORY_PATH);

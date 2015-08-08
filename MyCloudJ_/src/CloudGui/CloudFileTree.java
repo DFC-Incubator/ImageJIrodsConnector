@@ -1,8 +1,18 @@
 package CloudGui;
 
+import file_transfer.ExecutorOperations;
+import file_transfer.FileTransferException;
+import file_transfer.TransferTask;
+import file_transfer.TransferTaskCallback;
 import general.GeneralUtility;
 
 import java.awt.FlowLayout;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -11,9 +21,13 @@ import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -28,7 +42,7 @@ import cloud_interfaces.CloudOperations;
 public class CloudFileTree {
 	private static final String CLOUD_DELIMITER = "/";
 	private String homeDirectoryPath;
-	
+
 	/**
 	 * @downloadTree: stores the complete metadata(path of folders) of cloud
 	 *                account. Used to display when user browses to select the
@@ -36,7 +50,7 @@ public class CloudFileTree {
 	 * 
 	 *                Note : Each node in downloadTree represents a file/folder
 	 */
-	private JTree downloadTree;
+	private JTree tree;
 	private DefaultTreeModel downloadTreeModel;
 	private DefaultMutableTreeNode downloadRoot;
 
@@ -60,15 +74,16 @@ public class CloudFileTree {
 	private JButton cancelButton;
 
 	private CloudOperations cloudHandler;
+	private ExecutorOperations deleteExecutor;
 
 	public void createEnclosingFrameDownload() {
-		createEnclosingFrame(downloadTree);
+		createEnclosingFrame(tree);
 	}
 
 	public void createEnclosingFrameUpload() {
 		createEnclosingFrame(uploadTree);
 	}
-	
+
 	public CloudFileTree(String homeDirectoryPath, CloudOperations cloudHandler)
 			throws CloudException {
 		this.cloudHandler = cloudHandler;
@@ -76,7 +91,7 @@ public class CloudFileTree {
 
 		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
 		downloadTreeModel = new DefaultTreeModel(downloadRoot);
-		downloadTree = new JTree(downloadTreeModel);
+		tree = new JTree(downloadTreeModel);
 
 		getDownloadTree().getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -88,6 +103,10 @@ public class CloudFileTree {
 		getUploadTree().getSelectionModel().setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		uploadTreeModel.reload(uploadRoot);
+
+		// right click popup = rename + delete
+		tree.addMouseListener(new RightClickAction(tree));
+		uploadTree.addMouseListener(new RightClickAction(uploadTree));
 	}
 
 	private void createEnclosingFrame(JTree fileTree) {
@@ -174,7 +193,7 @@ public class CloudFileTree {
 
 	public void expandDownloadTree() throws CloudException {
 		expandTree(getDownloadTree(), downloadTreeModel, false,
-				getSelectedNodePath(downloadTree));
+				getSelectedNodePath(tree));
 	}
 
 	private void expandTree(JTree tree, DefaultTreeModel treeModel,
@@ -202,14 +221,15 @@ public class CloudFileTree {
 		DefaultMutableTreeNode node;
 		TreePath currNodePath;
 		boolean currNodeisExpanded;
-		
+
 		// try to expand the upload tree
 		node = getNodeFromPath(uploadRoot, path);
-		if (node != null)  {
+		if (node != null) {
 			currNodePath = new TreePath(node.getPath());
 			currNodeisExpanded = uploadTree.isExpanded(currNodePath);
-			/* expand only if the folder/parent of the folder where 
-			 * we've done the upload is expanded.
+			/*
+			 * expand only if the folder/parent of the folder where we've done
+			 * the upload is expanded.
 			 */
 			if (currNodeisExpanded || isParentExpanded(node, uploadTree))
 				try {
@@ -219,72 +239,78 @@ public class CloudFileTree {
 					e.printStackTrace();
 				}
 		}
-		
+
 		// try to expand the download tree
 		node = getNodeFromPath(downloadRoot, path);
 		if (node != null) {
 			try {
 				currNodePath = new TreePath(node.getPath());
-				currNodeisExpanded = downloadTree.isExpanded(currNodePath);
-				/* expand only if: 
-				 * - the folder where've done the upload is expanded 
-				 * - the folder where we've done the upload contains only the 
-				 * uploaded file and the parent of the folder where we've done 
-				 * the upload is expanded
+				currNodeisExpanded = tree.isExpanded(currNodePath);
+				/*
+				 * expand only if: - the folder where've done the upload is
+				 * expanded - the folder where we've done the upload contains
+				 * only the uploaded file and the parent of the folder where
+				 * we've done the upload is expanded
 				 */
-				if (currNodeisExpanded || (isParentExpanded(node, downloadTree) &&
-					cloudHandler.listFiles(path).size() == 1))
-					expandTree(downloadTree, downloadTreeModel, false, path);
+				if (currNodeisExpanded
+						|| (isParentExpanded(node, tree) && cloudHandler
+								.listFiles(path).size() == 1))
+					expandTree(tree, downloadTreeModel, false, path);
 			} catch (CloudException e) {
 				System.out.println("Error expanding download tree!");
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	private boolean isParentExpanded(DefaultMutableTreeNode node, JTree tree) {
-		DefaultMutableTreeNode root = (DefaultMutableTreeNode)tree.getModel().getRoot();
-		DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel()
+				.getRoot();
+		DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node
+				.getParent();
 		TreePath parentTreePath;
-		
+
 		if (root.toString() == homeDirectoryPath)
 			return true;
-		
+
 		parentTreePath = new TreePath(parent.getPath());
-		if (tree.isExpanded(parentTreePath)) 
+		if (tree.isExpanded(parentTreePath))
 			return true;
-		
+
 		return false;
 	}
-	
-	private DefaultMutableTreeNode getNodeFromPath (DefaultMutableTreeNode root, String path) {
+
+	private DefaultMutableTreeNode getNodeFromPath(DefaultMutableTreeNode root,
+			String path) {
 		if (path == null || path.startsWith(homeDirectoryPath) == false)
 			return null;
-		
+
 		if (path.equals(root.toString()) == true)
 			return root;
-		
+
 		path = path.substring(homeDirectoryPath.length() + 1, path.length());
-		List<String> pathComponents = new ArrayList<String>(Arrays.asList(path.split(CLOUD_DELIMITER)));
-		
+		List<String> pathComponents = new ArrayList<String>(Arrays.asList(path
+				.split(CLOUD_DELIMITER)));
+
 		return getNodeFromPath(root, pathComponents);
 	}
-	
-	private DefaultMutableTreeNode getNodeFromPath(DefaultMutableTreeNode node, List<String> pathComponents) {
+
+	private DefaultMutableTreeNode getNodeFromPath(DefaultMutableTreeNode node,
+			List<String> pathComponents) {
 		boolean notFound = true;
-		if (pathComponents.size() == 0) 
+		if (pathComponents.size() == 0)
 			return node;
-	
+
 		String searchedNodeName = pathComponents.get(0);
 		pathComponents.remove(0);
-		
+
 		@SuppressWarnings("unchecked")
 		Enumeration<DefaultMutableTreeNode> children = node.children();
 		while (children.hasMoreElements() && notFound) {
 			DefaultMutableTreeNode currNode = children.nextElement();
 			if (currNode.toString().equals(searchedNodeName) == true) {
-					notFound = false;
-					return getNodeFromPath(currNode, pathComponents);
+				notFound = false;
+				return getNodeFromPath(currNode, pathComponents);
 			}
 		}
 		return null;
@@ -297,7 +323,7 @@ public class CloudFileTree {
 		TreePath parentPath = tree.getSelectionPath();
 		if (parentPath == null)
 			return null;
-		
+
 		componentNo = parentPath.getPathCount();
 
 		for (int i = 0; i < componentNo; i++) {
@@ -327,7 +353,7 @@ public class CloudFileTree {
 			}
 		});
 
-		downloadTree.addTreeExpansionListener(new TreeExpansionListener() {
+		tree.addTreeExpansionListener(new TreeExpansionListener() {
 			@Override
 			public void treeExpanded(TreeExpansionEvent event) {
 				getEnclosingFrame().pack();
@@ -349,7 +375,7 @@ public class CloudFileTree {
 	}
 
 	public JTree getDownloadTree() {
-		return downloadTree;
+		return tree;
 	}
 
 	public JTree getUploadTree() {
@@ -374,5 +400,130 @@ public class CloudFileTree {
 
 	public JButton getCancelButton() {
 		return cancelButton;
+	}
+
+	public void setDeleteExecutor(ExecutorOperations deleteExecutor) {
+		this.deleteExecutor = deleteExecutor;
+	}
+
+	class RightClickAction extends MouseAdapter {
+		private JTree tree;
+
+		public RightClickAction(JTree tree) {
+			this.tree = tree;
+		}
+
+		public void mousePressed(MouseEvent e) {
+			if (SwingUtilities.isRightMouseButton(e)) {
+				TreePath selectedPath = tree.getPathForLocation(e.getX(),
+						e.getY());
+				Rectangle pathBounds = tree.getUI().getPathBounds(tree,
+						selectedPath);
+				if (pathBounds != null
+						&& pathBounds.contains(e.getX(), e.getY())) {
+					// selected path is the right clicked node
+					tree.setSelectionPath(selectedPath);
+
+					// menu = rename + delete
+					JPopupMenu menu = new JPopupMenu();
+
+					// add the rename option
+					JMenuItem renameItem = new JMenuItem("Rename");
+					ActionListener renameListener = new RenameListener(tree);
+					renameItem.addActionListener(renameListener);
+					menu.add(renameItem);
+
+					// add the rename option
+					JMenuItem deleteItem = new JMenuItem("Delete");
+					ActionListener deleteListener = new DeleteListener(tree);
+					deleteItem.addActionListener(deleteListener);
+					menu.add(deleteItem);
+
+					menu.show(tree, pathBounds.x, pathBounds.y
+							+ pathBounds.height);
+				}
+			}
+
+		}
+	}
+
+	class RenameListener implements ActionListener {
+		private JTree tree;
+
+		public RenameListener(JTree tree) {
+			this.tree = tree;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (cloudHandler.getCloudCapabilities().isRenameSUpported() == false) {
+				JOptionPane.showMessageDialog(null,
+						"Operation not supported yet");
+				return;
+			}
+
+			String selectedNodePath = getSelectedNodePath(tree);
+			if (selectedNodePath == null)
+				return;
+			System.out.println("Rename Listener: " + selectedNodePath);
+		}
+	}
+
+	class DeleteListener implements ActionListener {
+		private JTree tree;
+
+		public DeleteListener(JTree tree) {
+			this.tree = tree;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String selectedNodePath = getSelectedNodePath(tree);
+			if (selectedNodePath == null)
+				return;
+
+			if (cloudHandler.getCloudCapabilities().isDeleteSupported() == false) {
+				JOptionPane.showMessageDialog(null,
+						"Operation not supported yet");
+				return;
+			}
+
+			// popup for delete confirmation
+			Object[] message = { "Are you sure you want to delete the file:\n"
+					+ selectedNodePath + "\n" };
+			int option = JOptionPane.showConfirmDialog(null, message,
+					"Delete Confirm", JOptionPane.OK_CANCEL_OPTION);
+			if (option == JOptionPane.OK_OPTION) { // delete is authorized
+				TransferTask task = new TransferTask(selectedNodePath, "");
+				task.setCallback(new DeleteTaskCallback(selectedNodePath));
+				try {
+					deleteExecutor.addTask(task);
+				} catch (FileTransferException e2) {
+					JOptionPane.showMessageDialog(null, e2.getError(), "Error",
+							JOptionPane.ERROR_MESSAGE);
+					e2.printStackTrace();
+				}
+
+			}
+		}
+	}
+
+	class DeleteTaskCallback implements TransferTaskCallback {
+		String selectedNodePath;
+		
+		public DeleteTaskCallback(String selectedNodePath) {
+			this.selectedNodePath = selectedNodePath;
+		}
+		
+		@Override
+		public void updateGUI() {
+			DefaultMutableTreeNode downloadNode = getNodeFromPath(downloadRoot, selectedNodePath);
+			if (downloadNode != null)
+				downloadTreeModel.removeNodeFromParent(downloadNode);
+			
+			DefaultMutableTreeNode uploadNode = getNodeFromPath(uploadRoot, selectedNodePath);
+			if (uploadNode != null)
+				uploadTreeModel.removeNodeFromParent(uploadNode);
+		}
 	}
 }

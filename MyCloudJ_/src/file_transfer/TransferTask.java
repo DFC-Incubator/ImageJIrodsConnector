@@ -4,6 +4,7 @@ public class TransferTask {
 	private String sourcePath;
 	private String destPath;
 	private boolean isDownloadTask;
+	private TransferTaskCallback callback;
 	
 	public TransferTask(String sourcePath, String destPath) {
 		this.sourcePath = sourcePath;
@@ -27,5 +28,13 @@ public class TransferTask {
 	}
 	public void setDownloadTask(boolean isDownloadTask) {
 		this.isDownloadTask = isDownloadTask;
+	}
+
+	public TransferTaskCallback getCallback() {
+		return callback;
+	}
+
+	public void setCallback(TransferTaskCallback callback) {
+		this.callback = callback;
 	}
 }

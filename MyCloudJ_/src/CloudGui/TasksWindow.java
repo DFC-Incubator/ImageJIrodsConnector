@@ -218,4 +218,8 @@ public class TasksWindow {
 	public void setUploadExecutor(ExecutorOperations uploadExecutor) {
 		progressTable.setUploadOperations(uploadExecutor);
 	}
+	
+	public void setDeleteExecutor(ExecutorOperations deleteExecutor) {
+		progressTable.setDeleteOperations(deleteExecutor);
+	}
 }

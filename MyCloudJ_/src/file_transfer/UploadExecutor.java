@@ -40,7 +40,7 @@ public class UploadExecutor  implements ExecutorOperations {
 			if (futureTask == null || futureTask.isDone()) {
 				// create a new future task
 				transferId = this.model.addTransfer(task.getSourcePath(),
-						task.getDestinationPath(), false);
+						task.getDestinationPath(), Transfer.UPLOAD);
 				UploadThread uploadTask = new UploadThread(task, cloudHandler,
 						cloudFileTree, model, transferId);
 				transfers.set(i, uploadTask);

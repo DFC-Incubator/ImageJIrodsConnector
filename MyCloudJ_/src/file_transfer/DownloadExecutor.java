@@ -38,7 +38,7 @@ public class DownloadExecutor implements ExecutorOperations {
 
 				// create a new future task
 				transferId = this.model.addTransfer(task.getSourcePath(),
-						task.getDestinationPath(), true);
+						task.getDestinationPath(), Transfer.DOWNLOAD);
 				DownloadThread downloadTask = new DownloadThread(task,
 						cloudHandler, model, transferId);
 				transfers.set(i, downloadTask);
