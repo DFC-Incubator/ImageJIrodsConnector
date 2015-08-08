@@ -397,6 +397,10 @@ public class CloudFileTree {
 	public JFrame getEnclosingFrame() {
 		return enclosingFrame;
 	}
+	
+	public void setEnclosingFrame(JFrame value) {
+		enclosingFrame = value;
+	}
 
 	public JButton getCancelButton() {
 		return cancelButton;

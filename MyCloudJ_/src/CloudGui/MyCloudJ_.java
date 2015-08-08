@@ -64,7 +64,7 @@ public class MyCloudJ_ implements PlugIn {
 
 	// thread used for downloading tasks
 	ExecutorOperations uploadExecutor;
-	
+
 	// thread used for delete tasks
 	ExecutorOperations deleteExecutor;
 
@@ -206,13 +206,16 @@ public class MyCloudJ_ implements PlugIn {
 	public void initializeTransferThreads(CloudOperations cloudHandler,
 			TasksWindow tasksWindow) {
 		// start the thread for downloading
-		downloadExecutor = new DownloadExecutor(cloudHandler, tasksWindow.getProgressTableModel());
+		downloadExecutor = new DownloadExecutor(cloudHandler,
+				tasksWindow.getProgressTableModel());
 
 		// start the thread for uploading
-		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree, tasksWindow.getProgressTableModel());
-		
-		deleteExecutor = new DeleteExecutor(cloudHandler, cloudFileTree, tasksWindow.getProgressTableModel());
-		
+		uploadExecutor = new UploadExecutor(cloudHandler, cloudFileTree,
+				tasksWindow.getProgressTableModel());
+
+		deleteExecutor = new DeleteExecutor(cloudHandler, cloudFileTree,
+				tasksWindow.getProgressTableModel());
+
 		// TODO: solve this ugly dependancy between tasksWindow and executors
 		tasksWindow.setDownloadExecutor(downloadExecutor);
 		tasksWindow.setUploadExecutor(uploadExecutor);
@@ -348,7 +351,7 @@ public class MyCloudJ_ implements PlugIn {
 					cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 					buildFileSelectionTrees(cloudHomeDirectoryPath,
 							LOCAL_HOME_DIRECTORY_PATH);
-					
+
 					// start transfer threads
 					initializeTransferThreads(cloudHandler, tasksWindow);
 
@@ -411,7 +414,7 @@ public class MyCloudJ_ implements PlugIn {
 				rodsUtilsObj.login();
 				userIsConnected = true;
 				disableRodsLoginForm();
-				
+
 				cloudHomeDirectoryPath = cloudHandler.getHomeDirectory();
 				buildFileSelectionTrees(cloudHomeDirectoryPath,
 						LOCAL_HOME_DIRECTORY_PATH);
@@ -479,6 +482,12 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			tasksWindow.resetSelectionPaths();
+			if (cloudFileTree.getEnclosingFrame() != null) {
+				cloudFileTree.getEnclosingFrame().dispose();
+				// TODO: instead of setting the frame to null
+				// overwrite the dispose method
+				cloudFileTree.setEnclosingFrame(null);
+			}
 		}
 	}
 
@@ -486,6 +495,12 @@ public class MyCloudJ_ implements PlugIn {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			tasksWindow.resetSelectionPaths();
+			if (cloudFileTree.getEnclosingFrame() != null) {
+				cloudFileTree.getEnclosingFrame().dispose();
+				// TODO: instead of setting the frame to null
+				// overwrite the dispose method
+				cloudFileTree.setEnclosingFrame(null);
+			}
 		}
 	}
 
@@ -500,13 +515,17 @@ public class MyCloudJ_ implements PlugIn {
 			}
 			// download file from cloud
 			else if (tasksWindow.getDownloadRadioButton().isSelected()) {
-				cloudFileTree.createEnclosingFrameDownload();
-				cloudFileTree.getExpandButton().addActionListener(
-						new BtnExpandDownloadTreeListener());
-				cloudFileTree.getSelectButton().addActionListener(
-						new BtnSelectListener());
-				cloudFileTree.getCancelButton().addActionListener(
-						new BtnCancelListener());
+				if (cloudFileTree.getEnclosingFrame() == null) {
+					cloudFileTree.createEnclosingFrameDownload();
+					cloudFileTree.getExpandButton().addActionListener(
+							new BtnExpandDownloadTreeListener());
+					cloudFileTree.getSelectButton().addActionListener(
+							new BtnSelectListener());
+					cloudFileTree.getCancelButton().addActionListener(
+							new BtnCancelListener());
+				} else {
+					cloudFileTree.getEnclosingFrame().toFront();
+				}
 			}
 		}
 	}
@@ -516,13 +535,18 @@ public class MyCloudJ_ implements PlugIn {
 		public void actionPerformed(ActionEvent e) {
 			// upload file to cloud
 			if (tasksWindow.getUploadRadioButton().isSelected()) {
-				cloudFileTree.createEnclosingFrameUpload();
-				cloudFileTree.getExpandButton().addActionListener(
-						new BtnExpandUploadTreeListener());
-				cloudFileTree.getSelectButton().addActionListener(
-						new BtnSelect2Listener());
-				cloudFileTree.getCancelButton().addActionListener(
-						new BtnCancelListener());
+				// check if the frame is already openened
+				if (cloudFileTree.getEnclosingFrame() == null) {
+					cloudFileTree.createEnclosingFrameUpload();
+					cloudFileTree.getExpandButton().addActionListener(
+							new BtnExpandUploadTreeListener());
+					cloudFileTree.getSelectButton().addActionListener(
+							new BtnSelect2Listener());
+					cloudFileTree.getCancelButton().addActionListener(
+							new BtnCancelListener());
+				} else {
+					cloudFileTree.getEnclosingFrame().toFront();
+				}
 				// download file from cloud
 			} else if (tasksWindow.getDownloadRadioButton().isSelected()) {
 				localFileTree.openSelectionGUI(true,
@@ -552,6 +576,7 @@ public class MyCloudJ_ implements PlugIn {
 					.getSelectedNodePathUploadTree();
 			tasksWindow.setDestinationPath(selectedNodePath);
 			cloudFileTree.getEnclosingFrame().dispose();
+			cloudFileTree.setEnclosingFrame(null);
 		}
 	}
 
