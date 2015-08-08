@@ -272,7 +272,7 @@ public class TransferProgressTable {
 									error.add(statusField);
 
 									SimpleDateFormat dateFormat = new SimpleDateFormat(
-											"HH:mm:ss yyyy-mm-dd ");
+											"HH:mm:ss yyyy-MM-dd ");
 									error.add(new JLabel(
 											"Transfer queued date"));
 									Date queueDate = row.getQueuedDate();
