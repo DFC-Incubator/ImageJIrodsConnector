@@ -113,6 +113,12 @@ public class CloudFileTree {
 		JPanel fileTreePanel = new JPanel();
 		JPanel buttonsPanel = new JPanel(new FlowLayout());
 		enclosingFrame = new JFrame();
+		enclosingFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		    	enclosingFrame = null;
+		    }
+		});
 		BoxLayout boxLayout = new BoxLayout(enclosingFrame.getContentPane(),
 				BoxLayout.Y_AXIS);
 
