@@ -3,6 +3,7 @@ package CloudGui;
 import ij.plugin.PlugIn;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -119,7 +120,8 @@ public class MyCloudJ_ implements PlugIn {
 		mainFrame = new JFrame();
 		mainFrame.setLayout(new FlowLayout());
 		mainFrame.setTitle("CloudConnect - MyCloudJ");
-		mainFrame.setSize(1300, 500);
+		mainFrame.setSize(1300, 510);
+		mainFrame.setPreferredSize(new Dimension(1300, 500));
 		mainFrame.setResizable(false);
 		mainFrame.setLocationRelativeTo(null); // center the mainFrame
 
