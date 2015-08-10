@@ -6,6 +6,7 @@ import file_transfer.TransferTask;
 import file_transfer.TransferTaskCallback;
 import general.GeneralUtility;
 
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -27,9 +28,11 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -88,7 +91,7 @@ public class CloudFileTree {
 		this.cloudHandler = cloudHandler;
 		this.homeDirectoryPath = homeDirectoryPath;
 
-		downloadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
+		downloadRoot = new DefaultMutableTreeNode(new Folder(homeDirectoryPath));
 		downloadTreeModel = new DefaultTreeModel(downloadRoot);
 		tree = new JTree(downloadTreeModel);
 
@@ -96,7 +99,7 @@ public class CloudFileTree {
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		downloadTreeModel.reload(downloadRoot);
 
-		uploadRoot = new DefaultMutableTreeNode(homeDirectoryPath);
+		uploadRoot = new DefaultMutableTreeNode(new Folder(homeDirectoryPath));
 		uploadTreeModel = new DefaultTreeModel(uploadRoot);
 		uploadTree = new JTree(uploadTreeModel);
 		getUploadTree().getSelectionModel().setSelectionMode(
@@ -106,6 +109,10 @@ public class CloudFileTree {
 		// right click popup = rename + delete
 		tree.addMouseListener(new RightClickAction(tree));
 		uploadTree.addMouseListener(new RightClickAction(uploadTree));
+		
+		// renderer
+		tree.setCellRenderer(new CustomTreeRenderer());
+		uploadTree.setCellRenderer(new CustomTreeRenderer());
 	}
 
 	private void createEnclosingFrame(JTree fileTree) {
@@ -164,8 +171,13 @@ public class CloudFileTree {
 
 		for (int i = 0; i < cloudFiles.size(); i++) {
 			CloudFile child = cloudFiles.get(i);
-			DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
-					child.getPath());
+			DefaultMutableTreeNode nodeChild;
+			if (child.isFile()) {
+				nodeChild = new DefaultMutableTreeNode(new File(child.getPath()));
+			}
+			else {
+				nodeChild = new DefaultMutableTreeNode(new Folder(child.getPath()));
+			}
 			GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 		}
 	}
@@ -184,8 +196,7 @@ public class CloudFileTree {
 		for (int i = 0; i < cloudFiles.size(); i++) {
 			CloudFile child = cloudFiles.get(i);
 			if (!child.isFile()) {
-				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
-						child.getPath());
+				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(new Folder(child.getPath()));
 				GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 			}
 		}
@@ -453,6 +464,30 @@ public class CloudFileTree {
 
 		}
 	}
+	
+	private class CustomTreeRenderer extends DefaultTreeCellRenderer {
+        @Override
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+
+            // decide what icons you want by examining the node
+            if (value instanceof DefaultMutableTreeNode) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+                if (node.getUserObject() instanceof Folder) {
+                    // your root node, since you just put a String as a user obj                    
+                    setIcon(UIManager.getIcon("FileView.directoryIcon"));
+                } else if (node.getUserObject() instanceof File) {
+                    // decide based on some property of your Contact obj
+                  
+                        setIcon(UIManager.getIcon("FileView.fileIcon"));
+                } else {
+                        setIcon(UIManager.getIcon("FileChooser.homeFolderIcon"));
+                    }
+                }
+            return this;
+        }
+
+    }
 
 	class RenameListener implements ActionListener {
 		private JTree tree;

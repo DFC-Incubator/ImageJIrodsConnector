@@ -9,6 +9,8 @@ import java.util.List;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import CloudGui.File;
+import CloudGui.Folder;
 import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
 
@@ -29,10 +31,33 @@ public class GeneralUtility {
 			DefaultMutableTreeNode childNode, DefaultTreeModel model) {
 		// Check each node
 		boolean isUnique = true;
+		String newNodeName = "", oldNodeName = "";
+		Object childNodeObj = childNode.getUserObject();
+		
+		if (childNodeObj instanceof File) {
+			newNodeName = ((File)childNodeObj).getPath();
+		} else if (childNodeObj instanceof Folder)
+			newNodeName = ((Folder)childNodeObj).getPath();
+		else {
+			// TODO1: throw an Exception
+			// TODO2: the else case is true for the root node -> why?
+			System.out.println("Unknown JTree Node type");
+		}
+		
 		for (int i = 0; i < model.getChildCount(parentNode); i++) {
 			Object compUserObj = ((DefaultMutableTreeNode) model.getChild(
 					parentNode, i)).getUserObject();
-			if (compUserObj.equals(childNode.getUserObject())) {
+			if (compUserObj instanceof File) {
+				oldNodeName = ((File)compUserObj).getPath();
+			} else if (childNodeObj instanceof Folder)
+				oldNodeName = ((Folder)compUserObj).getPath();
+			else {
+				// TODO1: throw an Exception
+				// TODO2: the else case is true for the root node -> why
+				System.out.println("Unknown JTree Node type");
+			}
+			
+			if (newNodeName.equals(oldNodeName) == true) {
 				isUnique = false;
 				break;
 			}

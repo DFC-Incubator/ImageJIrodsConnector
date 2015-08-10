@@ -409,9 +409,9 @@ public class MyCloudJ_ implements PlugIn {
 			rodsUtilsObj.setRes("");
 
 			try {
-				checkLoginCredentials();
-				rodsUtilsObj.setCredentials(user, password, host, port, zone,
-				resource);
+				//checkLoginCredentials();
+				//rodsUtilsObj.setCredentials(user, password, host, port, zone,
+				//resource);
 
 				rodsUtilsObj.login();
 				userIsConnected = true;
