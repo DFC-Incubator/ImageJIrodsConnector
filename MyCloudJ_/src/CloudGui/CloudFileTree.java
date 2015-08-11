@@ -221,6 +221,7 @@ public class CloudFileTree {
 		parentNode = getNodeFromPath(root, selectedFilePath);
 		if (parentNode == null)
 			return;
+			
 		List<CloudFile> cloudFiles = cloudHandler.listFiles(selectedFilePath);
 		
 		if (onlyFolders)
@@ -301,10 +302,13 @@ public class CloudFileTree {
 
 		if (path.equals(root.toString()) == true)
 			return root;
-
-		path = path.substring(homeDirectoryPath.length() + 1, path.length());
+		
+		path = path.substring(homeDirectoryPath.length(), path.length());
 		List<String> pathComponents = new ArrayList<String>(Arrays.asList(path
 				.split(CLOUD_DELIMITER)));
+		// TODO: cleanup the relation between file path and root
+		if (pathComponents.get(0).length() == 0)
+			pathComponents.remove(0);
 
 		return getNodeFromPath(root, pathComponents);
 	}
@@ -507,7 +511,6 @@ public class CloudFileTree {
 			String selectedNodePath = getSelectedNodePath(tree);
 			if (selectedNodePath == null)
 				return;
-			System.out.println("Rename Listener: " + selectedNodePath);
 		}
 	}
 
