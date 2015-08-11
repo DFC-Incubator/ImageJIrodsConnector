@@ -329,4 +329,31 @@ public class RodsOperations implements CloudOperations {
 		}
 		return fileWasDeleted;
 	}
+
+	@Override
+	public boolean mkdir(String cloudPath) throws CloudException {
+		String error = "";
+		boolean fileWasDeleted;
+
+		GeneralUtility.checkCloudPath(cloudPath, RODS_DELIMITER);
+
+		try {
+			// access the file on cloud
+			IRODSFile irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
+
+			// set the callbacks
+			long start = System.nanoTime();
+			fileWasDeleted = irodsFile.mkdir();
+			long end = System.nanoTime();
+
+			long elapsedTime = end - start;
+			double seconds = (double) elapsedTime / 1000000000.0;
+			System.out.println("Mkdir time: " + seconds + " seconds");
+		} catch (Exception e) {
+			e.printStackTrace();
+			error = "iRODS: Could not acces " + cloudPath + ": ";
+			throw (new CloudException(error.concat(e.getMessage())));
+		}
+		return fileWasDeleted;
+	}
 }

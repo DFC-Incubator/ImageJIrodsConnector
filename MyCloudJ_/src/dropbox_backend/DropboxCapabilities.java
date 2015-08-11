@@ -24,4 +24,9 @@ public class DropboxCapabilities implements CloudCapabilities{
 		return false;
 	}
 
+	@Override
+	public boolean isMkDirSupported() {
+		return false;
+	}
+
 }

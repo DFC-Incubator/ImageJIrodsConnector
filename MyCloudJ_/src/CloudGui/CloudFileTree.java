@@ -77,6 +77,7 @@ public class CloudFileTree {
 
 	private CloudOperations cloudHandler;
 	private ExecutorOperations deleteExecutor;
+	private ExecutorOperations newFolderExecutor;
 
 	public void createEnclosingFrameDownload() {
 		createEnclosingFrame(tree);
@@ -109,7 +110,7 @@ public class CloudFileTree {
 		// right click popup = rename + delete
 		tree.addMouseListener(new RightClickAction(tree));
 		uploadTree.addMouseListener(new RightClickAction(uploadTree));
-		
+
 		// renderer
 		tree.setCellRenderer(new CustomTreeRenderer());
 		uploadTree.setCellRenderer(new CustomTreeRenderer());
@@ -120,10 +121,10 @@ public class CloudFileTree {
 		JPanel buttonsPanel = new JPanel(new FlowLayout());
 		enclosingFrame = new JFrame();
 		enclosingFrame.addWindowListener(new java.awt.event.WindowAdapter() {
-		    @Override
-		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	enclosingFrame = null;
-		    }
+			@Override
+			public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+				enclosingFrame = null;
+			}
 		});
 		BoxLayout boxLayout = new BoxLayout(enclosingFrame.getContentPane(),
 				BoxLayout.Y_AXIS);
@@ -173,10 +174,11 @@ public class CloudFileTree {
 			CloudFile child = cloudFiles.get(i);
 			DefaultMutableTreeNode nodeChild;
 			if (child.isFile()) {
-				nodeChild = new DefaultMutableTreeNode(new File(child.getPath()));
-			}
-			else {
-				nodeChild = new DefaultMutableTreeNode(new Folder(child.getPath()));
+				nodeChild = new DefaultMutableTreeNode(
+						new File(child.getPath()));
+			} else {
+				nodeChild = new DefaultMutableTreeNode(new Folder(
+						child.getPath()));
 			}
 			GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 		}
@@ -196,7 +198,8 @@ public class CloudFileTree {
 		for (int i = 0; i < cloudFiles.size(); i++) {
 			CloudFile child = cloudFiles.get(i);
 			if (!child.isFile()) {
-				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(new Folder(child.getPath()));
+				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
+						new Folder(child.getPath()));
 				GeneralUtility.addUniqueNode(node, nodeChild, Treemodel);
 			}
 		}
@@ -217,13 +220,14 @@ public class CloudFileTree {
 		// parent node of the currently selected node
 		DefaultMutableTreeNode parentNode = null;
 
-		DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel
+				.getRoot();
 		parentNode = getNodeFromPath(root, selectedFilePath);
 		if (parentNode == null)
 			return;
-			
+
 		List<CloudFile> cloudFiles = cloudHandler.listFiles(selectedFilePath);
-		
+
 		if (onlyFolders)
 			addChildrenFolder(parentNode, treeModel, cloudFiles);
 		else
@@ -302,7 +306,7 @@ public class CloudFileTree {
 
 		if (path.equals(root.toString()) == true)
 			return root;
-		
+
 		path = path.substring(homeDirectoryPath.length(), path.length());
 		List<String> pathComponents = new ArrayList<String>(Arrays.asList(path
 				.split(CLOUD_DELIMITER)));
@@ -415,7 +419,7 @@ public class CloudFileTree {
 	public JFrame getEnclosingFrame() {
 		return enclosingFrame;
 	}
-	
+
 	public void setEnclosingFrame(JFrame value) {
 		enclosingFrame = value;
 	}
@@ -426,6 +430,14 @@ public class CloudFileTree {
 
 	public void setDeleteExecutor(ExecutorOperations deleteExecutor) {
 		this.deleteExecutor = deleteExecutor;
+	}
+
+	public ExecutorOperations getNewFolderExecutor() {
+		return newFolderExecutor;
+	}
+
+	public void setNewFolderExecutor(ExecutorOperations newFolderExecutor) {
+		this.newFolderExecutor = newFolderExecutor;
 	}
 
 	class RightClickAction extends MouseAdapter {
@@ -446,7 +458,7 @@ public class CloudFileTree {
 					// selected path is the right clicked node
 					tree.setSelectionPath(selectedPath);
 
-					// menu = rename + delete
+					// menu = rename + delete + mkdir
 					JPopupMenu menu = new JPopupMenu();
 
 					// add the rename option
@@ -461,6 +473,12 @@ public class CloudFileTree {
 					deleteItem.addActionListener(deleteListener);
 					menu.add(deleteItem);
 
+					// add the mkdir option
+					JMenuItem mkdirItem = new JMenuItem("New Folder");
+					ActionListener mkdirListener = new MkDirListener(tree);
+					mkdirItem.addActionListener(mkdirListener);
+					menu.add(mkdirItem);
+
 					menu.show(tree, pathBounds.x, pathBounds.y
 							+ pathBounds.height);
 				}
@@ -468,30 +486,33 @@ public class CloudFileTree {
 
 		}
 	}
-	
+
 	private class CustomTreeRenderer extends DefaultTreeCellRenderer {
-        @Override
-        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+		@Override
+		public Component getTreeCellRendererComponent(JTree tree, Object value,
+				boolean sel, boolean expanded, boolean leaf, int row,
+				boolean hasFocus) {
+			super.getTreeCellRendererComponent(tree, value, sel, expanded,
+					leaf, row, hasFocus);
 
-            // decide what icons you want by examining the node
-            if (value instanceof DefaultMutableTreeNode) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-                if (node.getUserObject() instanceof Folder) {
-                    // your root node, since you just put a String as a user obj                    
-                    setIcon(UIManager.getIcon("FileView.directoryIcon"));
-                } else if (node.getUserObject() instanceof File) {
-                    // decide based on some property of your Contact obj
-                  
-                        setIcon(UIManager.getIcon("FileView.fileIcon"));
-                } else {
-                        setIcon(UIManager.getIcon("FileChooser.homeFolderIcon"));
-                    }
-                }
-            return this;
-        }
+			// decide what icons you want by examining the node
+			if (value instanceof DefaultMutableTreeNode) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+				if (node.getUserObject() instanceof Folder) {
+					// your root node, since you just put a String as a user obj
+					setIcon(UIManager.getIcon("FileView.directoryIcon"));
+				} else if (node.getUserObject() instanceof File) {
+					// decide based on some property of your Contact obj
 
-    }
+					setIcon(UIManager.getIcon("FileView.fileIcon"));
+				} else {
+					setIcon(UIManager.getIcon("FileChooser.homeFolderIcon"));
+				}
+			}
+			return this;
+		}
+
+	}
 
 	class RenameListener implements ActionListener {
 		private JTree tree;
@@ -555,23 +576,122 @@ public class CloudFileTree {
 
 	class DeleteTaskCallback implements TransferTaskCallback {
 		String selectedNodePath;
-		
+
 		public DeleteTaskCallback(String selectedNodePath) {
 			this.selectedNodePath = selectedNodePath;
 		}
-		
+
 		@Override
 		public void updateGUI() {
-			DefaultMutableTreeNode downloadNode = getNodeFromPath(downloadRoot, selectedNodePath);
+			DefaultMutableTreeNode downloadNode = getNodeFromPath(downloadRoot,
+					selectedNodePath);
 			if (downloadNode != null) {
 				downloadTreeModel.removeNodeFromParent(downloadNode);
 				getEnclosingFrame().pack();
 			}
-			
-			DefaultMutableTreeNode uploadNode = getNodeFromPath(uploadRoot, selectedNodePath);
+
+			DefaultMutableTreeNode uploadNode = getNodeFromPath(uploadRoot,
+					selectedNodePath);
 			if (uploadNode != null) {
 				uploadTreeModel.removeNodeFromParent(uploadNode);
 				getEnclosingFrame().pack();
+			}
+		}
+	}
+
+	class MkDirListener implements ActionListener {
+		private JTree tree;
+
+		public MkDirListener(JTree tree) {
+			this.tree = tree;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String selectedNodePath = getSelectedNodePath(tree);
+			if (selectedNodePath == null)
+				return;
+
+			if (cloudHandler.getCloudCapabilities().isMkDirSupported() == false) {
+				JOptionPane.showMessageDialog(null,
+						"Operation not supported yet");
+				return;
+			}
+
+			String dialogMessage = "New folder path: " + selectedNodePath
+					+ "\n" + "Enter folder name:";
+			String newFolderName = (String) JOptionPane.showInputDialog(null,
+					dialogMessage, "New folder", JOptionPane.PLAIN_MESSAGE,
+					UIManager.getIcon("FileView.directoryIcon"), null,
+					"Folder Name");
+			
+			TransferTask task = new TransferTask(selectedNodePath + CLOUD_DELIMITER + newFolderName, "");
+			task.setCallback(new MkDirTaskCallback(selectedNodePath, newFolderName));
+			try {
+				newFolderExecutor.addTask(task);
+			} catch (FileTransferException e2) {
+				JOptionPane.showMessageDialog(null, e2.getError(), "Error",
+						JOptionPane.ERROR_MESSAGE);
+				e2.printStackTrace();
+			}
+		}
+	}
+
+	class MkDirTaskCallback implements TransferTaskCallback {
+		String selectedNodePath;
+		String newFolderName;
+
+		public MkDirTaskCallback(String selectedNodePath, String newFolderName) {
+			this.selectedNodePath = selectedNodePath;
+			this.newFolderName = newFolderName;
+		}
+
+		
+		@Override
+		public void updateGUI() {
+			// refresh the download browsing tree
+			DefaultMutableTreeNode downloadNode = getNodeFromPath(downloadRoot,
+					selectedNodePath);
+			if (downloadNode != null) {
+				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
+						new Folder(newFolderName));
+				GeneralUtility.addUniqueNode(downloadNode, nodeChild,
+						downloadTreeModel);
+
+				TreePath parentPath = new TreePath(downloadNode.getPath());
+				if (tree.isExpanded(parentPath) == false) {
+					try {
+						expandDownloadTree();
+					} catch (CloudException e) {
+						e.printStackTrace();
+					}
+				} else {
+					tree.expandPath(new TreePath(downloadNode.getPath()));
+					getEnclosingFrame().pack();
+				}
+			}
+
+			// refresh the upload browsing tree
+			DefaultMutableTreeNode uploadNode = getNodeFromPath(uploadRoot,
+					selectedNodePath);
+			if (uploadNode != null) {
+				DefaultMutableTreeNode nodeChild = new DefaultMutableTreeNode(
+						new Folder(newFolderName));
+				GeneralUtility.addUniqueNode(uploadNode, nodeChild,
+						uploadTreeModel);
+				getEnclosingFrame().pack();
+
+				TreePath parentPath = new TreePath(uploadNode.getPath());
+				if (uploadTree.isExpanded(parentPath) == false) {
+					try {
+						expandUploadTree();
+					} catch (CloudException e) {
+						e.printStackTrace();
+					}
+				} else {
+					uploadTree.expandPath(new TreePath(uploadNode.getPath()));
+					getEnclosingFrame().pack();
+				}
 			}
 		}
 	}

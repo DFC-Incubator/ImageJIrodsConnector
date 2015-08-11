@@ -379,4 +379,9 @@ public class DropboxOperations implements CloudOperations {
 
 		return homeDirectoryPath;
 	}
+
+	@Override
+	public boolean mkdir(String cloudPath) throws CloudException {
+		return false;
+	}
 }

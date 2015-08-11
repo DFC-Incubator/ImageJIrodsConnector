@@ -5,4 +5,5 @@ public interface CloudCapabilities {
 	boolean isUploadSupported();
 	boolean isRenameSUpported();
 	boolean isDeleteSupported();
+	boolean isMkDirSupported();
 }

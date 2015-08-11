@@ -24,4 +24,9 @@ public class RodsCapabilities implements CloudCapabilities {
 		return true;
 	}
 
+	@Override
+	public boolean isMkDirSupported() {
+		return true;
+	}
+
 }

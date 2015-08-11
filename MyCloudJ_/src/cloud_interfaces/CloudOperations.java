@@ -21,6 +21,8 @@ public interface CloudOperations {
 	public void uploadFolder(String localPath, String cloudPath, CloudTransferCallback callback)
 			throws CloudException;
 	
+	public boolean mkdir(String cloudPath) throws CloudException;
+	
 	public boolean deleteFile(String cloudPath) throws CloudException;
 
 	public boolean isFile(String name) throws CloudException;

@@ -222,4 +222,8 @@ public class TasksWindow {
 	public void setDeleteExecutor(ExecutorOperations deleteExecutor) {
 		progressTable.setDeleteOperations(deleteExecutor);
 	}
+	
+	public void setNewFolderExecutor(ExecutorOperations newFolderExecutor) {
+		progressTable.setNewFolderOperations(newFolderExecutor);
+	}
 }

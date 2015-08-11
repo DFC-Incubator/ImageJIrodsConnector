@@ -36,6 +36,7 @@ public class TransferProgressTable {
 	private ExecutorOperations downloadOperations;
 	private ExecutorOperations uploadOperations;
 	private ExecutorOperations deleteOperations;
+	private ExecutorOperations newFolderOperations;
 
 	public void draw() {
 		progressTable = new JTable() {
@@ -132,6 +133,14 @@ public class TransferProgressTable {
 		this.uploadOperations = uploadOperations;
 	}
 
+	public ExecutorOperations getNewFolderOperations() {
+		return newFolderOperations;
+	}
+
+	public void setNewFolderOperations(ExecutorOperations newFolderOperations) {
+		this.newFolderOperations = newFolderOperations;
+	}
+
 	// Progress Bar Renderer
 	class ProgressCellRender extends JProgressBar implements TableCellRenderer {
 		List<RowData> rows;
@@ -164,6 +173,8 @@ public class TransferProgressTable {
 					status = "Uploading: ";
 				else if (transferType == Transfer.DELETE)
 					status = "Delete: ";
+				else if (transferType == Transfer.NEW_FOLDER)
+					status = "New Folder: ";
 			}
 
 			// details for transfer status: Canceled/Progress in %
@@ -260,6 +271,8 @@ public class TransferProgressTable {
 										statusText += "Upload";
 									else if (transferType == Transfer.DELETE)
 										statusText += "Delete";
+									else if (transferType == Transfer.NEW_FOLDER)
+										statusText += "new folder creation";
 
 									int currProgress = Math.round(((Float) row
 											.getProgress()) * 100f);
@@ -346,7 +359,16 @@ public class TransferProgressTable {
 									.updateTransferStatus(transferId, 0, null,
 											true);
 							button.setText("Details");
+						} else if (rows.get(transferId).getTransferType() == Transfer.NEW_FOLDER) {
+							// TODO
+							getNewFolderOperations().terminateTransfer(transferId);
+							rows.get(transferId).setCanceled(true);
+							((UpdatableTableModel) table.getModel())
+									.updateTransferStatus(transferId, 0, null,
+											true);
+							button.setText("Details");
 						}
+						
 						fireEditingStopped();
 					} catch (FileTransferException e1) {
 						e1.printStackTrace();
@@ -625,7 +647,13 @@ public class TransferProgressTable {
 						rowData.setError("Cloud Error: File was not deleted \n");
 					else if (progress == 3)
 						rowData.setError("Cloud Exception \n");
+				} else if (rowData.transferType == Transfer.NEW_FOLDER) {
+					if (progress == 2) 
+						rowData.setError("Cloud Error: File was not created \n");
+					else if (progress == 3)
+						rowData.setError("Cloud Exception \n");
 				}
+
 				rowData.setCanceled(true);
 				rowData.setEndTransferDate(new Date());
 				setValueAt((int) (rowData.getProgress() * 100), rowId, 3);
