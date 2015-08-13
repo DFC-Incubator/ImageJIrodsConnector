@@ -37,6 +37,7 @@ public class TransferProgressTable {
 	private ExecutorOperations uploadOperations;
 	private ExecutorOperations deleteOperations;
 	private ExecutorOperations newFolderOperations;
+	private ExecutorOperations renameOperations;
 
 	public void draw() {
 		progressTable = new JTable() {
@@ -141,6 +142,14 @@ public class TransferProgressTable {
 		this.newFolderOperations = newFolderOperations;
 	}
 
+	public ExecutorOperations getRenameOperations() {
+		return renameOperations;
+	}
+
+	public void setRenameOperations(ExecutorOperations renameOperations) {
+		this.renameOperations = renameOperations;
+	}
+
 	// Progress Bar Renderer
 	class ProgressCellRender extends JProgressBar implements TableCellRenderer {
 		List<RowData> rows;
@@ -175,6 +184,8 @@ public class TransferProgressTable {
 					status = "Delete: ";
 				else if (transferType == Transfer.NEW_FOLDER)
 					status = "New Folder: ";
+				else if (transferType == Transfer.RENAME)
+					status = "Rename: ";
 			}
 
 			// details for transfer status: Canceled/Progress in %
@@ -273,6 +284,8 @@ public class TransferProgressTable {
 										statusText += "Delete";
 									else if (transferType == Transfer.NEW_FOLDER)
 										statusText += "new folder creation";
+									else if (transferType == Transfer.RENAME)
+										statusText += "Rename";
 
 									int currProgress = Math.round(((Float) row
 											.getProgress()) * 100f);
@@ -352,7 +365,6 @@ public class TransferProgressTable {
 							button.setText("Details");
 
 						} else if (rows.get(transferId).getTransferType() == Transfer.DELETE) {
-							// TODO
 							deleteOperations.terminateTransfer(transferId);
 							rows.get(transferId).setCanceled(true);
 							((UpdatableTableModel) table.getModel())
@@ -360,15 +372,20 @@ public class TransferProgressTable {
 											true);
 							button.setText("Details");
 						} else if (rows.get(transferId).getTransferType() == Transfer.NEW_FOLDER) {
-							// TODO
 							getNewFolderOperations().terminateTransfer(transferId);
 							rows.get(transferId).setCanceled(true);
 							((UpdatableTableModel) table.getModel())
 									.updateTransferStatus(transferId, 0, null,
 											true);
 							button.setText("Details");
+						} else if (rows.get(transferId).getTransferType() == Transfer.RENAME) {
+							getRenameOperations().terminateTransfer(transferId);
+							rows.get(transferId).setCanceled(true);
+							((UpdatableTableModel) table.getModel())
+									.updateTransferStatus(transferId, 0, null,
+											true);
+							button.setText("Details");
 						}
-						
 						fireEditingStopped();
 					} catch (FileTransferException e1) {
 						e1.printStackTrace();
@@ -650,6 +667,11 @@ public class TransferProgressTable {
 				} else if (rowData.transferType == Transfer.NEW_FOLDER) {
 					if (progress == 2) 
 						rowData.setError("Cloud Error: File was not created \n");
+					else if (progress == 3)
+						rowData.setError("Cloud Exception \n");
+				} else if (rowData.transferType == Transfer.RENAME) {
+					if (progress == 2) 
+						rowData.setError("Cloud Error: File was not renamed \n");
 					else if (progress == 3)
 						rowData.setError("Cloud Exception \n");
 				}

@@ -78,6 +78,7 @@ public class CloudFileTree {
 	private CloudOperations cloudHandler;
 	private ExecutorOperations deleteExecutor;
 	private ExecutorOperations newFolderExecutor;
+	private ExecutorOperations renameExecutor;
 
 	public void createEnclosingFrameDownload() {
 		createEnclosingFrame(tree);
@@ -225,6 +226,8 @@ public class CloudFileTree {
 		parentNode = getNodeFromPath(root, selectedFilePath);
 		if (parentNode == null)
 			return;
+		
+		System.out.println("Expand");
 
 		List<CloudFile> cloudFiles = cloudHandler.listFiles(selectedFilePath);
 
@@ -440,6 +443,14 @@ public class CloudFileTree {
 		this.newFolderExecutor = newFolderExecutor;
 	}
 
+	public ExecutorOperations getRenameExecutor() {
+		return renameExecutor;
+	}
+
+	public void setRenameExecutor(ExecutorOperations renameExecutor) {
+		this.renameExecutor = renameExecutor;
+	}
+
 	class RightClickAction extends MouseAdapter {
 		private JTree tree;
 
@@ -477,7 +488,8 @@ public class CloudFileTree {
 					DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree
 							.getLastSelectedPathComponent();
 					Object selectedNodeType = selectedNode.getUserObject();
-					if (selectedNodeType instanceof Folder) { // add the mkdir option
+					if (selectedNodeType instanceof Folder) { // add the mkdir
+																// option
 						JMenuItem mkdirItem = new JMenuItem("New Folder");
 						ActionListener mkdirListener = new MkDirListener(tree);
 						mkdirItem.addActionListener(mkdirListener);
@@ -517,27 +529,6 @@ public class CloudFileTree {
 			return this;
 		}
 
-	}
-
-	class RenameListener implements ActionListener {
-		private JTree tree;
-
-		public RenameListener(JTree tree) {
-			this.tree = tree;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			if (cloudHandler.getCloudCapabilities().isRenameSUpported() == false) {
-				JOptionPane.showMessageDialog(null,
-						"Operation not supported yet");
-				return;
-			}
-
-			String selectedNodePath = getSelectedNodePath(tree);
-			if (selectedNodePath == null)
-				return;
-		}
 	}
 
 	class DeleteListener implements ActionListener {
@@ -629,13 +620,13 @@ public class CloudFileTree {
 					dialogMessage, "Folder Name", JOptionPane.PLAIN_MESSAGE,
 					UIManager.getIcon("FileView.directoryIcon"), null,
 					"Folder Name");
-			
-			if (GeneralUtility.isValidFolderName(newFolderName, CLOUD_DELIMITER) == false) {
+
+			if (GeneralUtility
+					.isValidFolderName(newFolderName, CLOUD_DELIMITER) == false) {
 				JOptionPane.showMessageDialog(null, "Invalid folder name",
 						"Input error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
 
 			TransferTask task = new TransferTask(selectedNodePath
 					+ CLOUD_DELIMITER + newFolderName, "");
@@ -704,6 +695,153 @@ public class CloudFileTree {
 				} else {
 					uploadTree.expandPath(new TreePath(uploadNode.getPath()));
 					getEnclosingFrame().pack();
+				}
+			}
+		}
+	}
+
+	class RenameListener implements ActionListener {
+		private JTree tree;
+
+		public RenameListener(JTree tree) {
+			this.tree = tree;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (cloudHandler.getCloudCapabilities().isRenameSupported() == false) {
+				JOptionPane.showMessageDialog(null,
+						"Operation not supported yet");
+				return;
+			}
+
+			String selectedNodePath = getSelectedNodePath(tree);
+			if (selectedNodePath == null)
+				return;
+			String selectedFileName = selectedNodePath.substring(selectedNodePath.lastIndexOf(CLOUD_DELIMITER) +1);
+
+			String dialogMessage = "Rename " + selectedNodePath + "\n"
+					+ "Enter new name:";
+			String newFolderName = (String) JOptionPane
+					.showInputDialog(null, dialogMessage, "Rename",
+							JOptionPane.PLAIN_MESSAGE,
+							UIManager.getIcon("FileView.directoryIcon"), null,
+							selectedFileName);
+
+			if (GeneralUtility
+					.isValidFolderName(newFolderName, CLOUD_DELIMITER) == false) {
+				JOptionPane.showMessageDialog(null, "Invalid folder name",
+						"Input error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
+			int delimiterIndex = selectedNodePath.lastIndexOf(CLOUD_DELIMITER);
+			StringBuilder cloudPathBuilder = new StringBuilder(selectedNodePath);
+			cloudPathBuilder.replace(delimiterIndex + 1, selectedNodePath.length(), newFolderName);
+
+			TransferTask task = new TransferTask(selectedNodePath,
+					cloudPathBuilder.toString());
+			task.setCallback(new RenameTaskCallback(selectedNodePath,
+					newFolderName));
+			try {
+				getRenameExecutor().addTask(task);
+			} catch (FileTransferException e2) {
+				JOptionPane.showMessageDialog(null, e2.getError(), "Error",
+						JOptionPane.ERROR_MESSAGE);
+				e2.printStackTrace();
+			}
+		}
+	}
+
+	class RenameTaskCallback implements TransferTaskCallback {
+		String selectedNodePath;
+		String newName;
+		DefaultMutableTreeNode nodeChild;
+
+		public RenameTaskCallback(String selectedNodePath, String newFolderName) {
+			this.selectedNodePath = selectedNodePath;
+			this.newName = newFolderName;
+		}
+
+		@Override
+		public void updateGUI() {
+			// refresh the download browsing tree
+			DefaultMutableTreeNode downloadNode = getNodeFromPath(downloadRoot,
+					selectedNodePath);
+			if (downloadNode != null) {
+				// first, remove the old name
+				downloadTreeModel.removeNodeFromParent(downloadNode);
+				getEnclosingFrame().pack();
+
+				int delimiterIndex = selectedNodePath
+						.lastIndexOf(CLOUD_DELIMITER);
+				String parentNodePath = selectedNodePath.substring(0, delimiterIndex);
+				
+				// secondly, create a node with the new name
+				downloadNode = getNodeFromPath(downloadRoot, parentNodePath);
+				if (downloadNode != null) {
+					/*
+					Object userObj = downloadNode.getUserObject();
+					
+					if (userObj instanceof File) 
+						nodeChild = new DefaultMutableTreeNode(
+								new File(newName));
+					else 
+						nodeChild = new DefaultMutableTreeNode(new Folder(
+								newName));
+					GeneralUtility.addUniqueNode(downloadNode, nodeChild,
+							downloadTreeModel);
+					*/
+					
+					// TODO: ugly trick for packing the jtree frame
+					try {
+						expandTree(tree, downloadTreeModel,
+								false, parentNodePath);
+						getEnclosingFrame().pack();
+					} catch (CloudException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+				
+				// refresh the upload browsing tree
+				DefaultMutableTreeNode uploadNode = getNodeFromPath(uploadRoot,
+						selectedNodePath);
+				if (uploadNode != null) {
+					// first, remove the old name
+					uploadTreeModel.removeNodeFromParent(uploadNode);
+					getEnclosingFrame().pack();
+
+					delimiterIndex = selectedNodePath
+							.lastIndexOf(CLOUD_DELIMITER);
+					parentNodePath = selectedNodePath.substring(0, delimiterIndex);
+					
+					// secondly, create a node with the new name
+					uploadNode = getNodeFromPath(uploadRoot, parentNodePath);
+					if (uploadNode != null) {
+						/*
+						Object userObj = uploadNode.getUserObject();
+						if (userObj instanceof File) 
+							nodeChild = new DefaultMutableTreeNode(
+									new File(newName));
+						else 
+							nodeChild = new DefaultMutableTreeNode(new Folder(
+									newName));
+						GeneralUtility.addUniqueNode(uploadNode, nodeChild,
+								uploadTreeModel);
+						*/
+						
+						// TODO: ugly trick for packing the jtree frame
+						try {
+							expandTree(tree, uploadTreeModel,
+									false, parentNodePath);
+							getEnclosingFrame().pack();
+						} catch (CloudException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		}

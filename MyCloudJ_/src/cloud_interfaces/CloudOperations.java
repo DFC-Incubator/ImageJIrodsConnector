@@ -23,6 +23,8 @@ public interface CloudOperations {
 	
 	public boolean mkdir(String cloudPath) throws CloudException;
 	
+	public boolean rename(String cloudPath, String newName) throws CloudException;
+	
 	public boolean deleteFile(String cloudPath) throws CloudException;
 
 	public boolean isFile(String name) throws CloudException;

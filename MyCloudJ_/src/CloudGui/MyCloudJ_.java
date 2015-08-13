@@ -28,6 +28,7 @@ import file_transfer.DownloadExecutor;
 import file_transfer.ExecutorOperations;
 import file_transfer.FileTransferException;
 import file_transfer.NewFolderExecutor;
+import file_transfer.RenameExecutor;
 import file_transfer.TransferTask;
 import file_transfer.UploadExecutor;
 
@@ -72,6 +73,9 @@ public class MyCloudJ_ implements PlugIn {
 	
 	// thread used for creating new folders
 	ExecutorOperations newFolderExecutor;
+	
+	// thread used for renaming
+	ExecutorOperations renameExecutor;
 
 	// ------------------------------------------------------------------------
 	// commun GUI fields, specific both to Dbx and iRODS
@@ -224,12 +228,16 @@ public class MyCloudJ_ implements PlugIn {
 		
 		newFolderExecutor = new NewFolderExecutor(cloudHandler, cloudFileTree,
 				tasksWindow.getProgressTableModel());
+		
+		renameExecutor = new RenameExecutor(cloudHandler, cloudFileTree,
+				tasksWindow.getProgressTableModel());
 
 		// TODO: solve this ugly dependancy between tasksWindow and executors
 		tasksWindow.setDownloadExecutor(downloadExecutor);
 		tasksWindow.setUploadExecutor(uploadExecutor);
 		cloudFileTree.setDeleteExecutor(deleteExecutor);
 		cloudFileTree.setNewFolderExecutor(newFolderExecutor);
+		cloudFileTree.setRenameExecutor(renameExecutor);
 	}
 
 	public void genericCloudDisconnect() {

@@ -15,17 +15,17 @@ public class DropboxCapabilities implements CloudCapabilities{
 	}
 
 	@Override
-	public boolean isRenameSUpported() {
-		return false;
-	}
-
-	@Override
 	public boolean isDeleteSupported() {
 		return false;
 	}
 
 	@Override
 	public boolean isMkDirSupported() {
+		return false;
+	}
+
+	@Override
+	public boolean isRenameSupported() {
 		return false;
 	}
 

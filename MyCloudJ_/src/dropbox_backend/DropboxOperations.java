@@ -384,4 +384,10 @@ public class DropboxOperations implements CloudOperations {
 	public boolean mkdir(String cloudPath) throws CloudException {
 		return false;
 	}
+
+	@Override
+	public boolean rename(String cloudPath, String newName)
+			throws CloudException {
+		return false;
+	}
 }

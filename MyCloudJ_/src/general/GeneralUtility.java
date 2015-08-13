@@ -62,8 +62,6 @@ public class GeneralUtility {
 				break;
 			}
 		}
-		
-		System.out.println("Is UnIque: " + isUnique);
 
 		// If Unique, insert
 		if (isUnique)

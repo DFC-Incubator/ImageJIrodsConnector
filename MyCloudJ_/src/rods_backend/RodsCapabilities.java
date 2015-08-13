@@ -15,17 +15,17 @@ public class RodsCapabilities implements CloudCapabilities {
 	}
 
 	@Override
-	public boolean isRenameSUpported() {
-		return false;
-	}
-
-	@Override
 	public boolean isDeleteSupported() {
 		return true;
 	}
 
 	@Override
 	public boolean isMkDirSupported() {
+		return true;
+	}
+
+	@Override
+	public boolean isRenameSupported() {
 		return true;
 	}
 
