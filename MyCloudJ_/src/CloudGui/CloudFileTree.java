@@ -473,11 +473,16 @@ public class CloudFileTree {
 					deleteItem.addActionListener(deleteListener);
 					menu.add(deleteItem);
 
-					// add the mkdir option
-					JMenuItem mkdirItem = new JMenuItem("New Folder");
-					ActionListener mkdirListener = new MkDirListener(tree);
-					mkdirItem.addActionListener(mkdirListener);
-					menu.add(mkdirItem);
+					// only for folders
+					DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree
+							.getLastSelectedPathComponent();
+					Object selectedNodeType = selectedNode.getUserObject();
+					if (selectedNodeType instanceof Folder) { // add the mkdir option
+						JMenuItem mkdirItem = new JMenuItem("New Folder");
+						ActionListener mkdirListener = new MkDirListener(tree);
+						mkdirItem.addActionListener(mkdirListener);
+						menu.add(mkdirItem);
+					}
 
 					menu.show(tree, pathBounds.x, pathBounds.y
 							+ pathBounds.height);
@@ -624,9 +629,11 @@ public class CloudFileTree {
 					dialogMessage, "New folder", JOptionPane.PLAIN_MESSAGE,
 					UIManager.getIcon("FileView.directoryIcon"), null,
 					"Folder Name");
-			
-			TransferTask task = new TransferTask(selectedNodePath + CLOUD_DELIMITER + newFolderName, "");
-			task.setCallback(new MkDirTaskCallback(selectedNodePath, newFolderName));
+
+			TransferTask task = new TransferTask(selectedNodePath
+					+ CLOUD_DELIMITER + newFolderName, "");
+			task.setCallback(new MkDirTaskCallback(selectedNodePath,
+					newFolderName));
 			try {
 				newFolderExecutor.addTask(task);
 			} catch (FileTransferException e2) {
@@ -646,7 +653,6 @@ public class CloudFileTree {
 			this.newFolderName = newFolderName;
 		}
 
-		
 		@Override
 		public void updateGUI() {
 			// refresh the download browsing tree
