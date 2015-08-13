@@ -626,9 +626,16 @@ public class CloudFileTree {
 			String dialogMessage = "New folder path: " + selectedNodePath
 					+ "\n" + "Enter folder name:";
 			String newFolderName = (String) JOptionPane.showInputDialog(null,
-					dialogMessage, "New folder", JOptionPane.PLAIN_MESSAGE,
+					dialogMessage, "Folder Name", JOptionPane.PLAIN_MESSAGE,
 					UIManager.getIcon("FileView.directoryIcon"), null,
 					"Folder Name");
+			
+			if (GeneralUtility.isValidFolderName(newFolderName, CLOUD_DELIMITER) == false) {
+				JOptionPane.showMessageDialog(null, "Invalid folder name",
+						"Input error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
 
 			TransferTask task = new TransferTask(selectedNodePath
 					+ CLOUD_DELIMITER + newFolderName, "");

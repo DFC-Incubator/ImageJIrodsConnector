@@ -168,6 +168,12 @@ public class GeneralUtility {
 			throw (new CloudException(error.concat(e1.getMessage())));
 		}
 	}
+	
+	public static boolean isValidFolderName(String name, String delimiter) {
+		if (name == null || name.isEmpty() || name.contains(delimiter) || name.length() > 20)
+			return false;
+		return true;
+	}
 
 	public void setOS(String oS) {
 		OS = oS;
