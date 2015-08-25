@@ -1,16 +1,25 @@
 package CloudGui;
 
+import ij.io.Opener;
+
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.activation.FileTypeMap;
+import javax.activation.MimetypesFileTypeMap;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -29,6 +38,7 @@ import javax.swing.table.TableCellRenderer;
 import file_transfer.ExecutorOperations;
 import file_transfer.FileTransferException;
 import file_transfer.Transfer;
+import general.GeneralUtility;
 
 public class TransferProgressTable {
 	private JTable progressTable;
@@ -51,7 +61,7 @@ public class TransferProgressTable {
 					String toolTip = null;
 					try {
 						Object value = getValueAt(rowIndex, colIndex);
-						if (value != null) 
+						if (value != null)
 							toolTip = value.toString();
 					} catch (RuntimeException e1) {
 						e1.printStackTrace();
@@ -61,6 +71,38 @@ public class TransferProgressTable {
 				return null;
 			}
 		};
+
+		progressTable.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					int selectedRowIndex = progressTable.getSelectedRow();
+					if (selectedRowIndex >= 0) {
+						RowData row = progressTableModel.getRows().get(
+								selectedRowIndex);
+						if (row != null
+								&& row.getTransferType() == Transfer.DOWNLOAD
+								&& row.getProgress() == 1) {
+							String systemSeparator = GeneralUtility
+									.getSystemSeparator();
+							String fileName = GeneralUtility
+									.getLastComponentFromPath(row.getSource(), "/");
+							String completePath = row.getDestination()
+									+ systemSeparator + fileName;
+
+							// TODO: because of a bug in Java 7 we can't
+							// correctly determine mime type for a file:
+							// http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7096063
+							String mimeType = new MimetypesFileTypeMap()
+									.getContentType(new java.io.File(
+											completePath));
+
+							Opener opener = new Opener();
+							opener.open(completePath);
+						}
+					}
+				}
+			}
+		});
 
 		// set the model
 		progressTableModel = new UpdatableTableModel();
@@ -121,7 +163,7 @@ public class TransferProgressTable {
 	public void setDownloadOperations(ExecutorOperations downloadOperations) {
 		this.downloadOperations = downloadOperations;
 	}
-	
+
 	public void setDeleteOperations(ExecutorOperations deleteOperations) {
 		this.deleteOperations = deleteOperations;
 	}
@@ -252,8 +294,8 @@ public class TransferProgressTable {
 								public Object doInBackground() {
 									RowData row = rows.get(transferId);
 
-									JPanel error = new JPanel(new GridLayout(
-											7, 7));
+									JPanel error = new JPanel(new GridLayout(7,
+											7));
 									error.add(new JLabel("Source Path"));
 									JTextField sourceField = new JTextField(row
 											.getSource());
@@ -273,8 +315,7 @@ public class TransferProgressTable {
 										statusText = "Canceled ";
 									else
 										statusText = "Successful ";
-									
-									
+
 									int transferType = row.getTransferType();
 									if (transferType == Transfer.DOWNLOAD)
 										statusText += "Download";
@@ -299,8 +340,7 @@ public class TransferProgressTable {
 
 									SimpleDateFormat dateFormat = new SimpleDateFormat(
 											"HH:mm:ss yyyy-MM-dd ");
-									error.add(new JLabel(
-											"Transfer queued date"));
+									error.add(new JLabel("Transfer queued date"));
 									Date queueDate = row.getQueuedDate();
 									String queuedDateString = "N/A";
 									if (queueDate != null)
@@ -311,8 +351,7 @@ public class TransferProgressTable {
 									queuedDateTextField.setEditable(false);
 									error.add(queuedDateTextField);
 
-									error.add(new JLabel(
-											"Transfer start date"));
+									error.add(new JLabel("Transfer start date"));
 									Date startDate = row.getStartTransferDate();
 									String startDateString = "N/A";
 									if (startDate != null)
@@ -333,9 +372,10 @@ public class TransferProgressTable {
 											endDateString);
 									endDateTextField.setEditable(false);
 									error.add(endDateTextField);
-									
+
 									error.add(new JLabel("Error"));
-									JTextField errorField = new JTextField(row.getError());
+									JTextField errorField = new JTextField(row
+											.getError());
 									errorField.setEditable(false);
 									error.add(errorField);
 
@@ -372,7 +412,8 @@ public class TransferProgressTable {
 											true);
 							button.setText("Details");
 						} else if (rows.get(transferId).getTransferType() == Transfer.NEW_FOLDER) {
-							getNewFolderOperations().terminateTransfer(transferId);
+							getNewFolderOperations().terminateTransfer(
+									transferId);
 							rows.get(transferId).setCanceled(true);
 							((UpdatableTableModel) table.getModel())
 									.updateTransferStatus(transferId, 0, null,
@@ -427,7 +468,8 @@ public class TransferProgressTable {
 		private int transferId;
 		private String error = "N/A";
 
-		public RowData(String source, String destination, int transferType, int transferId) {
+		public RowData(String source, String destination, int transferType,
+				int transferId) {
 			this.source = source;
 			this.destination = destination;
 			this.progress = 0f;
@@ -632,13 +674,14 @@ public class TransferProgressTable {
 		}
 
 		public int addTransfer(String source, String dest, int transferType) {
-			RowData rowData = new RowData(source, dest, transferType, rows.size());
+			RowData rowData = new RowData(source, dest, transferType,
+					rows.size());
 			rowData.setQueuedDate(new Date());
 			rows.add(rowData);
 			fireTableRowsInserted(rows.size() - 1, rows.size() - 1);
 			return rows.size() - 1;
 		}
-		
+
 		public void cancelAllTransfers() {
 			for (int i = 0; i < rows.size(); i++) {
 				RowData row = rows.get(i);
@@ -660,17 +703,17 @@ public class TransferProgressTable {
 				 * trigger the above trick
 				 */
 				if (rowData.transferType == Transfer.DELETE) {
-					if (progress == 2) 
+					if (progress == 2)
 						rowData.setError("Cloud Error: File was not deleted \n");
 					else if (progress == 3)
 						rowData.setError("Cloud Exception \n");
 				} else if (rowData.transferType == Transfer.NEW_FOLDER) {
-					if (progress == 2) 
+					if (progress == 2)
 						rowData.setError("Cloud Error: File was not created \n");
 					else if (progress == 3)
 						rowData.setError("Cloud Exception \n");
 				} else if (rowData.transferType == Transfer.RENAME) {
-					if (progress == 2) 
+					if (progress == 2)
 						rowData.setError("Cloud Error: File was not renamed \n");
 					else if (progress == 3)
 						rowData.setError("Cloud Exception \n");
