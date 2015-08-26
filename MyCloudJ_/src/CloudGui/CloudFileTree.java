@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -115,6 +116,40 @@ public class CloudFileTree {
 		// renderer
 		tree.setCellRenderer(new CustomTreeRenderer());
 		uploadTree.setCellRenderer(new CustomTreeRenderer());
+
+		// double click listener for download tree
+		MouseListener ml = new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				int selRow = tree.getRowForLocation(e.getX(), e.getY());
+				if (selRow != -1) {
+					if (e.getClickCount() == 2) {
+						try {
+							expandDownloadTree();
+						} catch (CloudException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		};
+		tree.addMouseListener(ml);
+
+		// double click listener for upload tree
+		MouseListener mlUpload = new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				int selRow = tree.getRowForLocation(e.getX(), e.getY());
+				if (selRow != -1) {
+					if (e.getClickCount() == 2) {
+						try {
+							expandUploadTree();
+						} catch (CloudException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		};
+		uploadTree.addMouseListener(mlUpload);
 	}
 
 	private void createEnclosingFrame(JTree fileTree) {
@@ -226,7 +261,7 @@ public class CloudFileTree {
 		parentNode = getNodeFromPath(root, selectedFilePath);
 		if (parentNode == null)
 			return;
-		
+
 		System.out.println("Expand");
 
 		List<CloudFile> cloudFiles = cloudHandler.listFiles(selectedFilePath);
@@ -718,15 +753,15 @@ public class CloudFileTree {
 			String selectedNodePath = getSelectedNodePath(tree);
 			if (selectedNodePath == null)
 				return;
-			String selectedFileName = selectedNodePath.substring(selectedNodePath.lastIndexOf(CLOUD_DELIMITER) +1);
+			String selectedFileName = selectedNodePath
+					.substring(selectedNodePath.lastIndexOf(CLOUD_DELIMITER) + 1);
 
 			String dialogMessage = "Rename " + selectedNodePath + "\n"
 					+ "Enter new name:";
-			String newFolderName = (String) JOptionPane
-					.showInputDialog(null, dialogMessage, "Rename",
-							JOptionPane.PLAIN_MESSAGE,
-							UIManager.getIcon("FileView.directoryIcon"), null,
-							selectedFileName);
+			String newFolderName = (String) JOptionPane.showInputDialog(null,
+					dialogMessage, "Rename", JOptionPane.PLAIN_MESSAGE,
+					UIManager.getIcon("FileView.directoryIcon"), null,
+					selectedFileName);
 
 			if (GeneralUtility
 					.isValidFolderName(newFolderName, CLOUD_DELIMITER) == false) {
@@ -734,10 +769,11 @@ public class CloudFileTree {
 						"Input error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
+
 			int delimiterIndex = selectedNodePath.lastIndexOf(CLOUD_DELIMITER);
 			StringBuilder cloudPathBuilder = new StringBuilder(selectedNodePath);
-			cloudPathBuilder.replace(delimiterIndex + 1, selectedNodePath.length(), newFolderName);
+			cloudPathBuilder.replace(delimiterIndex + 1,
+					selectedNodePath.length(), newFolderName);
 
 			TransferTask task = new TransferTask(selectedNodePath,
 					cloudPathBuilder.toString());
@@ -775,36 +811,33 @@ public class CloudFileTree {
 
 				int delimiterIndex = selectedNodePath
 						.lastIndexOf(CLOUD_DELIMITER);
-				String parentNodePath = selectedNodePath.substring(0, delimiterIndex);
-				
+				String parentNodePath = selectedNodePath.substring(0,
+						delimiterIndex);
+
 				// secondly, create a node with the new name
 				downloadNode = getNodeFromPath(downloadRoot, parentNodePath);
 				if (downloadNode != null) {
 					/*
-					Object userObj = downloadNode.getUserObject();
-					
-					if (userObj instanceof File) 
-						nodeChild = new DefaultMutableTreeNode(
-								new File(newName));
-					else 
-						nodeChild = new DefaultMutableTreeNode(new Folder(
-								newName));
-					GeneralUtility.addUniqueNode(downloadNode, nodeChild,
-							downloadTreeModel);
-					*/
-					
+					 * Object userObj = downloadNode.getUserObject();
+					 * 
+					 * if (userObj instanceof File) nodeChild = new
+					 * DefaultMutableTreeNode( new File(newName)); else
+					 * nodeChild = new DefaultMutableTreeNode(new Folder(
+					 * newName)); GeneralUtility.addUniqueNode(downloadNode,
+					 * nodeChild, downloadTreeModel);
+					 */
+
 					// TODO: ugly trick for packing the jtree frame
 					try {
-						expandTree(tree, downloadTreeModel,
-								false, parentNodePath);
+						expandTree(tree, downloadTreeModel, false,
+								parentNodePath);
 						getEnclosingFrame().pack();
 					} catch (CloudException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-				
-				
+
 				// refresh the upload browsing tree
 				DefaultMutableTreeNode uploadNode = getNodeFromPath(uploadRoot,
 						selectedNodePath);
@@ -815,27 +848,25 @@ public class CloudFileTree {
 
 					delimiterIndex = selectedNodePath
 							.lastIndexOf(CLOUD_DELIMITER);
-					parentNodePath = selectedNodePath.substring(0, delimiterIndex);
-					
+					parentNodePath = selectedNodePath.substring(0,
+							delimiterIndex);
+
 					// secondly, create a node with the new name
 					uploadNode = getNodeFromPath(uploadRoot, parentNodePath);
 					if (uploadNode != null) {
 						/*
-						Object userObj = uploadNode.getUserObject();
-						if (userObj instanceof File) 
-							nodeChild = new DefaultMutableTreeNode(
-									new File(newName));
-						else 
-							nodeChild = new DefaultMutableTreeNode(new Folder(
-									newName));
-						GeneralUtility.addUniqueNode(uploadNode, nodeChild,
-								uploadTreeModel);
-						*/
-						
+						 * Object userObj = uploadNode.getUserObject(); if
+						 * (userObj instanceof File) nodeChild = new
+						 * DefaultMutableTreeNode( new File(newName)); else
+						 * nodeChild = new DefaultMutableTreeNode(new Folder(
+						 * newName)); GeneralUtility.addUniqueNode(uploadNode,
+						 * nodeChild, uploadTreeModel);
+						 */
+
 						// TODO: ugly trick for packing the jtree frame
 						try {
-							expandTree(tree, uploadTreeModel,
-									false, parentNodePath);
+							expandTree(tree, uploadTreeModel, false,
+									parentNodePath);
 							getEnclosingFrame().pack();
 						} catch (CloudException e) {
 							// TODO Auto-generated catch block
