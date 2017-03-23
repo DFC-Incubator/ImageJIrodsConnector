@@ -1,15 +1,15 @@
 package rods_backend;
 
-import general.GeneralUtility;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.irods.jargon.core.connection.ClientServerNegotiationPolicy.SslNegotiationPolicy;
 import org.irods.jargon.core.connection.IRODSAccount;
 import org.irods.jargon.core.connection.IRODSProtocolManager;
 import org.irods.jargon.core.connection.IRODSSession;
 import org.irods.jargon.core.connection.IRODSSimpleProtocolManager;
+import org.irods.jargon.core.connection.SettableJargonProperties;
 import org.irods.jargon.core.exception.JargonException;
 import org.irods.jargon.core.packinstr.TransferOptions.ForceOption;
 import org.irods.jargon.core.pub.DataTransferOperations;
@@ -25,6 +25,7 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudFile;
 import cloud_interfaces.CloudOperations;
 import cloud_interfaces.CloudTransferCallback;
+import general.GeneralUtility;
 
 public class RodsOperations implements CloudOperations {
 	private IRODSFileFactory irodsFileFactory;
@@ -51,6 +52,7 @@ public class RodsOperations implements CloudOperations {
 		homeDirectoryPath = homeBuilder.toString();
 	}
 
+	@Override
 	public void login() throws CloudException {
 		String error;
 		IRODSProtocolManager connectionManager;
@@ -60,13 +62,13 @@ public class RodsOperations implements CloudOperations {
 		try {
 			connectionManager = IRODSSimpleProtocolManager.instance();
 			session = IRODSSession.instance(connectionManager);
-			account = new IRODSAccount(host, port, user, password,
-					homeDirectoryPath, zone, res);
-			accessObjectFactory = IRODSAccessObjectFactoryImpl
-					.instance(session);
+			SettableJargonProperties props = new SettableJargonProperties(session.getJargonProperties());
+			props.setNegotiationPolicy(SslNegotiationPolicy.CS_NEG_REFUSE);
+			session.setJargonProperties(props);
+			account = new IRODSAccount(host, port, user, password, homeDirectoryPath, zone, res);
+			accessObjectFactory = IRODSAccessObjectFactoryImpl.instance(session);
 			irodsFileFactory = accessObjectFactory.getIRODSFileFactory(account);
-			dataTransferOperations = accessObjectFactory
-					.getDataTransferOperations(account);
+			dataTransferOperations = accessObjectFactory.getDataTransferOperations(account);
 
 			buildHomePath();
 			userIsLogged = true;
@@ -76,7 +78,7 @@ public class RodsOperations implements CloudOperations {
 			throw (new CloudException(error.concat(e.getMessage())));
 		}
 	}
-	
+
 	@Override
 	public CloudCapabilities getCloudCapabilities() {
 		return new RodsCapabilities();
@@ -96,6 +98,7 @@ public class RodsOperations implements CloudOperations {
 			}
 	}
 
+	@Override
 	public String getHomeDirectory() throws CloudException {
 		String error = "User is not logged!";
 
@@ -106,8 +109,7 @@ public class RodsOperations implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFile(String cloudPath, String localPath,
-			CloudTransferCallback callback) throws CloudException {
+	public void downloadFile(String cloudPath, String localPath, CloudTransferCallback callback) throws CloudException {
 		String error = "";
 		long fileSizeKB;
 
@@ -129,16 +131,17 @@ public class RodsOperations implements CloudOperations {
 			tsc.setCloudCallback(callback);
 
 			// set the transfer options: just overwrite, for now
-			TransferControlBlock tcb = IRODSFileSystem.instance()
-					.getIRODSAccessObjectFactory()
+			TransferControlBlock tcb = IRODSFileSystem.instance().getIRODSAccessObjectFactory()
 					.buildDefaultTransferControlBlockBasedOnJargonProperties();
 			tcb.getTransferOptions().setForceOption(ForceOption.USE_FORCE);
 
-			dataTransferOperations.getOperation(irodsFile, localFile, tsc, tcb);
+			dataTransferOperations.getOperation(irodsFile, localFile, null, tcb); // took
+																					// out
+																					// tsc
 			long end = System.nanoTime();
 
 			long elapsedTime = end - start;
-			double seconds = (double) elapsedTime / 1000000000.0;
+			double seconds = elapsedTime / 1000000000.0;
 			System.out.println("Elapsed time: " + seconds + " seconds");
 			System.out.println("Speed: " + fileSizeKB / seconds + " KB/s");
 		} catch (JargonException e) {
@@ -148,14 +151,13 @@ public class RodsOperations implements CloudOperations {
 	}
 
 	@Override
-	public void downloadFolder(String cloudPath, String localPath,
-			CloudTransferCallback callback) throws CloudException {
+	public void downloadFolder(String cloudPath, String localPath, CloudTransferCallback callback)
+			throws CloudException {
 		downloadFile(cloudPath, localPath, callback);
 	}
 
 	@Override
-	public void uploadFile(String localPath, String cloudPath,
-			CloudTransferCallback callback) throws CloudException {
+	public void uploadFile(String localPath, String cloudPath, CloudTransferCallback callback) throws CloudException {
 		String error = "";
 		long fileSizeKB;
 
@@ -176,17 +178,15 @@ public class RodsOperations implements CloudOperations {
 			tsc.setCloudCallback(callback);
 
 			// set the transfer options: just overwrite, for now
-			TransferControlBlock tcb = IRODSFileSystem.instance()
-					.getIRODSAccessObjectFactory()
+			TransferControlBlock tcb = IRODSFileSystem.instance().getIRODSAccessObjectFactory()
 					.buildDefaultTransferControlBlockBasedOnJargonProperties();
 			tcb.getTransferOptions().setForceOption(ForceOption.USE_FORCE);
 
-			dataTransferOperations
-					.putOperation(localFile, irodsFile, tsc, null);
+			dataTransferOperations.putOperation(localFile, irodsFile, tsc, null);
 			long end = System.nanoTime();
 
 			long elapsedTime = end - start;
-			double seconds = (double) elapsedTime / 1000000000.0;
+			double seconds = elapsedTime / 1000000000.0;
 			System.out.println("Elapsed time: " + seconds + " seconds");
 			System.out.println("Speed: " + fileSizeKB / seconds + " KB/s");
 		} catch (JargonException e) {
@@ -196,19 +196,17 @@ public class RodsOperations implements CloudOperations {
 	}
 
 	@Override
-	public void uploadFolder(String localPath, String cloudPath,
-			CloudTransferCallback callback) throws CloudException {
+	public void uploadFolder(String localPath, String cloudPath, CloudTransferCallback callback) throws CloudException {
 		uploadFile(localPath, cloudPath, callback);
 	}
 
 	@Override
-	public List<CloudFile> listFiles(String cloudDirectoryPath)
-			throws CloudException {
+	public List<CloudFile> listFiles(String cloudDirectoryPath) throws CloudException {
 		List<CloudFile> fileList;
 		IRODSFile irodsFile;
 
 		GeneralUtility.checkCloudPath(cloudDirectoryPath, RODS_DELIMITER);
-		fileList = new ArrayList<CloudFile>();
+		fileList = new ArrayList<>();
 
 		// add "/" at the end of the path, otherwise Jargon API complains
 		if (!cloudDirectoryPath.endsWith(RODS_DELIMITER))
@@ -249,8 +247,7 @@ public class RodsOperations implements CloudOperations {
 		return user;
 	}
 
-	public void setCredentials(String user, String password, String host,
-			int port, String zone, String resource) {
+	public void setCredentials(String user, String password, String host, int port, String zone, String resource) {
 		setUsername(user);
 		setIrodsPassword(password);
 		setHost(host);
@@ -320,7 +317,7 @@ public class RodsOperations implements CloudOperations {
 			long end = System.nanoTime();
 
 			long elapsedTime = end - start;
-			double seconds = (double) elapsedTime / 1000000000.0;
+			double seconds = elapsedTime / 1000000000.0;
 			System.out.println("Deletion time: " + seconds + " seconds");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -347,19 +344,18 @@ public class RodsOperations implements CloudOperations {
 			long end = System.nanoTime();
 
 			long elapsedTime = end - start;
-			double seconds = (double) elapsedTime / 1000000000.0;
+			double seconds = elapsedTime / 1000000000.0;
 			System.out.println("Mkdir time: " + seconds + " seconds");
 		} catch (Exception e) {
 			e.printStackTrace();
 			error = "iRODS: Could not acces " + cloudPath + ": ";
 			throw (new CloudException(error.concat(e.getMessage())));
-		}	
+		}
 		return fileWasDeleted;
 	}
 
 	@Override
-	public boolean rename(String cloudPath, String cloudPathRenamed)
-			throws CloudException {
+	public boolean rename(String cloudPath, String cloudPathRenamed) throws CloudException {
 		String error = "";
 		boolean fileWasDeleted;
 
@@ -369,20 +365,20 @@ public class RodsOperations implements CloudOperations {
 			// access the file on cloud
 			IRODSFile irodsFile = irodsFileFactory.instanceIRODSFile(cloudPath);
 			IRODSFile irodsFileRenamed = irodsFileFactory.instanceIRODSFile(cloudPathRenamed);
-			
+
 			// set the callbacks
 			long start = System.nanoTime();
 			fileWasDeleted = irodsFile.renameTo(irodsFileRenamed);
 			long end = System.nanoTime();
 
 			long elapsedTime = end - start;
-			double seconds = (double) elapsedTime / 1000000000.0;
+			double seconds = elapsedTime / 1000000000.0;
 			System.out.println("Rename time: " + seconds + " seconds");
 		} catch (Exception e) {
 			e.printStackTrace();
 			error = "iRODS: Could not acces " + cloudPath + ": ";
 			throw (new CloudException(error.concat(e.getMessage())));
-		}	
+		}
 		return fileWasDeleted;
 	}
 }

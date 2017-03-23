@@ -3,9 +3,6 @@ package file_transfer;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import general.GeneralUtility;
-import ij.io.Opener;
-
 import javax.swing.SwingWorker;
 
 import CloudGui.TransferProgressTable.UpdatableTableModel;
@@ -13,17 +10,17 @@ import cloud_interfaces.CloudException;
 import cloud_interfaces.CloudOperations;
 import cloud_interfaces.CloudTransferCallback;
 import cloud_interfaces.CloudTransferStatus;
+import general.GeneralUtility;
+import ij.io.Opener;
 
-public class DownloadThread extends SwingWorker<Void, Void> implements
-		CloudTransferCallback {
+public class DownloadThread extends SwingWorker<Void, Void> implements CloudTransferCallback {
 	private CloudOperations cloudHandler;
 	private TransferTask task;
 	private UpdatableTableModel model;
 	private int transferId;
 	private String currFile;
 
-	public DownloadThread(TransferTask task, CloudOperations cloudHandler,
-			UpdatableTableModel model, int transferId) {
+	public DownloadThread(TransferTask task, CloudOperations cloudHandler, UpdatableTableModel model, int transferId) {
 		this.cloudHandler = cloudHandler;
 		this.task = task;
 		this.model = model;
@@ -36,8 +33,7 @@ public class DownloadThread extends SwingWorker<Void, Void> implements
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getPropertyName().equals("progress"))
-				model.updateTransferStatus(getTransferId(),
-						(int) evt.getNewValue(), currFile, false);
+				model.updateTransferStatus(getTransferId(), (int) evt.getNewValue(), currFile, false);
 		}
 	}
 
@@ -66,13 +62,13 @@ public class DownloadThread extends SwingWorker<Void, Void> implements
 				cloudHandler.downloadFile(sourcePath, destPath, this);
 			else
 				cloudHandler.downloadFolder(sourcePath, destPath, this);
-			
+
 			// TODO: open file from the progress table
-			//if (isFileDownload)
-			//	openFile(task);
+			// if (isFileDownload)
+			// openFile(task);
 		} catch (CloudException e) {
 			e.printStackTrace();
-			//TODO: DownloadThread should't know about RowData
+			// TODO: DownloadThread should't know about RowData
 			model.getRows().get(transferId).setError(e.getCloudError());
 			model.updateTransferStatus(transferId, 0, "", true);
 		}
@@ -83,8 +79,7 @@ public class DownloadThread extends SwingWorker<Void, Void> implements
 	private void openFile(TransferTask task) {
 		String fileName;
 
-		fileName = GeneralUtility.getLastComponentFromPath(
-				task.getSourcePath(), "/");
+		fileName = GeneralUtility.getLastComponentFromPath(task.getSourcePath(), "/");
 		fileName = GeneralUtility.getSystemSeparator() + fileName;
 		Opener openfile = new Opener();
 		openfile.open(task.getDestinationPath() + fileName);
